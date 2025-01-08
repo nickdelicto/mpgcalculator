@@ -1,0 +1,25 @@
+We can restructure the page to maintain its original layout when ads are not present, while allowing for easy ad insertion later. We'll use CSS classes and conditional rendering to achieve this flexibility. Here's how we can modify the page:
+
+This restructuring accomplishes the following:
+
+1. When `adsEnabled` is `false`, the layout remains as it was originally, with the calculator and content taking up the full width.
+2. When `adsEnabled` is `true`, the layout adjusts to accommodate ads:
+	- The main content area becomes 2/3 width on larger screens.
+	- A sidebar appears on the right for additional ads.
+ 	- Ad slots are inserted at predetermined locations.
+
+
+
+3. The CSS adjusts the container width when ads are enabled to accommodate the sidebar.
+4. Placeholder styles for ad slots are included, which you can remove when inserting actual ad code.
+5. The layout is responsive, collapsing to a single column on smaller screens even when ads are enabled.
+
+
+To implement ads in the future:
+
+1. Set `adsEnabled` to `true`.
+2. Replace the content of each `ad-slot` div with your actual ad code.
+3. Remove the placeholder styles for `.ad-slot` in the CSS.
+
+
+This structure allows you to easily toggle between ad-free and ad-supported layouts without changing the core content or structure of your page. It also ensures that the original layout is preserved when ads are not enabled.
