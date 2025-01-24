@@ -19,7 +19,7 @@ interface Trip {
   costPerUnit: string // Cost per unit of fuel
 }
 
-// Interface for vehicle data from the database
+// Interface for vehicle data from the db
 // Matches the database schema and API response
 interface Vehicle {
   year: number
