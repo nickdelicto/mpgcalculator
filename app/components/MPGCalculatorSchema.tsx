@@ -19,7 +19,7 @@ export default function MPGCalculatorSchema() {
     "browserRequirements": "Requires JavaScript. Requires HTML5.",
     "softwareVersion": "1.0",
     "operatingSystem": "All",
-    "description": "This free MPG Calculator estimates your vehicle\'s fuel economy & cost of a trip based on distance and gas price. Get detailed cost analysis and fuel efficiency metrics.",
+    "description": "This free vehicle MPG Calculator estimates your vehicle\'s fuel economy & cost of a trip based on distance and gas price. Get detailed cost analysis and fuel efficiency metrics.",
     "offers": {
       "@type": "Offer",
       "price": "0",

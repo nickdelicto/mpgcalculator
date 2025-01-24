@@ -73,8 +73,7 @@ export async function GET(request: Request) {
         NULLIF(ghgscorea, -1) as "ghgScoreA"
        FROM vehicles 
        WHERE comb08 BETWEEN $1 AND $2 
-       ORDER BY ABS(comb08 - $3), year DESC 
-       LIMIT 25`,
+       ORDER BY ABS(comb08 - $3), year DESC`,
       [lowerBound, upperBound, mpg]
     )
     
