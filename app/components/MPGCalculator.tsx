@@ -355,149 +355,188 @@ export default function MPGCalculator() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Vehicle Cards */}
-            {currentVehicles.map((vehicle, index) => {
-              console.log(`Rendering vehicle ${index}:`, JSON.stringify(vehicle, null, 2))
-              
-              return (
-                <div key={index} className="p-4 bg-gray-700 rounded-lg flex items-center space-x-4">
-                  {/* Vehicle Icon */}
-                  <div className="flex-shrink-0">
-                    <CarFront className="h-12 w-12 text-blue-400" />
-                  </div>
-                  {/* Vehicle Details */}
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-semibold">
-                      {vehicle.year} {vehicle.make} {vehicle.model}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      {/* Left Column - Fuel Efficiency Information */}
-                      <div>
-                        {/* Primary Fuel (fuelType1) MPG */}
-                        <div>
-                          <p className="text-blue-300 font-semibold flex items-center gap-2">
-                            <Fuel className="h-4 w-4 text-yellow-400" />
-                            Primary Fuel ({vehicle.fuelType1 || 'Not Specified'})
-                          </p>
-                          {vehicle.comb08 && (
-                            <p className="text-gray-300 flex items-center gap-2">
-                              <Gauge className="h-4 w-4 text-blue-400" />
-                              Combined: {vehicle.comb08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                            </p>
-                          )}
-                          {vehicle.city08 && (
-                            <p className="text-gray-300 flex items-center gap-2">
-                              <Gauge className="h-4 w-4 text-green-400" />
-                              City: {vehicle.city08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                            </p>
-                          )}
-                          {vehicle.highway08 && (
-                            <p className="text-gray-300 flex items-center gap-2">
-                              <Gauge className="h-4 w-4 text-red-400" />
-                              Highway: {vehicle.highway08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Alternative Fuel (fuelType2) MPG if available */}
-                        {vehicle.fuelType2 && (vehicle.combA08 || vehicle.cityA08 || vehicle.highwayA08) && (
-                          <div className="mt-2 border-t border-gray-600 pt-2">
-                            <p className="text-blue-300 font-semibold flex items-center gap-2">
-                              <Fuel className="h-4 w-4 text-yellow-400" />
-                              Alternative Fuel ({vehicle.fuelType2})
-                            </p>
-                            {vehicle.combA08 && (
-                              <p className="text-gray-300 flex items-center gap-2">
-                                <Gauge className="h-4 w-4 text-blue-400" />
-                                Combined: {vehicle.combA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                              </p>
-                            )}
-                            {vehicle.cityA08 && (
-                              <p className="text-gray-300 flex items-center gap-2">
-                                <Gauge className="h-4 w-4 text-green-400" />
-                                City: {vehicle.cityA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                              </p>
-                            )}
-                            {vehicle.highwayA08 && (
-                              <p className="text-gray-300 flex items-center gap-2">
-                                <Gauge className="h-4 w-4 text-red-400" />
-                                Highway: {vehicle.highwayA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Plug-in Hybrid MPGe if available */}
-                        {(vehicle.phevComb || vehicle.phevCity || vehicle.phevHwy) && (
-                          <div className="mt-2 border-t border-gray-600 pt-2">
-                            <p className="text-green-300 font-semibold">Hybrid Fuel Mode</p>
-                            {vehicle.phevComb && <p className="text-gray-300">Combined: {vehicle.phevComb} MPGe</p>}
-                            {vehicle.phevCity && <p className="text-gray-300">City: {vehicle.phevCity} MPGe</p>}
-                            {vehicle.phevHwy && <p className="text-gray-300">Highway: {vehicle.phevHwy} MPGe</p>}
-                          </div>
-                        )}
-                      </div>
+            {currentVehicles.map((vehicle, index) => (
+              <div key={index} className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                {/* Vehicle Header */}
+                <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-4 flex items-center gap-3">
+                  <CarFront className="h-6 w-6 text-white" />
+                  <h3 className="text-lg font-semibold text-white">
+                    {vehicle.year} {vehicle.make} {vehicle.model}
+                  </h3>
+                </div>
 
-                      {/* Right Column - Vehicle Specifications */}
-                      <div>
-                        {vehicle.VClass && (
-                          <p className="text-gray-300 flex items-center gap-2">
-                            <Car className="h-4 w-4 text-purple-400" />
-                            Class: {vehicle.VClass}
-                          </p>
-                        )}
-                        {vehicle.trany && (
-                          <p className="text-gray-300 flex items-center gap-2">
-                            <Cog className="h-4 w-4 text-orange-400" />
-                            Transmission: {vehicle.trany}
-                          </p>
-                        )}
-                        {vehicle.drive && (
-                          <p className="text-gray-300 flex items-center gap-2">
-                            <Compass className="h-4 w-4 text-cyan-400" />
-                            Drive: {vehicle.drive}
-                          </p>
-                        )}
-                        {vehicle.displ && (
-                          <p className="text-gray-300 flex items-center gap-2">
-                            <BarChart2 className="h-4 w-4 text-red-400" />
-                            Engine: {vehicle.displ}L
-                          </p>
-                        )}
-                        {vehicle.cylinders && (
-                          <p className="text-gray-300 flex items-center gap-2">
-                            <Circle className="h-4 w-4 text-indigo-400" />
-                            Cylinders: {vehicle.cylinders}
-                          </p>
-                        )}
-                        
-                        {/* Advanced Features */}
-                        <div className="mt-2">
-                          {vehicle.startStop === 'Y' && (
-                            <p className="text-green-400 flex items-center gap-2">
-                              <Battery className="h-4 w-4" />
-                              Start-Stop Technology
-                            </p>
-                          )}
-                          {vehicle.phevBlended && (
-                            <p className="text-green-400 flex items-center gap-2">
-                              <Zap className="h-4 w-4" />
-                              Plug-in Hybrid
-                            </p>
-                          )}
-                          {(vehicle.sCharger === 'Y' || vehicle.tCharger === 'Y') && (
-                            <p className="text-blue-400 flex items-center gap-2">
-                              <Leaf className="h-4 w-4" />
-                              {vehicle.sCharger === 'Y' ? 'Supercharged' : 'Turbocharged'}
-                            </p>
-                          )}
-                        </div>
+                <div className="p-4 space-y-4">
+                  {/* Primary Fuel Economy */}
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h4 className="text-blue-300 font-semibold flex items-center gap-2 mb-3">
+                      <Fuel className="h-4 w-4 text-yellow-400" />
+                      Primary Fuel ({vehicle.fuelType1 || 'Not Specified'})
+                    </h4>
+                    <div className="grid gap-2">
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">Combined</span>
+                        <span className="text-xl text-green-400">
+                          {vehicle.comb08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                        </span>
+                      </div>
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">City</span>
+                        <span className="text-xl text-blue-400">
+                          {vehicle.city08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                        </span>
+                      </div>
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">Highway</span>
+                        <span className="text-xl text-red-400">
+                          {vehicle.highway08} {vehicle.fuelType1 === 'Regular Gasoline' || vehicle.fuelType1 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                        </span>
                       </div>
                     </div>
                   </div>
+
+                  {/* Alternative Fuel */}
+                  {vehicle.fuelType2 && (vehicle.combA08 || vehicle.cityA08 || vehicle.highwayA08) && (
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="text-yellow-300 font-semibold flex items-center gap-2 mb-3">
+                        <Fuel className="h-4 w-4 text-yellow-400" />
+                        Alternative Fuel ({vehicle.fuelType2})
+                      </h4>
+                      <div className="grid gap-2">
+                        {vehicle.combA08 && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">Combined</span>
+                            <span className="text-xl text-green-400">
+                              {vehicle.combA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                            </span>
+                          </div>
+                        )}
+                        {vehicle.cityA08 && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">City</span>
+                            <span className="text-xl text-blue-400">
+                              {vehicle.cityA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                            </span>
+                          </div>
+                        )}
+                        {vehicle.highwayA08 && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">Highway</span>
+                            <span className="text-xl text-red-400">
+                              {vehicle.highwayA08} {vehicle.fuelType2 === 'Regular Gasoline' || vehicle.fuelType2 === 'Premium Gasoline' ? 'MPG' : 'MPGe'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PHEV Mode */}
+                  {(vehicle.phevComb || vehicle.phevCity || vehicle.phevHwy) && (
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="text-green-300 font-semibold flex items-center gap-2 mb-3">
+                        <Fuel className="h-4 w-4 text-green-400" />
+                        Hybrid Fuel Economy
+                      </h4>
+                      <div className="grid gap-2">
+                        {vehicle.phevComb && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">Combined</span>
+                            <span className="text-xl text-green-400">
+                              {vehicle.phevComb} MPGe
+                            </span>
+                          </div>
+                        )}
+                        {vehicle.phevCity && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">City</span>
+                            <span className="text-xl text-blue-400">
+                              {vehicle.phevCity} MPGe
+                            </span>
+                          </div>
+                        )}
+                        {vehicle.phevHwy && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                            <span className="text-gray-300">Highway</span>
+                            <span className="text-xl text-red-400">
+                              {vehicle.phevHwy} MPGe
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Vehicle Specifications */}
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h4 className="text-purple-300 font-semibold mb-3">Vehicle Specifications</h4>
+                    <div className="grid gap-2">
+                      {vehicle.VClass && (
+                        <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                          <span className="text-gray-300">Class</span>
+                          <span className="text-purple-400">{vehicle.VClass}</span>
+                        </div>
+                      )}
+                      {vehicle.trany && (
+                        <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                          <span className="text-gray-300">Transmission</span>
+                          <span className="text-orange-400">{vehicle.trany}</span>
+                        </div>
+                      )}
+                      {vehicle.drive && (
+                        <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                          <span className="text-gray-300">Drive</span>
+                          <span className="text-cyan-400">{vehicle.drive}</span>
+                        </div>
+                      )}
+                      {vehicle.displ && (
+                        <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                          <span className="text-gray-300">Engine</span>
+                          <span className="text-blue-400">{vehicle.displ}L</span>
+                        </div>
+                      )}
+                      {vehicle.cylinders && (
+                        <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                          <span className="text-gray-300">Cylinders</span>
+                          <span className="text-indigo-400">{vehicle.cylinders}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  {(vehicle.startStop === 'Y' || vehicle.sCharger === 'Y' || vehicle.tCharger === 'Y' || vehicle.phevBlended) && (
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="text-green-300 font-semibold flex items-center gap-2 mb-3">
+                        <Zap className="h-4 w-4 text-green-400" />
+                        Features
+                      </h4>
+                      <div className="grid gap-2">
+                        {vehicle.startStop === 'Y' && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center gap-2">
+                            <Battery className="h-4 w-4 text-green-400" />
+                            <span className="text-gray-300">Start-Stop Technology</span>
+                          </div>
+                        )}
+                        {vehicle.phevBlended && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center gap-2">
+                            <Zap className="h-4 w-4 text-green-400" />
+                            <span className="text-gray-300">Plug-in Hybrid</span>
+                          </div>
+                        )}
+                        {(vehicle.sCharger === 'Y' || vehicle.tCharger === 'Y') && (
+                          <div className="bg-gray-700/50 p-3 rounded flex items-center gap-2">
+                            <Leaf className="h-4 w-4 text-blue-400" />
+                            <span className="text-gray-300">
+                              {vehicle.sCharger === 'Y' ? 'Supercharged' : 'Turbocharged'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )
-            })}
+              </div>
+            ))}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
@@ -506,6 +545,7 @@ export default function MPGCalculator() {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   variant="outline"
+                  size="sm"
                   className="text-blue-300 hover:text-blue-500"
                 >
                   Previous
@@ -517,6 +557,7 @@ export default function MPGCalculator() {
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   variant="outline"
+                  size="sm"
                   className="text-blue-300 hover:text-blue-500"
                 >
                   Next
