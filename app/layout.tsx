@@ -22,7 +22,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className={`${inter.className} ${digital.variable} bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex flex-col`}>
+      <body className={`${inter.className} ${digital.variable} bg-gradient-to-br from-gray-700 to-gray-600 min-h-screen flex flex-col`}>
         <Header />
         <main className="flex-grow">
           {children}
