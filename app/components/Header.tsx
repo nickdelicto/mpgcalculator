@@ -18,7 +18,7 @@ export function Header() {
             <MPGLogo className="text-green-200 w-10 h-10 sm:w-12 sm:h-12" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl text-green-300 font-bold">MPG Calculator</span>
-              <span className="text-sm sm:text-base text-gray-200">Online fuel economy calculator</span>
+              <span className="text-sm sm:text-base text-gray-200">Check & compare fuel economy</span>
             </div>
           </Link>
 
