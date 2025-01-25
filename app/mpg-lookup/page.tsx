@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function FuelConsumptionComparison() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-6">
+      <h1 className="text-3xl font-bold text-white mb-6 font-heading">
         Fuel Consumption Lookup by Car Model
       </h1>
       <VehicleLookup />

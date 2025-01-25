@@ -6,11 +6,11 @@ export function Footer() {
   const version = "1.1.0" // This should be updated as the calculator evolves
 
   return (
-    <footer className="bg-gray-900 text-gray-300 py-8 mt-12 font-mono">
+    <footer className="bg-gray-900 text-gray-300 py-8 mt-12 font-heading">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Fine Print</h3>
+            <h3 className="text-lg font-heading font-semibold mb-4">Fine Print</h3>
             <ul className="space-y-2">
               <li><Link href="/terms" className="hover:text-white">Terms of Use</Link></li>
               <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
@@ -19,7 +19,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">Site Map</h3>
+            <h3 className="text-lg font-heading font-semibold mb-4">Site Map</h3>
             <ul className="space-y-2">
               <li><Link href="/" className="hover:text-white">Home</Link></li>
               <li><Link href="/feedback" className="hover:text-white">Feedback</Link></li>
@@ -27,7 +27,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">About</h3>
+            <h3 className="text-lg font-heading font-semibold mb-4">About</h3>
             <p>MPG Calculator provides accurate fuel efficiency calculations to help you make informed decisions about your vehicle's performance.</p>
             <p className="mt-4">Version: {version}</p>
             <p>Last Updated: {new Date().toLocaleDateString()}</p>

@@ -166,7 +166,7 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
   }
 
   return (
-    <div className="space-y-8 font-mono">
+    <div className="space-y-8 font-heading">
       {/* Selection Controls */}
       <div className="space-y-6">
         <div className="grid gap-6">
@@ -270,7 +270,7 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
 
       {/* Results Display */}
       {vehicleDetails.length > 0 && (
-        <Card className="mt-8 bg-gray-700 border-gray-700 font-mono">
+        <Card className="mt-8 bg-gray-700 border-gray-700 font-heading">
           <CardHeader className="bg-gradient-to-r from-blue-800 to-blue-900 border-b border-gray-700">
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl flex items-center gap-3 text-white">
