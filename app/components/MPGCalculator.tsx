@@ -169,7 +169,7 @@ export default function MPGCalculator() {
   return (
     <div className="space-y-6">
       {/* Calculator Card */}
-    <Card className="w-full max-w-2xl bg-gray-800 text-white shadow-xl rounded-xl overflow-hidden font-mono">
+    <Card className="w-full max-w-2xl bg-gray-800 text-white shadow-xl rounded-xl overflow-hidden font-heading">
       <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-6">
         <CardTitle className="text-2xl font-bold text-center">MPG Calculator</CardTitle>
         <CardDescription className="text-gray-200 text-center">Free Fuel Efficiency Calculator with Cost Analysis</CardDescription>

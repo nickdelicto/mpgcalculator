@@ -16,6 +16,10 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-open-sans)'],
+        heading: ['var(--font-nunito)'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

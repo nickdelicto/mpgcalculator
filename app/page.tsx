@@ -21,15 +21,15 @@ export default function Home() {
           <main className={adsEnabled ? 'lg:w-2/3' : 'w-full'}>
             {adsEnabled && <div className="ad-slot mb-8">{ /* Ad code would go here */ }</div>}
             <MPGCalculator />
-            <div className="mt-12 text-white space-y-6">
-              <h2 className="text-3xl font-bold">About the MPG Calculator</h2>
+            <div className="mt-12 text-white space-y-6 font-heading">
+              <h2 className="text-3xl font-bold font-heading">About the MPG Calculator</h2>
               <p>
                 Our MPG (Miles Per Gallon) Calculator is a powerful tool designed to help vehicle owners and enthusiasts accurately measure and analyze their fuel efficiency. Whether you're tracking a single trip or comparing multiple journeys, this calculator provides precise insights into your vehicle's performance.
               </p>
               
               {adsEnabled && <div className="ad-slot my-8">{ /* Ad code would go here */ }</div>}
               
-              <h3 className="text-2xl font-semibold mt-6">How to Use the MPG Calculator</h3>
+              <h3 className="text-2xl font-semibold mt-6 font-heading">How to Use the MPG Calculator</h3>
               <ol className="list-decimal list-inside space-y-2">
                 <li><strong>Choose Your Mode:</strong> Select between Simple and Advanced modes to suit your needs.</li>
                 <li><strong>Enter Trip Details:</strong> Input the distance traveled and fuel used. In Advanced mode, you can add multiple trips and include fuel costs.</li>
@@ -40,7 +40,7 @@ export default function Home() {
 
               {adsEnabled && <div className="ad-slot my-8">{ /* Ad code would go here */ }</div>}
 
-              <h3 className="text-2xl font-semibold mt-6">Why Use Our MPG Calculator?</h3>
+              <h3 className="text-2xl font-semibold mt-6 font-heading">Why Use Our MPG Calculator?</h3>
               <ul className="list-disc list-inside space-y-2">
                 <li><strong>Accuracy:</strong> Our calculator uses precise formulas to ensure reliable results.</li>
                 <li><strong>Flexibility:</strong> Supports both US and metric units for global usability.</li>
@@ -49,7 +49,7 @@ export default function Home() {
                 <li><strong>User-Friendly:</strong> Intuitive interface for easy calculations.</li>
               </ul>
 
-              <h3 className="text-2xl font-semibold mt-6">Understanding MPG</h3>
+              <h3 className="text-2xl font-semibold mt-6 font-heading">Understanding MPG</h3>
               <p>
                 MPG, or Miles Per Gallon, is a measure of how far a vehicle can travel on one gallon of fuel. A higher MPG indicates better fuel efficiency, which can lead to cost savings and reduced environmental impact. Factors affecting MPG include driving habits, vehicle maintenance, road conditions, and vehicle specifications.
               </p>
