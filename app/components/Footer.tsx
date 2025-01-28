@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
-  const version = "1.1.0" // This should be updated as the calculator evolves
+  const version = "1.2.0" // This should be updated as the calculator evolves
 
   return (
     <footer className="bg-gray-900 text-gray-300 py-8 mt-12 font-heading">
