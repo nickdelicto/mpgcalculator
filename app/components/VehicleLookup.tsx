@@ -284,7 +284,7 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
                   variant="outline"
                   size="sm"
                   onClick={() => onVehicleSelect(vehicleDetails[0])}
-                  className="text-blue-300 border-blue-300 hover:bg-blue-300/10"
+                  className="text-blue-600 border-blue-300 hover:bg-orange-600 hover:text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add to Compare
