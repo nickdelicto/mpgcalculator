@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import type { ReadonlyURLSearchParams } from 'next/navigation'
 import VehicleLookup from './VehicleLookup'
 import { Vehicle } from '../types/vehicle'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
@@ -20,16 +21,20 @@ const usesMPGe = (fuelType: string): boolean => {
   return MPGeTypes.includes(fuelType)
 }
 
-export default function VehicleComparison() {
-  // State for selected vehicles
+interface VehicleComparisonProps {
+  searchParams?: ReadonlyURLSearchParams
+}
+
+export default function VehicleComparison({ searchParams }: VehicleComparisonProps) {
   const [selectedVehicles, setSelectedVehicles] = useState<Vehicle[]>([])
   const [shareUrl, setShareUrl] = useState<string>('')
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   // Load vehicles from URL parameters on component mount
   useEffect(() => {
     const loadVehiclesFromUrl = async () => {
+      if (!searchParams) return;
+      
       const vehicles = searchParams.getAll('v')
       if (vehicles.length > 0) {
         // Load each vehicle's details
@@ -116,7 +121,7 @@ export default function VehicleComparison() {
             <Button
               onClick={handleShare}
               variant="outline"
-              className="text-green-600 hover:text-blue-600"
+              className="text-green-500 hover:text-green-800"
             >
               <Share2 className="w-4 h-4 mr-2" />
               Share Comparison

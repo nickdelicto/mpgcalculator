@@ -1,10 +1,20 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import VehicleComparison from '../components/VehicleComparison'
+import SearchParamsWrapper from '../components/SearchParamsWrapper'
 
 export const metadata: Metadata = {
   title: 'Compare Vehicle Fuel Economy | MPG Comparison Tool',
   description: 'Compare fuel efficiency, emissions, and specifications between different vehicles side by side. Find the most efficient vehicle for your needs.',
   keywords: 'Vehicle MPG comparison, fuel economy compare, car comparison tool, vehicle efficiency comparison, fuel consumption comparison',
+}
+
+function LoadingState() {
+  return (
+    <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
+      <p className="text-gray-300">Loading comparison tool...</p>
+    </div>
+  )
 }
 
 export default function FuelEconomyComparePage() {
@@ -16,7 +26,11 @@ export default function FuelEconomyComparePage() {
       <p className="text-gray-300 mb-8 font-sans">
         Select up to three vehicles to compare MPG, side by side.
       </p>
-      <VehicleComparison />
+      <Suspense fallback={<LoadingState />}>
+        <SearchParamsWrapper>
+          <VehicleComparison />
+        </SearchParamsWrapper>
+      </Suspense>
 
       {/* Expert Guide and FAQs */}
       <div className="text-gray-100 p-8 rounded-lg space-y-8 mt-8 font-heading">
