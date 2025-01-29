@@ -63,7 +63,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="w-full text-white hover:text-green-300 hover:bg-gray-900 justify-start">
-                  <Link href="/#">Vehicle MPG Comparison</Link>
+                  <Link href="/fuel-economy-compare">Vehicle MPG Comparison</Link>
                 </Button>
               </li>
               <li>
