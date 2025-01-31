@@ -20,6 +20,8 @@ export async function GET(request: Request) {
   const model = searchParams.get('model')
   const year = searchParams.get('year')
   
+  console.log('API received params:', { make, model, year })
+
   if (!make || !model || !year) {
     return NextResponse.json(
       { error: 'Make, model, and year parameters are required' },
@@ -30,8 +32,8 @@ export async function GET(request: Request) {
   const client = await pool.connect()
   
   try {
-    const { rows } = await client.query(
-      `SELECT 
+    const query = `
+      SELECT 
         year,
         make,
         model,
@@ -69,12 +71,32 @@ export async function GET(request: Request) {
         NULLIF(ghgscore, -1) as "ghgScore",
         NULLIF(ghgscorea, -1) as "ghgScoreA"
        FROM vehicles 
-       WHERE make = $1 
-       AND model = $2 
-       AND year = $3`,
-      [make, model, year]
-    )
+       WHERE LOWER(make) = LOWER($1)
+       AND normalized_model = TRIM(
+         REGEXP_REPLACE(
+           REGEXP_REPLACE(LOWER($2), '[^a-z0-9]', ' ', 'g'),
+           '\\s+', ' ', 'g'
+         )
+       )
+       AND year::text = $3`
+    const values = [make, model, year]
     
+    console.log('Executing query:', {
+      query,
+      values
+    })
+
+    const { rows } = await client.query(query, values)
+    
+    console.log('Query results:', {
+      rowCount: rows.length,
+      firstRow: rows[0] ? { 
+        make: rows[0].make, 
+        model: rows[0].model, 
+        year: rows[0].year 
+      } : null
+    })
+
     return NextResponse.json(rows)
   } catch (error) {
     console.error('Database error:', error)
