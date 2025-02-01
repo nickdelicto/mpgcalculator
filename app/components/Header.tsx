@@ -14,12 +14,8 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         {/* Desktop and Mobile Layout */}
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-3">
-            <MPGLogo className="text-green-200 w-10 h-10 sm:w-12 sm:h-12" />
-            <div className="flex flex-col">
-              <span className="text-lg sm:text-xl text-green-300 font-heading font-bold">MPG Calculator</span>
-              <span className="text-sm sm:text-base text-gray-200 font-nunito">Check & compare fuel economy</span>
-            </div>
+          <Link href="/" className="flex items-center">
+            <MPGLogo />
           </Link>
 
           {/* Mobile Menu Button */}
