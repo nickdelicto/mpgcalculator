@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
 import { Vehicle } from '../../types/vehicle'
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
-import { Fuel, CarFront, Leaf } from 'lucide-react'
+import { Fuel, CarFront, Leaf, Gauge } from 'lucide-react'
 import VehicleComparison from '../../components/VehicleComparison'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
+import Script from 'next/script'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -111,7 +112,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-async function getVehicleData(slug: string): Promise<Vehicle | null> {
+async function getVehicleData(slug: string): Promise<Vehicle[]> {
   // Remove the "-mpg" suffix first
   const slugWithoutSuffix = slug.replace(/-mpg$/, '')
   
@@ -169,10 +170,10 @@ async function getVehicleData(slug: string): Promise<Vehicle | null> {
     const data = await response.json()
     console.log('Response data:', data)
     
-    return data[0] || null
+    return data || []
   } catch (error) {
     console.error('Error fetching vehicle:', error)
-    return null
+    return []
   }
 }
 
@@ -180,7 +181,7 @@ async function getSimilarVehicles(vehicle: Vehicle): Promise<Vehicle[]> {
   try {
     const url = new URL('/api/vehicles/similar-mpg', baseUrl)
     url.search = new URLSearchParams({
-      mpg: vehicle.comb08.toString(),
+      mpg: (vehicle.phevComb || vehicle.comb08).toString(),
       vclass: vehicle.VClass,
       excludeYear: vehicle.year.toString(),
       excludeMake: vehicle.make,
@@ -212,9 +213,9 @@ export default async function VehiclePage({ params }: Props) {
 // Move the main content to a new component
 async function VehicleContent({ params }: Props) {
   const resolvedParams = await params
-  const vehicle = await getVehicleData(resolvedParams.slug)
+  const vehicles = await getVehicleData(resolvedParams.slug)
   
-  if (!vehicle) {
+  if (!vehicles.length) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-white mb-6">Vehicle Not Found</h1>
@@ -223,28 +224,170 @@ async function VehicleContent({ params }: Props) {
     )
   }
 
+  const [vehicle, ...variants] = vehicles
   const similarVehicles = await getSimilarVehicles(vehicle)
   const bestCombinedMPG = getBestCombinedMPG(vehicle)
   const primaryMpgSuffix = usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'
   const phevSuffix = 'MPGe'  // PHEV values are always in MPGe
 
+  // Add this before the VehicleContent component
+  function generateVehicleSchema(vehicle: any, variants: any[]) {
+    // Base vehicle schema
+    const vehicleSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Vehicle',
+      name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+      manufacturer: {
+        '@type': 'Organization',
+        name: vehicle.make
+      },
+      modelDate: vehicle.year,
+      vehicleConfiguration: vehicle.trany,
+      driveWheelConfiguration: vehicle.drive,
+      fuelType: vehicle.fuelType1,
+      fuelEfficiency: {
+        '@type': 'QuantitativeValue',
+        value: vehicle.comb08,
+        unitText: usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'
+      },
+      numberOfForwardGears: vehicle.trany.includes('Speed') ? parseInt(vehicle.trany.split('-')[0]) : undefined,
+      vehicleEngine: {
+        '@type': 'EngineSpecification',
+        engineDisplacement: {
+          '@type': 'QuantitativeValue',
+          value: vehicle.displ,
+          unitText: 'L'
+        },
+        engineType: [
+          vehicle.fuelType1,
+          vehicle.sCharger === 'S' ? 'Supercharged' : '',
+          vehicle.tCharger === 'T' ? 'Turbocharged' : '',
+        ].filter(Boolean).join(' ')
+      }
+    }
+
+    // Product schema
+    const productSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+      description: `${vehicle.year} ${vehicle.make} ${vehicle.model} with ${vehicle.comb08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'} combined fuel economy. Features ${vehicle.displ}L engine and ${vehicle.drive.toLowerCase()} drivetrain.`,
+      brand: {
+        '@type': 'Brand',
+        name: vehicle.make
+      },
+      model: vehicle.model,
+      modelDate: vehicle.year,
+      vehicleConfiguration: vehicle.trany,
+      additionalProperty: [
+        {
+          '@type': 'PropertyValue',
+          name: 'Combined Fuel Economy',
+          value: `${vehicle.comb08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+        },
+        {
+          '@type': 'PropertyValue',
+          name: 'City Fuel Economy',
+          value: `${vehicle.city08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+        },
+        {
+          '@type': 'PropertyValue',
+          name: 'Highway Fuel Economy',
+          value: `${vehicle.highway08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+        }
+      ]
+    }
+
+    // Breadcrumb schema
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          item: {
+            '@id': '/',
+            name: 'Home'
+          }
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          item: {
+            '@id': '/vehicles',
+            name: 'Vehicles'
+          }
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          item: {
+            '@id': `/vehicles/${vehicle.make.toLowerCase()}`,
+            name: vehicle.make
+          }
+        },
+        {
+          '@type': 'ListItem',
+          position: 4,
+          item: {
+            '@id': `/vehicles/${vehicle.make.toLowerCase()}/${vehicle.model.toLowerCase()}`,
+            name: vehicle.model
+          }
+        }
+      ]
+    }
+
+    // WebPage schema
+    const webPageSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: `${vehicle.year} ${vehicle.make} ${vehicle.model} MPG - Fuel Economy Data & Ratings`,
+      description: `Get official ${vehicle.year} ${vehicle.make} ${vehicle.model} MPG ratings. View detailed city, highway, and combined fuel economy data and compare with similar vehicles.`,
+      breadcrumb: breadcrumbSchema,
+      mainEntity: vehicleSchema
+    }
+
+    return [vehicleSchema, productSchema, breadcrumbSchema, webPageSchema]
+  }
+
+  // Add this inside the VehicleContent component, just before the return statement
+  const schemas = generateVehicleSchema(vehicle, variants)
+
   return (
+    <>
+      <Script id="vehicle-schema" type="application/ld+json">
+        {JSON.stringify(schemas)}
+      </Script>
       <div className="container mx-auto px-4 py-8 font-heading">
-        {/* Page Title */}
-        <h1 className="text-3xl font-bold text-white mb-6">
-          {vehicle.year} {vehicle.make} {vehicle.model} MPG & Fuel Economy Data
-        </h1>
+        {/* Enhanced Hero Section */}
+        <div className="relative mb-12 bg-gradient-to-br from-blue-500/40 to-blue-500/25 rounded-xl p-8 overflow-hidden">
+          {/* Decorative Car Silhouette */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-10">
+            <CarFront className="h-48 w-48 text-blue-400" />
+          </div>
+          
+          {/* Title and Subtitle - Maintaining h1 for SEO */}
+          <div className="relative z-10 max-w-3xl">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
+              {vehicle.year} {vehicle.make} {vehicle.model}
+              <span className="block text-2xl sm:text-3xl text-blue-400 mt-2">
+                MPG & Fuel Economy Data
+              </span>
+            </h1>
+          </div>
+        </div>
 
         {/* Quick Summary */}
-        <Card className="bg-gray-800 border-gray-700 mb-8">
+        <Card className="bg-blue-900/50 border-blue-800/30 mb-8">
           <CardHeader>
             <CardTitle className="text-xl text-white flex items-center gap-2">
-              <CarFront className="h-6 w-6 text-blue-400" />
+              <Gauge className="h-6 w-6 text-blue-400" />
               Quick Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-200">
+            <p className="text-blue-100">
               The {vehicle.year} {vehicle.make} {vehicle.model} has an estimated {bestCombinedMPG} {vehicle.phevComb ? phevSuffix : primaryMpgSuffix} combined.&nbsp;
               {vehicle.phevComb ? (
                 `This ${vehicle.fuelType1.toLowerCase()}/${vehicle.fuelType2?.toLowerCase() || ''}-powered hybrid vehicle offers ${vehicle.phevCity || vehicle.city08} ${phevSuffix} in the city and ${vehicle.phevHwy || vehicle.highway08} ${phevSuffix} on the highway.`
@@ -268,19 +411,19 @@ async function VehicleContent({ params }: Props) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
-                <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="bg-gray-600/50 p-4 rounded-lg">
                   <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
                     <span className="text-gray-300 text-sm">Combined</span>
                     {vehicle.comb08} {primaryMpgSuffix}
                   </p>
                 </div>
-                <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="bg-gray-600/50 p-4 rounded-lg">
                   <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
                     <span className="text-gray-300 text-sm">City</span>
                     {vehicle.city08} {primaryMpgSuffix}
                   </p>
                 </div>
-                <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="bg-gray-600/50 p-4 rounded-lg">
                   <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
                     <span className="text-gray-300 text-sm">Highway</span>
                     {vehicle.highway08} {primaryMpgSuffix}
@@ -292,34 +435,34 @@ async function VehicleContent({ params }: Props) {
 
           {/* Environmental Impact - Only show if data exists */}
           {(vehicle.co2 !== null || vehicle.ghgScore !== null) && (
-            <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-xl text-white flex items-center gap-2">
-                  <Leaf className="h-6 w-6 text-green-400" />
-                  Environmental Impact
-                </CardTitle>
-              </CardHeader>
+              <CardTitle className="text-xl text-white flex items-center gap-2">
+                <Leaf className="h-6 w-6 text-green-400" />
+                Environmental Impact
+              </CardTitle>
+            </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  {vehicle.co2 !== null && (
-                    <div className="bg-gray-700/50 p-4 rounded-lg">
-                      <p className="text-2xl font-mono text-orange-400 flex items-center justify-between">
-                        <span className="text-gray-300 text-sm">CO₂ Emissions</span>
-                        {vehicle.co2} g/mi
-                      </p>
-                    </div>
-                  )}
-                  {vehicle.ghgScore !== null && (
-                    <div className="bg-gray-700/50 p-4 rounded-lg">
-                      <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
-                        <span className="text-gray-300 text-sm">GHG Score</span>
-                        {vehicle.ghgScore}/10
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              <div className="grid gap-4">
+                {vehicle.co2 !== null && (
+                  <div className="bg-gray-600/50 p-4 rounded-lg">
+                    <p className="text-2xl font-mono text-orange-400 flex items-center justify-between">
+                      <span className="text-gray-300 text-sm">CO₂ Emissions</span>
+                      {vehicle.co2} g/mi
+                    </p>
+                  </div>
+                )}
+                {vehicle.ghgScore !== null && (
+                  <div className="bg-gray-600/50 p-4 rounded-lg">
+                    <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                      <span className="text-gray-300 text-sm">GHG Score</span>
+                      {vehicle.ghgScore}/10
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
           )}
         </div>
 
@@ -337,23 +480,23 @@ async function VehicleContent({ params }: Props) {
                 <div className="space-y-4">
                   <div className="grid gap-4">
                     {vehicle.combA08 && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">Combined</span>
                           {vehicle.combA08} {usesMPGe(vehicle.fuelType2) ? 'MPGe' : 'MPG'}
-                        </p>
-                      </div>
+              </p>
+            </div>
                     )}
                     {vehicle.cityA08 && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">City</span>
                           {vehicle.cityA08} {usesMPGe(vehicle.fuelType2) ? 'MPGe' : 'MPG'}
                         </p>
-                      </div>
+          </div>
                     )}
                     {vehicle.highwayA08 && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">Highway</span>
                           {vehicle.highwayA08} {usesMPGe(vehicle.fuelType2) ? 'MPGe' : 'MPG'}
@@ -373,7 +516,7 @@ async function VehicleContent({ params }: Props) {
                     </CardHeader>
                     <div className="grid gap-4">
                       {vehicle.co2A !== null && (
-                        <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="bg-gray-600/50 p-4 rounded-lg">
                           <p className="text-xl font-mono text-orange-400 flex items-center justify-between">
                             <span className="text-gray-300 text-sm">CO₂ Emissions</span>
                             {vehicle.co2A} g/mi
@@ -381,7 +524,7 @@ async function VehicleContent({ params }: Props) {
                         </div>
                       )}
                       {vehicle.ghgScoreA !== null && (
-                        <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="bg-gray-600/50 p-4 rounded-lg">
                           <p className="text-xl font-mono text-green-400 flex items-center justify-between">
                             <span className="text-gray-300 text-sm">GHG Score</span>
                             {vehicle.ghgScoreA}/10
@@ -413,7 +556,7 @@ async function VehicleContent({ params }: Props) {
                   </p>
                   <div className="grid gap-4">
                     {vehicle.phevComb && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">Combined</span>
                           {vehicle.phevComb} {phevSuffix}
@@ -421,7 +564,7 @@ async function VehicleContent({ params }: Props) {
                       </div>
                     )}
                     {vehicle.phevCity && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">City</span>
                           {vehicle.phevCity} {phevSuffix}
@@ -429,7 +572,7 @@ async function VehicleContent({ params }: Props) {
                       </div>
                     )}
                     {vehicle.phevHwy && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
                           <span className="text-gray-300 text-sm">Highway</span>
                           {vehicle.phevHwy} {phevSuffix}
@@ -441,22 +584,22 @@ async function VehicleContent({ params }: Props) {
                 <div className="space-y-4">
                   <h4 className="text-sm font-semibold text-emerald-300">PHEV Features</h4>
                   <div className="grid gap-4">
-                    <div className="bg-gray-700/50 p-4 rounded-lg">
+                    <div className="bg-gray-600/50 p-4 rounded-lg">
                       <p className="text-gray-300">
-                        <span className="font-semibold">Blended Operation:</span>{' '}
+                        <span className="font-bold">Charge-Depleting Operation:</span>{' '}
                         {vehicle.phevBlended ? 
-                          'This PHEV can blend electric and gas power for optimal efficiency.' :
-                          'This PHEV operates in distinct electric and gas modes.'}
+                          'This PHEV uses both electricity and gasoline while the battery charge is being depleted.' :
+                          'This PHEV uses only electricity until the battery is depleted, then switches to gasoline.'}
                       </p>
                     </div>
-                    {vehicle.startStop === 'Y' && (
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                    {/* {vehicle.startStop === 'Y' && (
+                      <div className="bg-gray-600/50 p-4 rounded-lg">
                         <p className="text-gray-300">
                           <span className="font-semibold">Start-Stop Technology:</span>{' '}
                           Equipped with start-stop technology to reduce idle fuel consumption.
                         </p>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -470,45 +613,45 @@ async function VehicleContent({ params }: Props) {
           {(vehicle.co2 !== null || vehicle.ghgScore !== null || vehicle.co2A !== null || vehicle.ghgScoreA !== null) && (
             <section>
               <h2 className="text-2xl font-bold text-white mb-6">
-                Environmental Performance
-              </h2>
+              Environmental Performance
+            </h2>
               <div className="prose prose-invert max-w-none text-gray-300 space-y-4">
-                {vehicle.ghgScore && (
-                  <p>
-                    With a Greenhouse Gas Score of {vehicle.ghgScore}/10, the {vehicle.year} {vehicle.make} {vehicle.model} {
-                      vehicle.ghgScore >= 7 ? 'demonstrates excellent' :
-                      vehicle.ghgScore >= 5 ? 'shows average' :
-                      'has below average'
-                    } environmental performance in its class. {
-                      vehicle.ghgScore >= 7 ? 'This high score indicates a significant reduction in greenhouse gas emissions compared to other vehicles.' :
-                      vehicle.ghgScore >= 5 ? 'This score suggests typical greenhouse gas emissions for vehicles in this category.' : (
-                      <>
-                        If you prefer more environmentally friendly alternatives,{' '}
-                        <a href="#compare" className="text-blue-400 hover:text-blue-300 transition-colors">
-                          compare this vehicle's fuel economy
-                        </a>
-                        {' '}with others in this class.
-                      </>
-                    )}
-                  </p>
-                )}
-                {vehicle.co2 && (
-                  <p>
-                    The vehicle produces approximately {vehicle.co2} grams of CO₂ per mile under typical driving conditions.
-                    {vehicle.co2 < 250 ? ' This is a relatively low carbon footprint for its class.' :
-                     vehicle.co2 < 350 ? ' This represents average carbon emissions for its vehicle type.' :
-                     ' Consider more fuel-efficient alternatives if environmental impact is a priority.'}
-                  </p>
-                )}
-              </div>
-            </section>
+              {vehicle.ghgScore && (
+                <p>
+                  With a Greenhouse Gas Score of {vehicle.ghgScore}/10, the {vehicle.year} {vehicle.make} {vehicle.model} {
+                    vehicle.ghgScore >= 7 ? 'demonstrates excellent' :
+                    vehicle.ghgScore >= 5 ? 'shows average' :
+                    'has below average'
+                  } environmental performance in its class. {
+                    vehicle.ghgScore >= 7 ? 'This high score indicates a significant reduction in greenhouse gas emissions compared to other vehicles.' :
+                    vehicle.ghgScore >= 5 ? 'This score suggests typical greenhouse gas emissions for vehicles in this category.' : (
+                    <>
+                      If you prefer more environmentally friendly alternatives,{' '}
+                      <a href="#compare" className="text-blue-400 hover:text-blue-300 transition-colors">
+                        compare this vehicle's fuel economy
+                      </a>
+                      {' '}with others in this class.
+                    </>
+                  )}
+                </p>
+              )}
+              {vehicle.co2 && (
+                <p>
+                  The vehicle produces approximately {vehicle.co2} grams of CO₂ per mile under typical driving conditions.
+                  {vehicle.co2 < 250 ? ' This is a relatively low carbon footprint for its class.' :
+                   vehicle.co2 < 350 ? ' This represents average carbon emissions for its vehicle type.' :
+                   ' Consider more fuel-efficient alternatives if environmental impact is a priority.'}
+                </p>
+              )}
+            </div>
+        </section>
           )}
 
           {/* Technical Specifications - always show */}
           <section>
             <h2 className="text-2xl font-bold text-white mb-6">
               Technical Specifications
-            </h2>
+          </h2>
             <div className="prose prose-invert max-w-none text-gray-300">
               <p>
                 This {vehicle.VClass.toLowerCase()} features a {vehicle.displ}L {
@@ -516,9 +659,9 @@ async function VehicleContent({ params }: Props) {
                 } engine, paired with a {vehicle.trany.toLowerCase()} transmission and {vehicle.drive.toLowerCase()} drivetrain.
                 {vehicle.startStop === 'Y' && ' It includes start-stop technology to improve fuel efficiency in city driving conditions.'}
                 {vehicle.sCharger === 'S' && ' The engine is supercharged for enhanced performance.'}
-                {vehicle.tCharger === 'T' && ' The turbocharged engine provides improved power and efficiency.'}
-              </p>
-            </div>
+                {vehicle.tCharger === 'T' && ' Plus it has a turbocharged engine for improved power and efficiency.'}
+                          </p>
+                        </div>
           </section>
 
           {/* Fuel Economy Tips - always show */}
@@ -529,7 +672,7 @@ async function VehicleContent({ params }: Props) {
             <div className="prose prose-invert max-w-none text-gray-300">
               <p>
                 To achieve the best fuel economy in your {vehicle.year} {vehicle.make} {vehicle.model}, consider these tips:
-              </p>
+                      </p>
               <ul className="list-disc pl-6 mt-4 space-y-2">
                 <li>Maintain steady speeds and avoid rapid acceleration</li>
                 <li>Keep tires properly inflated to manufacturer specifications</li>
@@ -542,14 +685,289 @@ async function VehicleContent({ params }: Props) {
                   <li>Charge the battery regularly to maximize electric-only operation</li>
                 )}
               </ul>
-            </div>
-          </section>
+          </div>
+        </section>
 
           {/* Comparison Tool */}
           <section id="compare">
             <h2 className="text-2xl font-bold text-white mb-6">Compare MPG with Other Vehicles</h2>
             <VehicleComparison />
           </section>
+
+          {/* Vehicle Variants Section */}
+          {variants.length > 0 && variants.map((variant, index) => {
+              const differentiator = getVariantDifferentiator(vehicle, variant)
+              if (!differentiator) return null
+
+              const variantMpgSuffix = usesMPGe(variant.fuelType1) ? 'MPGe' : 'MPG'
+              const variantPhevSuffix = 'MPGe'
+
+              return (
+                <section key={index} className="border-t border-gray-700 pt-12 space-y-12">
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    {variant.year} {variant.make} {variant.model} - {differentiator}
+                  </h2>
+
+                  {/* Quick Summary */}
+                  <Card className="bg-blue-900/50 border-blue-800/30 mb-8">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-white flex items-center gap-2">
+                        <CarFront className="h-6 w-6 text-blue-400" />
+                        Quick Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-blue-100">
+                        The {variant.year} {variant.make} {variant.model} with {differentiator.toLowerCase()} has an estimated {variant.phevComb || variant.comb08} {variant.phevComb ? variantPhevSuffix : variantMpgSuffix} combined.&nbsp;
+                        {variant.phevComb ? (
+                          `This ${differentiator.toLowerCase()} ${variant.fuelType1.toLowerCase()}/${variant.fuelType2?.toLowerCase() || ''}-powered hybrid vehicle offers ${variant.phevCity || variant.city08} ${variantPhevSuffix} in the city and ${variant.phevHwy || variant.highway08} ${variantPhevSuffix} on the highway.`
+                        ) : (
+                          `This ${differentiator.toLowerCase()} ${variant.fuelType1.toLowerCase()}-powered vehicle offers ${variant.city08} ${variantMpgSuffix} in the city and ${variant.highway08} ${variantMpgSuffix} on the highway.`
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Variant MPG Data */}
+                  <div className="grid md:grid-cols-2 gap-8 mb-12">
+                    {/* Primary Fuel Economy */}
+                    <Card className={`bg-gray-800 border-gray-700 ${variant.co2 === null && variant.ghgScore === null ? 'md:col-span-2' : ''}`}>
+                      <CardHeader>
+                        <CardTitle className="text-xl text-white flex items-center gap-2">
+                          <Fuel className="h-6 w-6 text-yellow-400" />
+                          {variant.fuelType1} Fuel Economy
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4">
+                          <div className="bg-gray-600/50 p-4 rounded-lg">
+                            <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                              <span className="text-gray-300 text-sm">Combined</span>
+                              {variant.comb08} {usesMPGe(variant.fuelType1) ? 'MPGe' : 'MPG'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-600/50 p-4 rounded-lg">
+                            <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
+                              <span className="text-gray-300 text-sm">City</span>
+                              {variant.city08} {usesMPGe(variant.fuelType1) ? 'MPGe' : 'MPG'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-600/50 p-4 rounded-lg">
+                            <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
+                              <span className="text-gray-300 text-sm">Highway</span>
+                              {variant.highway08} {usesMPGe(variant.fuelType1) ? 'MPGe' : 'MPG'}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Environmental Impact - Only show if data exists */}
+                    {(variant.co2 !== null || variant.ghgScore !== null) && (
+                      <Card className="bg-gray-800 border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-white flex items-center gap-2">
+                            <Leaf className="h-6 w-6 text-green-400" />
+                            Environmental Impact
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid gap-4">
+                            {variant.co2 !== null && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-orange-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">CO₂ Emissions</span>
+                                  {variant.co2} g/mi
+                                </p>
+                              </div>
+                            )}
+                            {variant.ghgScore !== null && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">GHG Score</span>
+                                  {variant.ghgScore}/10
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Alternative Fuel Economy - Only show if available */}
+                  {variant.fuelType2 && (
+                    <div className="grid md:grid-cols-2 gap-8 mb-12">
+                      <Card className="bg-gray-800 border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-white flex items-center gap-2">
+                            <Fuel className="h-6 w-6 text-yellow-400" />
+                            {variant.fuelType2} Fuel Economy
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid gap-4">
+                            {variant.combA08 && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">Combined</span>
+                                  {variant.combA08} {usesMPGe(variant.fuelType2) ? 'MPGe' : 'MPG'}
+                                </p>
+                              </div>
+                            )}
+                            {variant.cityA08 && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">City</span>
+                                  {variant.cityA08} {usesMPGe(variant.fuelType2) ? 'MPGe' : 'MPG'}
+                                </p>
+                              </div>
+                            )}
+                            {variant.highwayA08 && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">Highway</span>
+                                  {variant.highwayA08} {usesMPGe(variant.fuelType2) ? 'MPGe' : 'MPG'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Environmental Impact for Alternative Fuel - Only show if data exists */}
+                      {(variant.co2A !== null || variant.ghgScoreA !== null) && (
+                        <Card className="bg-gray-800 border-gray-700">
+                          <CardHeader>
+                            <CardTitle className="text-xl text-white flex items-center gap-2">
+                              <Leaf className="h-6 w-6 text-green-400" />
+                              Environmental Impact ({variant.fuelType2})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid gap-4">
+                              {variant.co2A !== null && (
+                                <div className="bg-gray-600/50 p-4 rounded-lg">
+                                  <p className="text-2xl font-mono text-orange-400 flex items-center justify-between">
+                                    <span className="text-gray-300 text-sm">CO₂ Emissions</span>
+                                    {variant.co2A} g/mi
+                                  </p>
+                                </div>
+                              )}
+                              {variant.ghgScoreA !== null && (
+                                <div className="bg-gray-600/50 p-4 rounded-lg">
+                                  <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                                    <span className="text-gray-300 text-sm">GHG Score</span>
+                                    {variant.ghgScoreA}/10
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  )}
+
+                  {/* PHEV Mode - Only show if available */}
+                  {(variant.phevCity || variant.phevHwy || variant.phevComb) && (
+                    <div className="mb-12">
+                      <Card className="bg-gray-800 border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-white flex items-center gap-2">
+                            <Fuel className="h-6 w-6 text-green-400" />
+                            Hybrid Mode Fuel Economy
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid gap-4">
+                            {variant.phevComb && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-green-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">Combined</span>
+                                  {variant.phevComb} MPGe
+                                </p>
+                              </div>
+                            )}
+                            {variant.phevCity && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-blue-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">City</span>
+                                  {variant.phevCity} MPGe
+                                </p>
+                              </div>
+                            )}
+                            {variant.phevHwy && (
+                              <div className="bg-gray-600/50 p-4 rounded-lg">
+                                <p className="text-2xl font-mono text-red-400 flex items-center justify-between">
+                                  <span className="text-gray-300 text-sm">Highway</span>
+                                  {variant.phevHwy} MPGe
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
+                  {/* Environmental Performance - Only show if data exists */}
+                  {(variant.co2 !== null || variant.ghgScore !== null || variant.co2A !== null || variant.ghgScoreA !== null) && (
+                    <section className="space-y-6">
+                      <h3 className="text-xl font-bold text-white mb-6">
+                        Environmental Performance
+                      </h3>
+                      <div className="prose prose-invert max-w-none text-gray-300 space-y-4">
+                        {/* Primary Fuel Environmental Info */}
+                        {(variant.co2 !== null || variant.ghgScore !== null) && (
+                          <p>
+                            When using {variant.fuelType1.toLowerCase()}, the {variant.year} {variant.make} {variant.model} with {differentiator.toLowerCase()} has a carbon footprint of {variant.co2} grams of CO₂ per mile.
+                            {variant.ghgScore && ` Its Greenhouse Gas Score of ${variant.ghgScore}/10 indicates its relative environmental impact, with higher scores representing lower emissions.`}
+                          </p>
+                        )}
+
+                        {/* Alternative Fuel Environmental Info */}
+                        {(variant.co2A !== null || variant.ghgScoreA !== null) && (
+                          <p>
+                            When running on {variant.fuelType2?.toLowerCase()}, it produces {variant.co2A} grams of CO₂ per mile
+                            {variant.ghgScoreA && ` and achieves a Greenhouse Gas Score of ${variant.ghgScoreA}/10`}.
+                          </p>
+                        )}
+
+                        {/* General Environmental Info */}
+                        {((variant.co2 !== null && variant.ghgScore !== null) || (variant.co2A !== null && variant.ghgScoreA !== null)) && (
+                          <p>
+                            These environmental metrics reflect the vehicle's efficiency in {differentiator.toLowerCase()} configuration. The CO₂ emissions measurement provides a direct indicator of the vehicle's contribution to greenhouse gases, while the GHG score offers a standardized comparison with other vehicles in its class.
+                          </p>
+                        )}
+                        {variant.startStop === 'Y' && (
+                          <p>
+                            This variant includes start-stop technology, which can help reduce emissions and fuel consumption during city driving by automatically shutting off the engine when the vehicle is stationary.
+                          </p>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Technical Specifications */}
+                  <section className="space-y-6">
+                    <h3 className="text-xl font-bold text-white mb-6">
+                      Technical Specifications
+                    </h3>
+                    <div className="prose prose-invert max-w-none text-gray-300">
+                      <p>
+                        This {variant.VClass.toLowerCase()} with {differentiator.toLowerCase()} features a {variant.displ}L {
+                          variant.cylinders ? `${variant.cylinders}-cylinder` : ''
+                        } engine and {variant.drive.toLowerCase()} drivetrain.
+                        {variant.startStop === 'Y' && ' It includes start-stop technology to improve fuel efficiency in city driving conditions.'}
+                        {variant.sCharger === 'S' && ' The engine is supercharged for enhanced performance.'}
+                        {variant.tCharger === 'T' && ' And it has a turbocharged engine for improved power and efficiency.'}
+                      </p>
+                    </div>
+                  </section>
+                </section>
+              )
+            })}
 
           {/* Similar Vehicles Section - if exists */}
           {similarVehicles.length > 0 && (
@@ -596,9 +1014,18 @@ async function VehicleContent({ params }: Props) {
               <p className="text-gray-400 text-sm">
                 These vehicles are in the same class ({vehicle.VClass}) and offer comparable fuel economy ratings.
               </p>
-            </section>
-          )}
+          </section>
+        )}
         </div>
       </div>
+    </>
   )
+}
+
+// Add helper to get variant differentiator
+function getVariantDifferentiator(mainVehicle: Vehicle, variant: Vehicle): string {
+  if (mainVehicle.trany !== variant.trany) {
+    return variant.trany.replace('Automatic', 'Auto').replace('Manual', 'Manual')
+  }
+  return ''
 }
