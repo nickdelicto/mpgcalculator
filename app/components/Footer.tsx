@@ -31,8 +31,8 @@ export function Footer() {
             <p>MPG Calculator provides accurate fuel efficiency calculations to help you make informed decisions about your vehicle's performance.</p>
             <p className="mt-4">Version: {version}</p>
             <p>Last Updated: {new Date().toLocaleDateString()}</p>
+            </div>
           </div>
-        </div>
         <div className="mt-8 pt-8 border-t border-gray-800 text-center">
           <p>&copy; {currentYear} MPG Calculator. All rights reserved.</p>
           <p className="mt-2">Calculation methodology based on standard MPG formulas.</p>
