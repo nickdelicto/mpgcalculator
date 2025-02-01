@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui
 import { Fuel, CarFront, Leaf } from 'lucide-react'
 import VehicleComparison from '../../components/VehicleComparison'
 import Link from 'next/link'
+import { Suspense } from 'react'
+import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -196,8 +198,19 @@ async function getSimilarVehicles(vehicle: Vehicle): Promise<Vehicle[]> {
   }
 }
 
+// Set revalidation time to 30 days
+export const revalidate = 2592000 // 30 days in seconds
+
 export default async function VehiclePage({ params }: Props) {
-  // Await params before accessing
+  return (
+    <Suspense fallback={<VehiclePageSkeleton />}>
+      <VehicleContent params={params} />
+    </Suspense>
+  )
+}
+
+// Move the main content to a new component
+async function VehicleContent({ params }: Props) {
   const resolvedParams = await params
   const vehicle = await getVehicleData(resolvedParams.slug)
   
@@ -588,4 +601,4 @@ export default async function VehiclePage({ params }: Props) {
         </div>
       </div>
   )
-} 
+}
