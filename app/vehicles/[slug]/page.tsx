@@ -230,8 +230,33 @@ async function VehicleContent({ params }: Props) {
   const primaryMpgSuffix = usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'
   const phevSuffix = 'MPGe'  // PHEV values are always in MPGe
 
-  // Add this before the VehicleContent component
-  function generateVehicleSchema(vehicle: any, variants: any[]) {
+  // Add this before generateVehicleSchema function
+  async function getVehicleClassCount(vclass: string): Promise<number> {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/vehicles/class-count?vclass=${encodeURIComponent(vclass)}`,
+        { cache: 'no-store' }
+      )
+      if (!response.ok) throw new Error('Failed to fetch class count')
+      const data = await response.json()
+      return data.count
+    } catch (error) {
+      console.error('Error getting vehicle class count:', error)
+      return 0
+    }
+  }
+
+  // Modify the generateVehicleSchema function
+  async function generateVehicleSchema(vehicle: any, variants: any[]) {
+    // Get best combined MPG/MPGe
+    const bestCombined = getBestCombinedMPG(vehicle)
+    
+    // Get class MPG stats and rating using best combined value
+    const mpgStats = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/vehicles/class-mpg-stats?vclass=${encodeURIComponent(vehicle.VClass)}&mpg=${bestCombined}`,
+      { cache: 'no-store' }
+    ).then(res => res.json())
+
     // Base vehicle schema
     const vehicleSchema = {
       '@context': 'https://schema.org',
@@ -271,7 +296,7 @@ async function VehicleContent({ params }: Props) {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-      description: `${vehicle.year} ${vehicle.make} ${vehicle.model} with ${vehicle.comb08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'} combined fuel economy. Features ${vehicle.displ}L engine and ${vehicle.drive.toLowerCase()} drivetrain.`,
+      description: `${vehicle.year} ${vehicle.make} ${vehicle.model} with ${bestCombined} ${usesMPGe(vehicle.fuelType1) || vehicle.phevComb ? 'MPGe' : 'MPG'} combined fuel economy. Features ${vehicle.displ}L engine and ${vehicle.drive.toLowerCase()} drivetrain.`,
       brand: {
         '@type': 'Brand',
         name: vehicle.make
@@ -279,80 +304,42 @@ async function VehicleContent({ params }: Props) {
       model: vehicle.model,
       modelDate: vehicle.year,
       vehicleConfiguration: vehicle.trany,
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: (mpgStats.rating || 3.0).toString(),
+        bestRating: '5',
+        worstRating: '1',
+        ratingCount: mpgStats.total_vehicles,
+        reviewCount: mpgStats.total_vehicles,
+        description: `Rating based on combined fuel economy of ${bestCombined} ${usesMPGe(vehicle.fuelType1) || vehicle.phevComb ? 'MPGe' : 'MPG'} compared to other vehicles in the ${vehicle.VClass} class (range: ${mpgStats.min_mpg}-${mpgStats.max_mpg} ${usesMPGe(vehicle.fuelType1) || vehicle.phevComb ? 'MPGe' : 'MPG'}, average: ${mpgStats.avg_mpg} ${usesMPGe(vehicle.fuelType1) || vehicle.phevComb ? 'MPGe' : 'MPG'}). A higher rating indicates better fuel efficiency.`
+      },
       additionalProperty: [
         {
           '@type': 'PropertyValue',
           name: 'Combined Fuel Economy',
-          value: `${vehicle.comb08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+          value: `${bestCombined} ${usesMPGe(vehicle.fuelType1) || vehicle.phevComb ? 'MPGe' : 'MPG'}`
         },
         {
           '@type': 'PropertyValue',
           name: 'City Fuel Economy',
-          value: `${vehicle.city08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+          value: `${vehicle.phevCity || vehicle.city08} ${usesMPGe(vehicle.fuelType1) || vehicle.phevCity ? 'MPGe' : 'MPG'}`
         },
         {
           '@type': 'PropertyValue',
           name: 'Highway Fuel Economy',
-          value: `${vehicle.highway08} ${usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'}`
+          value: `${vehicle.phevHwy || vehicle.highway08} ${usesMPGe(vehicle.fuelType1) || vehicle.phevHwy ? 'MPGe' : 'MPG'}`
         }
       ]
     }
 
-    // Breadcrumb schema
-    const breadcrumbSchema = {
+    return {
       '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          item: {
-            '@id': '/',
-            name: 'Home'
-          }
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          item: {
-            '@id': '/vehicles',
-            name: 'Vehicles'
-          }
-        },
-        {
-          '@type': 'ListItem',
-          position: 3,
-          item: {
-            '@id': `/vehicles/${vehicle.make.toLowerCase()}`,
-            name: vehicle.make
-          }
-        },
-        {
-          '@type': 'ListItem',
-          position: 4,
-          item: {
-            '@id': `/vehicles/${vehicle.make.toLowerCase()}/${vehicle.model.toLowerCase()}`,
-            name: vehicle.model
-          }
-        }
-      ]
+      '@graph': [vehicleSchema, productSchema]
     }
-
-    // WebPage schema
-    const webPageSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      name: `${vehicle.year} ${vehicle.make} ${vehicle.model} MPG - Fuel Economy Data & Ratings`,
-      description: `Get official ${vehicle.year} ${vehicle.make} ${vehicle.model} MPG ratings. View detailed city, highway, and combined fuel economy data and compare with similar vehicles.`,
-      breadcrumb: breadcrumbSchema,
-      mainEntity: vehicleSchema
-    }
-
-    return [vehicleSchema, productSchema, breadcrumbSchema, webPageSchema]
   }
 
-  // Add this inside the VehicleContent component, just before the return statement
-  const schemas = generateVehicleSchema(vehicle, variants)
+  // Generate schemas with proper async handling
+  const schemas = await generateVehicleSchema(vehicle, variants)
 
   return (
     <>
