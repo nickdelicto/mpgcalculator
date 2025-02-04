@@ -1,8 +1,9 @@
 import { Metadata } from 'next'
 import { Vehicle } from '../../types/vehicle'
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
-import { Fuel, CarFront, Leaf, Gauge } from 'lucide-react'
+import { Fuel, CarFront, Leaf, Gauge, LineChart } from 'lucide-react'
 import VehicleComparison from '../../components/VehicleComparison'
+import VehicleTimeline from '../../components/VehicleTimeline'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
@@ -125,10 +126,15 @@ async function getVehicleData(slug: string): Promise<Vehicle[]> {
   
   // Try to match special makes first (case-insensitive)
   for (let i = 1; i <= parts.length; i++) {
-    const possibleMake = parts.slice(0, i).join('-').toLowerCase()
-    if (SPECIAL_MAKES.has(possibleMake)) {
-      // Use the original casing from the URL for the make
-      make = parts.slice(0, i).join('-')
+    // Try both space-separated and hyphen-separated formats
+    const possibleMakeWithSpace = parts.slice(0, i).join(' ').toLowerCase()
+    const possibleMakeWithHyphen = parts.slice(0, i).join('-').toLowerCase()
+    
+    if (SPECIAL_MAKES.has(possibleMakeWithSpace) || SPECIAL_MAKES.has(possibleMakeWithHyphen)) {
+      // Use the format that matched (prefer space if both match)
+      make = SPECIAL_MAKES.has(possibleMakeWithSpace) 
+        ? parts.slice(0, i).join(' ')
+        : parts.slice(0, i).join('-')
       modelParts = parts.slice(i)
       break
     }
@@ -675,6 +681,27 @@ async function VehicleContent({ params }: Props) {
           </div>
         </section>
 
+        {/* Base Model Timeline */}
+        <Card className="bg-gray-800 border-gray-700 mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl text-white flex items-center gap-2">
+              <LineChart className="h-6 w-6 text-blue-400" />
+              {vehicle.make} {vehicle.model} {vehicle.trany.toLowerCase()} Historical Fuel Efficiency
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VehicleTimeline 
+              make={vehicle.make} 
+              model={vehicle.model} 
+              drive={vehicle.drive}
+              fuelType1={vehicle.fuelType1}
+              fuelType2={vehicle.fuelType2}
+              transmission={vehicle.trany}
+              displacement={vehicle.displ?.toString()}
+            />
+          </CardContent> 
+        </Card>
+
           {/* Comparison Tool */}
           <section id="compare">
             <h2 className="text-2xl font-bold text-white mb-6">Compare MPG with Other Vehicles</h2>
@@ -695,6 +722,7 @@ async function VehicleContent({ params }: Props) {
                     {variant.year} {variant.make} {variant.model} - {differentiator}
                   </h2>
 
+
                   {/* Quick Summary */}
                   <Card className="bg-blue-900/50 border-blue-800/30 mb-8">
                     <CardHeader>
@@ -714,6 +742,7 @@ async function VehicleContent({ params }: Props) {
                       </p>
                     </CardContent>
                   </Card>
+
 
                   {/* Variant MPG Data */}
                   <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -952,6 +981,29 @@ async function VehicleContent({ params }: Props) {
                       </p>
                     </div>
                   </section>
+
+
+                  {/* Variant Timeline */}
+                  <Card className="bg-gray-800 border-gray-700 mb-8">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-white flex items-center gap-2">
+                        <LineChart className="h-6 w-6 text-blue-400" />
+                        {variant.make} {variant.model} {differentiator.toLowerCase()} Historical Fuel Efficiency
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <VehicleTimeline 
+                        make={variant.make} 
+                        model={variant.model} 
+                        drive={variant.drive}
+                        fuelType1={variant.fuelType1}
+                        fuelType2={variant.fuelType2}
+                        transmission={variant.trany}
+                        displacement={variant.displ?.toString()}
+                      />
+                    </CardContent>  
+                  </Card>
+
                 </section>
               )
             })}
