@@ -31,7 +31,7 @@ export function Header() {
             <ul className="flex space-x-4 font-sans">
               <li>
                 <Button asChild variant="ghost" className="text-white hover:text-green-300 hover:bg-gray-900">
-                  <Link href="/mpg-lookup">Vehicle MPG Lookup</Link>
+                  <Link href="/vehicles">Vehicle MPG Lookup</Link>
                 </Button>
               </li>
               <li>
@@ -54,7 +54,7 @@ export function Header() {
             <ul className="flex flex-col space-y-2 font-heading">
               <li>
                 <Button asChild variant="ghost" className="w-full text-white hover:text-green-300 hover:bg-gray-900 justify-start">
-                  <Link href="/mpg-lookup">Vehicle MPG Lookup</Link>
+                  <Link href="/vehicles">Vehicle MPG Lookup</Link>
                 </Button>
               </li>
               <li>

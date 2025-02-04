@@ -5,7 +5,8 @@ import { CarFront, Gauge, Leaf, Info } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Vehicle MPG Directory | Search Fuel Economy Data',
-  description: 'Search and find detailed MPG ratings, fuel economy data, and environmental impact information for any vehicle make and model.',
+  description: 'Lookup fuel consumption and MPG by car model. Find and compare fuel efficiency for various vehicle models.',
+  keywords: 'fuel consumption comparison, fuel consumption calculator by car model, vehicle MPG lookup, car fuel efficiency, gas mileage calculator by make and model,',
 }
 
 export default function VehiclesPage() {
