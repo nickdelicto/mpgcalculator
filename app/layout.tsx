@@ -48,7 +48,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body className={`${openSans.variable} ${nunito.variable} font-sans bg-gradient-to-br from-gray-700 to-gray-600 min-h-screen flex flex-col`}>
+      <body className={`${openSans.variable} ${nunito.variable} font-sans text-gray-900 bg-gradient-to-br from-neutral-100 to-neutral-200 min-h-screen flex flex-col`}>
         <Header />
         <main className="flex-grow">
           {children}
