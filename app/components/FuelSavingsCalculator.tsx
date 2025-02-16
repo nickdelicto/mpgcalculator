@@ -3,8 +3,8 @@
 import React from 'react'
 import { JSX } from 'react'
 import { useState, useEffect } from 'react'
-import { Vehicle } from '../types/vehicle'
-import VehicleLookup from './VehicleLookup'
+import { Vehicle, Make } from '../types/vehicle'
+import FuelSavingsVehicleLookup from './FuelSavingsVehicleLookup'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Label } from "../../components/ui/label"
 import { Input } from "../../components/ui/input"
@@ -241,6 +241,28 @@ const calculateEfficiency = (params: {
 }
 
 export default function FuelSavingsCalculator() {
+  // Add makes state at the top level
+  const [makes, setMakes] = useState<Make[]>([])
+  const [isLoadingMakes, setIsLoadingMakes] = useState(true)
+
+  // Fetch makes once when component mounts
+  useEffect(() => {
+    const fetchMakes = async () => {
+      try {
+        const response = await fetch('/api/vehicles/makes')
+        if (!response.ok) throw new Error('Failed to fetch makes')
+        const data = await response.json()
+        setMakes(data)
+      } catch (error) {
+        console.error('Error fetching makes:', error)
+      } finally {
+        setIsLoadingMakes(false)
+      }
+    }
+
+    fetchMakes()
+  }, [])
+
   // Initialize state
   const [calculatorState, setCalculatorState] = useState<CalculatorState>({
     // Shared driving pattern settings
@@ -465,10 +487,9 @@ export default function FuelSavingsCalculator() {
           </div>
         )}
 
-        <VehicleLookup 
+        <FuelSavingsVehicleLookup 
           onVehicleSelect={onVehicleSelect}
-          showAddComparison={false}
-          searchButtonText={`${vehicle ? 'Change' : 'Select'} Vehicle ${vehicleNumber}`}
+          makes={makes}
           customResultDisplay={(vehicle: Vehicle) => (
             <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
               {/* Vehicle Header */}
