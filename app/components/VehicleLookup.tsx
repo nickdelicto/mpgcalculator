@@ -1,5 +1,7 @@
+/// <reference types="react" />
 'use client'
 
+import React, { JSX } from 'react'
 import { useState, useEffect } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Button } from "../../components/ui/button"
@@ -48,13 +50,19 @@ interface Year {
   year: number
 }
 
-// Add prop for handling vehicle selection
-interface VehicleLookupProps {
-  onVehicleSelect?: (vehicle: Vehicle) => void;
-  showAddComparison?: boolean;
+export interface VehicleLookupProps {
+  onVehicleSelect: (vehicle: Vehicle) => void
+  showAddComparison?: boolean
+  customResultDisplay?: (vehicle: Vehicle) => JSX.Element
+  searchButtonText?: string
 }
 
-export default function VehicleLookup({ onVehicleSelect, showAddComparison = false }: VehicleLookupProps) {
+export default function VehicleLookup({ 
+  onVehicleSelect,
+  showAddComparison = true,
+  customResultDisplay,
+  searchButtonText = 'View Vehicle Details'
+}: VehicleLookupProps) {
   const [makes, setMakes] = useState<Make[]>([])
   const [models, setModels] = useState<Model[]>([])
   const [selectedMake, setSelectedMake] = useState<string>('')
@@ -270,6 +278,9 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
 
       {/* Results Display */}
       {vehicleDetails.length > 0 && (
+        customResultDisplay ? (
+          customResultDisplay(vehicleDetails[0])
+        ) : (
         <Card className="mt-8 bg-gray-700 border-gray-700 font-heading">
           <CardHeader className="bg-gradient-to-r from-blue-800 to-blue-900 border-b border-gray-700">
             <div className="flex justify-between items-center">
@@ -284,10 +295,10 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
                   variant="outline"
                   size="sm"
                   onClick={() => onVehicleSelect(vehicleDetails[0])}
-                  className="text-blue-600 border-blue-300 hover:bg-orange-600 hover:text-white"
+                  className="text-blue-600 border-blue-300 hover:bg-blue-600 hover:text-white"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add to Compare
+                  <CarFront className="h-4 w-4 mr-2" />
+                  View Details
                 </Button>
               )}
             </div>
@@ -508,6 +519,7 @@ export default function VehicleLookup({ onVehicleSelect, showAddComparison = fal
             </div>
           </CardContent>
         </Card>
+        )
       )}
     </div>
   )

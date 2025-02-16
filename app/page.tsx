@@ -21,7 +21,7 @@ export default function Home() {
           <main className={adsEnabled ? 'lg:w-2/3' : 'w-full'}>
             {adsEnabled && <div className="ad-slot mb-8">{ /* Ad code would go here */ }</div>}
             <MPGCalculator />
-            <div className="mt-12 text-white space-y-6 font-heading">
+            <div className="mt-12 text-gray-900 space-y-6 font-heading">
               <h2 className="text-3xl font-bold font-heading">About the MPG Calculator</h2>
               <p>
                 Our MPG (Miles Per Gallon) Calculator is a powerful tool designed to help vehicle owners and enthusiasts accurately measure and analyze their fuel efficiency. Whether you're tracking a single trip or comparing multiple journeys, this calculator provides precise insights into your vehicle's performance.

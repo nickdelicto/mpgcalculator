@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import VehicleLookup from '../components/VehicleLookup'
+import VehicleLookupWrapper from '../components/VehicleLookupWrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { CarFront, Gauge, Leaf, Info } from 'lucide-react'
 
@@ -37,7 +37,7 @@ export default function VehiclesPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <VehicleLookup />
+          <VehicleLookupWrapper />
         </CardContent>
       </Card>
 
