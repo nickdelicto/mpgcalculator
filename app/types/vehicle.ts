@@ -26,4 +26,16 @@ export interface Vehicle {
   co2A: number | null
   ghgScore: number | null
   ghgScoreA: number | null
+}
+
+export interface Make {
+  make: string
+}
+
+export interface Model {
+  model: string
+}
+
+export interface Year {
+  year: number
 } 
