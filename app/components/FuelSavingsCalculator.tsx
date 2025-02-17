@@ -10,7 +10,7 @@ import { Label } from "../../components/ui/label"
 import { Input } from "../../components/ui/input"
 import { Switch } from "../../components/ui/switch"
 import { Slider } from "../../components/ui/slider"
-import { Fuel, Info, CarFront, ChevronDown, ChevronUp, Gauge } from 'lucide-react'
+import { Fuel, Info, CarFront, ChevronDown, ChevronUp, Gauge, Zap } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -640,7 +640,7 @@ export default function FuelSavingsCalculator() {
     return (
       <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
         <div className="flex items-center justify-between">
-          <Label className="text-gray-300 font-semibold">Specify City/Highway Split</Label>
+          <Label className="text-gray-300 font-semibold">Specify Your City vs Highway Driving?</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -657,7 +657,7 @@ export default function FuelSavingsCalculator() {
         </div>
 
         <div className="flex items-center justify-between">
-          <Label htmlFor="custom-split" className="text-white">Use Custom Split</Label>
+          <Label htmlFor="custom-split" className="text-white">Toggle to Adjust Driving Percentage</Label>
           <Switch
             id="custom-split"
             checked={calculatorState.useCustomSplit}
@@ -807,27 +807,32 @@ export default function FuelSavingsCalculator() {
     const fuelCost = isSecondaryFuel ? vehicle.fuelCost2 : vehicle.fuelCost
 
     return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} className="text-gray-300 flex items-center gap-2">
-            <Fuel className="h-4 w-4" />
-            {fuelInfo.label} ({fuelInfo.unit})
+      <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
+                      transition-all duration-300 hover:border-blue-500/20">
+        <div className="flex items-center justify-between">
+          <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
+                 className="text-white/90 flex items-center gap-2">
+            <Fuel className="h-4 w-4 text-blue-400" />
+            <span>{fuelInfo.label}</span>
+            <span className="text-gray-400 text-sm">({fuelInfo.unit})</span>
           </Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400" />
+                <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-gray-800 border-gray-700">
                 <div className="space-y-2 max-w-xs">
-                  <p className="text-sm">{fuelInfo.explanation}</p>
-                  <p className="text-xs text-blue-400">Default value: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType)]}/{fuelInfo.unit.split('/')[1]}</p>
+                  <p className="text-sm text-gray-300">{fuelInfo.explanation}</p>
+                  <p className="text-xs text-blue-400">
+                    Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType)]}/{fuelInfo.unit.split('/')[1]}
+                  </p>
                 </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="relative">
+        <div className="relative mt-2">
           <Input
             id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
             type="number"
@@ -835,7 +840,9 @@ export default function FuelSavingsCalculator() {
             min="0"
             value={fuelCost}
             onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
-            className="bg-gray-800 border-gray-600 text-white pl-6"
+            className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
+                      focus:border-blue-500/50 focus:ring-blue-500/20
+                      transition-all duration-300"
           />
           <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
         </div>
@@ -880,160 +887,220 @@ export default function FuelSavingsCalculator() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Vehicle Selection Section */}
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Vehicle 1 Selection */}
-        <Card className="bg-gray-800 border-gray-700 relative overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-white">Vehicle 1</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="manual-input-1" className="text-white">Manual Input</Label>
-                <Switch
-                  id="manual-input-1"
-                  checked={calculatorState.vehicle1.isManualInput}
-                  onCheckedChange={(checked) => handleManualToggle(checked, 1)}
-                />
-              </div>
-              
-              {calculatorState.vehicle1.isManualInput ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="vehicle1-name" className="text-white">Vehicle Name</Label>
-                    <Input
-                      id="vehicle1-name"
-                      value={calculatorState.vehicle1.manual?.name || ''}
-                      onChange={(e) => handleManualVehicleUpdate(1, 'name', e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter vehicle name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicle1-mpg" className="text-white">MPG/MPGe</Label>
-                    <Input
-                      id="vehicle1-mpg"
-                      type="number"
-                      value={calculatorState.vehicle1.manual?.mpg || ''}
-                      onChange={(e) => handleManualVehicleUpdate(1, 'mpg', e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter MPG/MPGe"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicle1-iselectric" className="text-white">Electric Vehicle</Label>
-                    <Switch
-                      id="vehicle1-iselectric"
-                      checked={calculatorState.vehicle1.manual?.isElectric || false}
-                      onCheckedChange={(checked) => handleManualVehicleUpdate(1, 'isElectric', checked)}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <FuelComparisonVehicleLookup
-                  onVehicleSelect={(vehicle) => handleVehicleSelect(vehicle, 1)}
-                  vehicleNumber={1}
-                />
-              )}
-
-              {/* Fuel Cost Inputs */}
-              {(calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual) && (
-                <div className="mt-4 space-y-4">
-                  {renderFuelCostInput(1, calculatorState.vehicle1.fromDb?.fuelType1 || 'Gasoline')}
-                  {calculatorState.vehicle1.fromDb?.fuelType2 && (
-                    <>
-                      {renderFuelCostInput(1, calculatorState.vehicle1.fromDb.fuelType2, true)}
-                      {renderFuelSplitSlider(1)}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Vehicle 2 Selection */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Vehicle 2</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="manual-input-2" className="text-white">Manual Input</Label>
-                <Switch
-                  id="manual-input-2"
-                  checked={calculatorState.vehicle2.isManualInput}
-                  onCheckedChange={(checked) => handleManualToggle(checked, 2)}
-                />
-              </div>
-              
-              {calculatorState.vehicle2.isManualInput ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="vehicle2-name" className="text-white">Vehicle Name</Label>
-                    <Input
-                      id="vehicle2-name"
-                      value={calculatorState.vehicle2.manual?.name || ''}
-                      onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter vehicle name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicle2-mpg" className="text-white">MPG/MPGe</Label>
-                    <Input
-                      id="vehicle2-mpg"
-                      type="number"
-                      value={calculatorState.vehicle2.manual?.mpg || ''}
-                      onChange={(e) => handleManualVehicleUpdate(2, 'mpg', e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter MPG/MPGe"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicle2-iselectric" className="text-white">Electric Vehicle</Label>
-                    <Switch
-                      id="vehicle2-iselectric"
-                      checked={calculatorState.vehicle2.manual?.isElectric || false}
-                      onCheckedChange={(checked) => handleManualVehicleUpdate(2, 'isElectric', checked)}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <FuelComparisonVehicleLookup
-                  onVehicleSelect={(vehicle) => handleVehicleSelect(vehicle, 2)}
-                  vehicleNumber={2}
-                />
-              )}
-
-              {/* Fuel Cost Inputs */}
-              {(calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual) && (
-                <div className="mt-4 space-y-4">
-                  {renderFuelCostInput(2, calculatorState.vehicle2.fromDb?.fuelType1 || 'Gasoline')}
-                  {calculatorState.vehicle2.fromDb?.fuelType2 && (
-                    <>
-                      {renderFuelCostInput(2, calculatorState.vehicle2.fromDb.fuelType2, true)}
-                      {renderFuelSplitSlider(2)}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-8 relative min-h-screen">
+      {/* Sophisticated background with patterns */}
+      <div className="absolute inset-0 bg-[#111827] bg-gradient-to-br from-gray-900/50 to-gray-800/50">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
+      
+      {/* Decorative orbs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-[#1E3A8A] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob" />
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-[#047857] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-[#D97706] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000" />
+      
+      {/* Content wrapper with glass effect */}
+      <div className="relative z-10 space-y-8">
+        {/* Vehicle Selection Section */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Vehicle 1 Selection */}
+          <Card className="backdrop-blur-md bg-purple-400/20 border border-white/10
+                          shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
+                          hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.5)]
+                          transition-all duration-500">
+            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                  from-[#1E3A8A]/10 to-transparent">
+              <CardTitle className="text-white/90 font-heading">Vehicle 1</CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              {/* Glass card inner glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+              
+              {/* Rest of the Vehicle 1 content */}
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="manual-input-1" className="text-white">Toggle for Manual Input</Label>
+                  <Switch
+                    id="manual-input-1"
+                    checked={calculatorState.vehicle1.isManualInput}
+                    onCheckedChange={(checked) => handleManualToggle(checked, 1)}
+                  />
+                </div>
+                
+                {calculatorState.vehicle1.isManualInput ? (
+                  <div className="space-y-4 bg-gray-900/40 p-4 rounded-lg border border-gray-700/50">
+                    <div className="space-y-3">
+                      <div className="group">
+                        <Label htmlFor="vehicle1-name" className="text-white/90 inline-flex items-center space-x-2">
+                          <CarFront className="h-4 w-4 text-blue-400" />
+                          <span>Vehicle Name</span>
+                        </Label>
+                        <Input
+                          id="vehicle1-name"
+                          value={calculatorState.vehicle1.manual?.name || ''}
+                          onChange={(e) => handleManualVehicleUpdate(1, 'name', e.target.value)}
+                          className="mt-1.5 bg-gray-800/50 border-gray-600/50 text-white/90 
+                                    focus:border-blue-500/50 focus:ring-blue-500/20 
+                                    transition-all duration-300"
+                          placeholder="Enter vehicle name"
+                        />
+                      </div>
+                      <div className="group">
+                        <Label htmlFor="vehicle1-mpg" className="text-white/90 inline-flex items-center space-x-2">
+                          <Gauge className="h-4 w-4 text-blue-400" />
+                          <span>MPG/MPGe</span>
+                        </Label>
+                        <Input
+                          id="vehicle1-mpg"
+                          type="number"
+                          value={calculatorState.vehicle1.manual?.mpg || ''}
+                          onChange={(e) => handleManualVehicleUpdate(1, 'mpg', e.target.value)}
+                          className="mt-1.5 bg-gray-800/50 border-gray-600/50 text-white/90 
+                                    focus:border-blue-500/50 focus:ring-blue-500/20 
+                                    transition-all duration-300"
+                          placeholder="Enter MPG/MPGe"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded-lg
+                                      border border-gray-700/50">
+                        <Label htmlFor="vehicle1-iselectric" 
+                               className="text-white/90 inline-flex items-center space-x-2">
+                          <Zap className="h-4 w-4 text-yellow-400" />
+                          <span>Electric Vehicle</span>
+                        </Label>
+                        <Switch
+                          id="vehicle1-iselectric"
+                          checked={calculatorState.vehicle1.manual?.isElectric || false}
+                          onCheckedChange={(checked) => handleManualVehicleUpdate(1, 'isElectric', checked)}
+                          className="data-[state=checked]:bg-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <FuelComparisonVehicleLookup
+                    onVehicleSelect={(vehicle) => handleVehicleSelect(vehicle, 1)}
+                    vehicleNumber={1}
+                  />
+                )}
 
-      {/* Driving Pattern Section */}
-      {(calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual ||
-        calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual) && (
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Gauge className="h-5 w-5" />
-              Driving Pattern
+                {/* Fuel Cost Inputs */}
+                {(calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual) && (
+                  <div className="mt-6 space-y-4 bg-red-900/20 p-4 rounded-lg border border-gray-700/50">
+                    <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
+                      <Fuel className="h-5 w-5 text-blue-400" />
+                      Fuel Costs
+                    </h3>
+                    <div className="space-y-4">
+                      {renderFuelCostInput(1, calculatorState.vehicle1.fromDb?.fuelType1 || 'Gasoline')}
+                      {calculatorState.vehicle1.fromDb?.fuelType2 && (
+                        <>
+                          <div className="border-t border-gray-700/50 my-4" />
+                          {renderFuelCostInput(1, calculatorState.vehicle1.fromDb.fuelType2, true)}
+                          {renderFuelSplitSlider(1)}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vehicle 2 Selection - Mirror the same styling */}
+          <Card className="backdrop-blur-md bg-purple-400/20 border border-white/10
+                          shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
+                          hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.5)]
+                          transition-all duration-500">
+            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                  from-[#1E3A8A]/10 to-transparent">
+              <CardTitle className="text-white/90 font-heading">Vehicle 2</CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              {/* Glass card inner glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+              
+              {/* Rest of the Vehicle 2 content */}
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="manual-input-2" className="text-white">Toggle for Manual Input</Label>
+                  <Switch
+                    id="manual-input-2"
+                    checked={calculatorState.vehicle2.isManualInput}
+                    onCheckedChange={(checked) => handleManualToggle(checked, 2)}
+                  />
+                </div>
+                
+                {calculatorState.vehicle2.isManualInput ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="vehicle2-name" className="text-white">Vehicle Name</Label>
+                      <Input
+                        id="vehicle2-name"
+                        value={calculatorState.vehicle2.manual?.name || ''}
+                        onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
+                        className="bg-gray-700 border-gray-600 text-white"
+                        placeholder="Enter vehicle name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="vehicle2-mpg" className="text-white">MPG/MPGe</Label>
+                      <Input
+                        id="vehicle2-mpg"
+                        type="number"
+                        value={calculatorState.vehicle2.manual?.mpg || ''}
+                        onChange={(e) => handleManualVehicleUpdate(2, 'mpg', e.target.value)}
+                        className="bg-gray-700 border-gray-600 text-white"
+                        placeholder="Enter MPG/MPGe"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="vehicle2-iselectric" className="text-white">Electric Vehicle</Label>
+                      <Switch
+                        id="vehicle2-iselectric"
+                        checked={calculatorState.vehicle2.manual?.isElectric || false}
+                        onCheckedChange={(checked) => handleManualVehicleUpdate(2, 'isElectric', checked)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <FuelComparisonVehicleLookup
+                    onVehicleSelect={(vehicle) => handleVehicleSelect(vehicle, 2)}
+                    vehicleNumber={2}
+                  />
+                )}
+
+                {/* Fuel Cost Inputs */}
+                {(calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual) && (
+                  <div className="mt-6 space-y-4 bg-red-900/20 p-4 rounded-lg border border-gray-700/50">
+                    <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
+                      <Fuel className="h-5 w-5 text-blue-400" />
+                      Fuel Costs
+                    </h3>
+                    <div className="space-y-4">
+                      {renderFuelCostInput(2, calculatorState.vehicle2.fromDb?.fuelType1 || 'Gasoline')}
+                      {calculatorState.vehicle2.fromDb?.fuelType2 && (
+                        <>
+                          <div className="border-t border-gray-700/50 my-4" />
+                          {renderFuelCostInput(2, calculatorState.vehicle2.fromDb.fuelType2, true)}
+                          {renderFuelSplitSlider(2)}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Driving Pattern Section */}
+        <Card className="backdrop-blur-md bg-gray-700/30 border border-white/10
+                        shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+          <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                from-[#1E3A8A]/10 to-transparent">
+            <CardTitle className="text-white/90 font-heading flex items-center gap-2">
+              <Gauge className="h-5 w-5 text-[#047857]" />
+              Your Driving Pattern
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1041,7 +1108,7 @@ export default function FuelSavingsCalculator() {
               {/* Mileage Input */}
               <div className="space-y-4">
                 {/* Mileage Input Type Selection */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-2 bg-yellow-500 p-4 rounded-lg border border-gray-700/50">
                   {(['annual', 'monthly', 'weekly', 'daily'] as const).map((period) => (
                     <Button
                       key={period}
@@ -1118,231 +1185,240 @@ export default function FuelSavingsCalculator() {
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Calculate Button */}
-      {((calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual) &&
-        (calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual)) && (
-        <div className="flex justify-center">
-          <Button
-            onClick={calculateSavings}
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
-          >
-            Calculate Savings
-          </Button>
-        </div>
-      )}
-
-      {/* Results Section */}
-      {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Fuel Cost Comparison</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Vehicle 1 Costs */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">
-                  {calculatorState.vehicle1.fromDb ? 
-                    `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
-                    calculatorState.vehicle1.manual?.name}
-                </h3>
-                <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Weekly Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.weekly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Monthly Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.monthly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Annual Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.annual.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">3-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.threeYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">5-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.fiveYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">10-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle1.tenYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vehicle 2 Costs */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">
-                  {calculatorState.vehicle2.fromDb ? 
-                    `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
-                    calculatorState.vehicle2.manual?.name}
-                </h3>
-                <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Weekly Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.weekly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Monthly Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.monthly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Annual Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.annual.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">3-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.threeYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">5-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.fiveYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">10-Year Fuel Cost:</span>
-                    <span className="text-green-400">${costs.vehicle2.tenYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                  </div>
-                </div>
-              </div>
+        {/* Calculate Button */}
+        {((calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual) &&
+          (calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual)) && (
+            <div className="flex justify-center">
+              <Button
+                onClick={calculateSavings}
+                className="bg-gradient-to-r from-[#047857] to-[#047857]/80
+                          hover:from-[#047857]/90 hover:to-[#047857]/70
+                          text-white px-8 py-4 text-lg
+                          shadow-lg hover:shadow-[#047857]/20
+                          transition-all duration-300
+                          backdrop-blur-sm"
+              >
+                Calculate Savings
+              </Button>
             </div>
+          )}
 
-            {/* Cost Comparison Graph */}
-            <div className="mt-8 bg-gray-900/50 p-6 rounded-lg border border-gray-700">
-              <h3 className="text-xl font-semibold text-white mb-6">Cost Comparison Over Time</h3>
-              <div className="h-[400px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={prepareChartData({ vehicle1: costs.vehicle1, vehicle2: costs.vehicle2 })}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis 
-                      dataKey="period" 
-                      stroke="#9CA3AF"
-                      tick={{ fill: '#9CA3AF' }}
-                    />
-                    <YAxis 
-                      stroke="#9CA3AF"
-                      tick={{ fill: '#9CA3AF' }}
-                      tickFormatter={(value) => `$${value.toLocaleString()}`}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length > 1) {
-                          const value1 = (payload[0] as any).value;
-                          const value2 = (payload[1] as any).value;
-                          return (
-                            <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
-                              <p className="text-gray-300 mb-2">{label}</p>
-                              <p className="text-blue-400">
-                                Vehicle 1: ${value1.toLocaleString(undefined, {maximumFractionDigits: 2})}
-                              </p>
-                              <p className="text-green-400">
-                                Vehicle 2: ${value2.toLocaleString(undefined, {maximumFractionDigits: 2})}
-                              </p>
-                            </div>
-                          )
-                        }
-                        return null
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ 
-                        paddingTop: '20px',
-                        color: '#9CA3AF'
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="vehicle1"
-                      name={calculatorState.vehicle1.fromDb ? 
-                        `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
-                        calculatorState.vehicle1.manual?.name || 'Vehicle 1'}
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="vehicle2"
-                      name={calculatorState.vehicle2.fromDb ? 
-                        `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
-                        calculatorState.vehicle2.manual?.name || 'Vehicle 2'}
-                      stroke="#10B981"
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+        {/* Results Section */}
+        {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
+          <Card className="backdrop-blur-md bg-white/[0.02] border border-white/10
+                          shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                  from-[#1E3A8A]/10 to-transparent">
+              <CardTitle className="text-white/90 font-heading">
+                Fuel Cost Comparison
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Vehicle 1 Costs */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">
+                    {calculatorState.vehicle1.fromDb ? 
+                      `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                      calculatorState.vehicle1.manual?.name}
+                  </h3>
+                  <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Weekly Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.weekly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Monthly Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.monthly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Annual Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.annual.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">3-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.threeYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">5-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.fiveYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">10-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle1.tenYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Savings Summary */}
-            <div className="mt-8 p-6 bg-blue-900/30 rounded-lg border border-blue-800">
-              <h3 className="text-xl font-semibold text-white mb-4">Potential Savings</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Weekly Savings:</span>
-                    <span className={costs.savings.weekly >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.weekly).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Monthly Savings:</span>
-                    <span className={costs.savings.monthly >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.monthly).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Annual Savings:</span>
-                    <span className={costs.savings.annual >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.annual).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">3-Year Savings:</span>
-                    <span className={costs.savings.threeYear >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.threeYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">5-Year Savings:</span>
-                    <span className={costs.savings.fiveYear >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.fiveYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">10-Year Savings:</span>
-                    <span className={costs.savings.tenYear >= 0 ? "text-green-400" : "text-red-400"}>
-                      ${Math.abs(costs.savings.tenYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
+                {/* Vehicle 2 Costs */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">
+                    {calculatorState.vehicle2.fromDb ? 
+                      `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                      calculatorState.vehicle2.manual?.name}
+                  </h3>
+                  <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Weekly Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.weekly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Monthly Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.monthly.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Annual Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.annual.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">3-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.threeYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">5-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.fiveYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">10-Year Fuel Cost:</span>
+                      <span className="text-green-400">${costs.vehicle2.tenYear.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 text-sm text-blue-100">
-                {costs.savings.annual >= 0 ? (
-                  <p>Vehicle 2 could save you money on fuel costs compared to Vehicle 1.</p>
-                ) : (
-                  <p>Vehicle 1 could save you money on fuel costs compared to Vehicle 2.</p>
-                )}
+
+              {/* Cost Comparison Graph */}
+              <div className="mt-8 bg-gray-900/50 p-6 rounded-lg border border-gray-700">
+                <h3 className="text-xl font-semibold text-white mb-6">Cost Comparison Over Time</h3>
+                <div className="h-[400px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={prepareChartData({ vehicle1: costs.vehicle1, vehicle2: costs.vehicle2 })}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis 
+                        dataKey="period" 
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#9CA3AF' }}
+                      />
+                      <YAxis 
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#9CA3AF' }}
+                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      />
+                      <RechartsTooltip
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length > 1) {
+                            const value1 = (payload[0] as any).value;
+                            const value2 = (payload[1] as any).value;
+                            return (
+                              <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
+                                <p className="text-gray-300 mb-2">{label}</p>
+                                <p className="text-blue-400">
+                                  Vehicle 1: ${value1.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                </p>
+                                <p className="text-green-400">
+                                  Vehicle 2: ${value2.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                </p>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ 
+                          paddingTop: '20px',
+                          color: '#9CA3AF'
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="vehicle1"
+                        name={calculatorState.vehicle1.fromDb ? 
+                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'}
+                        stroke="#3B82F6"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="vehicle2"
+                        name={calculatorState.vehicle2.fromDb ? 
+                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'}
+                        stroke="#10B981"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
+              {/* Savings Summary */}
+              <div className="mt-8 p-6 bg-blue-900/30 rounded-lg border border-blue-800">
+                <h3 className="text-xl font-semibold text-white mb-4">Potential Savings</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Weekly Savings:</span>
+                      <span className={costs.savings.weekly >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.weekly).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Monthly Savings:</span>
+                      <span className={costs.savings.monthly >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.monthly).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Annual Savings:</span>
+                      <span className={costs.savings.annual >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.annual).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">3-Year Savings:</span>
+                      <span className={costs.savings.threeYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.threeYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">5-Year Savings:</span>
+                      <span className={costs.savings.fiveYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.fiveYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">10-Year Savings:</span>
+                      <span className={costs.savings.tenYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.tenYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-sm text-blue-100">
+                  {costs.savings.annual >= 0 ? (
+                    <p>Vehicle 2 could save you money on fuel costs compared to Vehicle 1.</p>
+                  ) : (
+                    <p>Vehicle 1 could save you money on fuel costs compared to Vehicle 2.</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 } 
