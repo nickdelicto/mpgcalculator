@@ -29,7 +29,7 @@ export default function FuelSavingsPage() {
       </div>
 
       {/* Calculator Card */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-gray-700">
         <CardHeader className="border-b border-gray-700">
           <CardTitle className="text-white flex items-center gap-2 text-2xl">
             <DollarSign className="h-6 w-6 text-green-400" />

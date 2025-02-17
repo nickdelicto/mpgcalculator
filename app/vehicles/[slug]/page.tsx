@@ -354,7 +354,7 @@ async function VehicleContent({ params }: Props) {
       </Script>
       <div className="container mx-auto px-4 py-8 font-heading">
         {/* Enhanced Hero Section */}
-        <div className="relative mb-12 bg-gradient-to-br from-blue-500/40 to-blue-500/25 rounded-xl p-8 overflow-hidden">
+        <div className="relative mb-12 bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-8 overflow-hidden">
           {/* Decorative Car Silhouette */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-10">
             <CarFront className="h-48 w-48 text-blue-400" />
@@ -364,7 +364,7 @@ async function VehicleContent({ params }: Props) {
           <div className="relative z-10 max-w-3xl">
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
               {vehicle.year} {vehicle.make} {vehicle.model}
-              <span className="block text-2xl sm:text-3xl text-blue-400 mt-2">
+              <span className="block text-2xl sm:text-3xl text-blue-300 mt-2">
                 MPG & Fuel Economy Data
               </span>
             </h1>
@@ -372,7 +372,7 @@ async function VehicleContent({ params }: Props) {
         </div>
 
         {/* Quick Summary */}
-        <Card className="bg-blue-900/50 border-blue-800/30 mb-8">
+        <Card className="bg-blue-900/90 border-blue-800/30 mb-8">
           <CardHeader>
             <CardTitle className="text-xl text-white flex items-center gap-2">
               <Gauge className="h-6 w-6 text-blue-400" />
@@ -605,10 +605,10 @@ async function VehicleContent({ params }: Props) {
           {/* Environmental Performance - if data exists */}
           {(vehicle.co2 !== null || vehicle.ghgScore !== null || vehicle.co2A !== null || vehicle.ghgScoreA !== null) && (
             <section>
-              <h2 className="text-2xl font-bold text-white mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Environmental Performance
             </h2>
-              <div className="prose prose-invert max-w-none text-gray-300 space-y-4">
+              <div className="prose prose-invert max-w-none text-gray-600 space-y-4">
               {vehicle.ghgScore && (
                 <p>
                   With a Greenhouse Gas Score of {vehicle.ghgScore}/10, the {vehicle.year} {vehicle.make} {vehicle.model} {
@@ -642,10 +642,10 @@ async function VehicleContent({ params }: Props) {
 
           {/* Technical Specifications - always show */}
           <section>
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Technical Specifications
           </h2>
-            <div className="prose prose-invert max-w-none text-gray-300">
+            <div className="prose prose-invert max-w-none text-gray-600">
               <p>
                 This {vehicle.VClass.toLowerCase()} features a {vehicle.displ}L {
                   vehicle.cylinders ? `${vehicle.cylinders}-cylinder` : ''
@@ -659,10 +659,10 @@ async function VehicleContent({ params }: Props) {
 
           {/* Fuel Economy Tips - always show */}
           <section>
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Maximizing Fuel Economy
             </h2>
-            <div className="prose prose-invert max-w-none text-gray-300">
+            <div className="prose prose-invert max-w-none text-gray-600">
               <p>
                 To achieve the best fuel economy in your {vehicle.year} {vehicle.make} {vehicle.model}, consider these tips:
                       </p>
@@ -704,7 +704,7 @@ async function VehicleContent({ params }: Props) {
 
           {/* Comparison Tool */}
           <section id="compare">
-            <h2 className="text-2xl font-bold text-white mb-6">Compare MPG with Other Vehicles</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Compare MPG with Other Vehicles</h2>
             <VehicleComparison />
           </section>
 
@@ -718,13 +718,13 @@ async function VehicleContent({ params }: Props) {
 
               return (
                 <section key={index} className="border-t border-gray-700 pt-12 space-y-12">
-                  <h2 className="text-2xl font-bold text-white mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
                     {variant.year} {variant.make} {variant.model} - {differentiator}
                   </h2>
 
 
                   {/* Quick Summary */}
-                  <Card className="bg-blue-900/50 border-blue-800/30 mb-8">
+                  <Card className="bg-blue-900/90 border-blue-800/30 mb-8">
                     <CardHeader>
                       <CardTitle className="text-xl text-white flex items-center gap-2">
                         <CarFront className="h-6 w-6 text-blue-400" />
@@ -930,10 +930,10 @@ async function VehicleContent({ params }: Props) {
                   {/* Environmental Performance - Only show if data exists */}
                   {(variant.co2 !== null || variant.ghgScore !== null || variant.co2A !== null || variant.ghgScoreA !== null) && (
                     <section className="space-y-6">
-                      <h3 className="text-xl font-bold text-white mb-6">
+                      <h3 className="text-xl font-bold text-gray-800 mb-6">
                         Environmental Performance
                       </h3>
-                      <div className="prose prose-invert max-w-none text-gray-300 space-y-4">
+                      <div className="prose prose-invert max-w-none text-gray-600 space-y-4">
                         {/* Primary Fuel Environmental Info */}
                         {(variant.co2 !== null || variant.ghgScore !== null) && (
                           <p>
@@ -967,10 +967,10 @@ async function VehicleContent({ params }: Props) {
 
                   {/* Technical Specifications */}
                   <section className="space-y-6">
-                    <h3 className="text-xl font-bold text-white mb-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">
                       Technical Specifications
                     </h3>
-                    <div className="prose prose-invert max-w-none text-gray-300">
+                    <div className="prose prose-invert max-w-none text-gray-600">
                       <p>
                         This {variant.VClass.toLowerCase()} with {differentiator.toLowerCase()} features a {variant.displ}L {
                           variant.cylinders ? `${variant.cylinders}-cylinder` : ''
@@ -1011,7 +1011,7 @@ async function VehicleContent({ params }: Props) {
           {/* Similar Vehicles Section - if exists */}
           {similarVehicles.length > 0 && (
             <section className="border-t border-gray-700 pt-12">
-              <h2 className="text-2xl font-bold text-white mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 Vehicles With Similar Fuel Economy
               </h2>
               <div className="grid lg:grid-cols-3 gap-6 mb-4">
@@ -1050,7 +1050,7 @@ async function VehicleContent({ params }: Props) {
                   );
                 })}
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 These vehicles are in the same class ({vehicle.VClass}) and offer comparable fuel economy ratings.
               </p>
           </section>

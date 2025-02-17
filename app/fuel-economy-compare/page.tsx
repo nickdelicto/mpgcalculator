@@ -20,10 +20,10 @@ function LoadingState() {
 export default function FuelEconomyComparePage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-heading font-bold text-white mb-6">
+      <h1 className="text-3xl font-heading font-bold text-gray-800 mb-6">
         Compare Vehicle Fuel Economy
       </h1>
-      <p className="text-gray-300 mb-8 font-sans">
+      <p className="text-gray-600 mb-8 font-sans">
         Select up to three vehicles to compare MPG, side by side.
       </p>
       <Suspense fallback={<LoadingState />}>
@@ -33,14 +33,14 @@ export default function FuelEconomyComparePage() {
       </Suspense>
 
       {/* Expert Guide and FAQs */}
-      <div className="text-gray-100 p-8 rounded-lg space-y-8 mt-8 font-heading">
-        <h2 className="text-2xl font-heading font-bold text-white">Guide to Vehicle Fuel Economy Comparison</h2>
+      <div className="text-gray-600 p-8 rounded-lg space-y-8 mt-8 font-heading">
+        <h2 className="text-2xl font-heading font-bold text-gray-800">Guide to Vehicle Fuel Economy Comparison</h2>
         <p>
           Here's how to use our vehicle mpg comparison tool as well as make sense of the data.
         </p>
 
-        <h3 className="text-xl font-heading font-semibold text-white">How to Use the Comparison Tool</h3>
-        <ul className="list-disc list-inside space-y-2">
+        <h3 className="text-xl font-heading font-semibold text-gray-800">How to Use the Comparison Tool</h3>
+        <ul className="list-disc list-inside space-y-2 text-gray-600">
           <li><strong>Select Vehicles</strong>: Start by selecting up to three vehicles you wish to compare. Use the search function to find specific makes and models.
             <br/><em>Example</em>: Compare a 2022 Toyota Camry, a 2022 Honda Accord, and a 2022 Tesla Model 3 to see how they stack up in terms of fuel efficiency.
           </li>
@@ -55,22 +55,22 @@ export default function FuelEconomyComparePage() {
           </li>
         </ul>
 
-        <h3 className="text-xl font-heading font-semibold text-white">Making Sense of Different Fuel Types</h3>
-        <ul className="list-disc list-inside space-y-2">
+        <h3 className="text-xl font-heading font-semibold text-gray-800">Making Sense of Different Fuel Types</h3>
+        <ul className="list-disc list-inside space-y-2 text-gray-600">
           <li><strong>Gasoline/Diesel</strong>: Measured in MPG, these are traditional fuel types.</li>
           <li><strong>Electric Vehicles</strong>: Measured in MPGe, which equates electrical energy to gasoline.</li>
           <li><strong>Hybrids</strong>: Combine fuel type 1 and fuel type 2 MPG(e) ratings for a comprehensive/normalized view of efficiency.</li>
         </ul>
 
-        <h3 className="text-xl font-heading font-semibold text-white">Understanding Total Cost of Ownership</h3>
-        <ul className="list-disc list-inside space-y-2">
+        <h3 className="text-xl font-heading font-semibold text-gray-800">Understanding Total Cost of Ownership</h3>
+        <ul className="list-disc list-inside space-y-2 text-gray-600">
           <li><strong>Annual Fuel Costs</strong>: Calculate based on your driving patterns and local fuel prices.</li>
           <li><strong>Fuel Price Volatility</strong>: Consider how fluctuating prices might impact your budget.</li>
           <li><em>Example</em>: Compare the cost of driving a gasoline vehicle vs. an electric vehicle over a year.</li>
         </ul>
 
-        <h3 className="text-xl font-heading font-semibold text-white">Frequently Asked Questions</h3>
-        <div className="space-y-4">
+        <h3 className="text-xl font-heading font-semibold text-gray-800">Frequently Asked Questions</h3>
+        <div className="space-y-4 text-gray-600">
           <div>
             <h4 className="font-semibold">Why do hybrid vehicles show multiple fuel economy ratings?</h4>
             <p>Hybrid vehicles display separate ratings because they operate in different modes. The standard MPG rating shows efficiency when running on gasoline, while MPGe ratings indicate efficiency in electric mode. This dual rating helps you understand efficiency across all operating conditions.</p>
