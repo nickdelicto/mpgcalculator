@@ -4,6 +4,7 @@ import React from 'react'
 import { JSX } from 'react'
 import { useState, useEffect } from 'react'
 import { Vehicle, Make } from '../types/vehicle'
+import { ManualVehicleFuel, FuelTypeDefinition, FuelEfficiency, AVAILABLE_FUEL_TYPES, FUEL_TYPE_VALIDATION } from '../types/fuel'
 import FuelSavingsVehicleLookup from './FuelSavingsVehicleLookup'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Label } from "../../components/ui/label"
@@ -28,12 +29,11 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
+import EfficiencyInput from './EfficiencyInput'
 
 // Types for our calculator
-interface ManualVehicle {
-  mpg: number
-  isElectric: boolean
-  name: string
+interface ManualVehicle extends ManualVehicleFuel {
+  // Additional fields specific to the calculator can be added here
 }
 
 interface VehicleSelection {
@@ -67,7 +67,8 @@ interface FuelCosts {
 
 // Default fuel prices with their sources
 const FUEL_DEFAULTS = {
-  GASOLINE: 3.15,
+  REGULAR_GASOLINE: 3.15,
+  PREMIUM_GASOLINE: 3.85,
   ELECTRICITY: 0.17,
   NATURAL_GAS: 2.91, // per GGE (Gasoline Gallon Equivalent)
   HYDROGEN: 25.00, // per kg
@@ -194,12 +195,13 @@ const calculateDualFuelCost = (params: {
 // Helper function to determine fuel type category
 const getFuelTypeCategory = (fuelType: string): keyof typeof FUEL_DEFAULTS => {
   const normalized = fuelType.toLowerCase()
+  if (normalized.includes('premium')) return 'PREMIUM_GASOLINE'
   if (normalized.includes('electricity')) return 'ELECTRICITY'
   if (normalized.includes('natural gas')) return 'NATURAL_GAS'
   if (normalized.includes('hydrogen')) return 'HYDROGEN'
   if (normalized.includes('diesel')) return 'DIESEL'
   if (normalized.includes('e85')) return 'E85'
-  return 'GASOLINE'
+  return 'REGULAR_GASOLINE'
 }
 
 // Helper function to get default price for fuel type
@@ -272,14 +274,14 @@ export default function FuelSavingsCalculator() {
     vehicle1: {
       fromDb: null,
       manual: null,
-      fuelCost: FUEL_DEFAULTS.GASOLINE,
+      fuelCost: FUEL_DEFAULTS.REGULAR_GASOLINE,
       isManualInput: false,
       usageSplit: DEFAULT_FUEL_SPLIT
     },
     vehicle2: {
       fromDb: null,
       manual: null,
-      fuelCost: FUEL_DEFAULTS.GASOLINE,
+      fuelCost: FUEL_DEFAULTS.REGULAR_GASOLINE,
       isManualInput: false,
       usageSplit: DEFAULT_FUEL_SPLIT
     },
@@ -566,34 +568,67 @@ export default function FuelSavingsCalculator() {
     setCalculatorState(prev => ({
       ...prev,
       [`vehicle${vehicleNumber}`]: {
+        ...prev[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>],
         fromDb: null,
-        manual: null,
-        fuelCost: FUEL_DEFAULTS.GASOLINE,
+        manual: checked ? {
+          name: '',
+          primaryFuelType: 'regular_gasoline',
+          primaryEfficiency: {
+            combined: 0,
+            city: 0,
+            highway: 0,
+            usesCityHighway: false
+          },
+          secondaryFuelType: '',
+          secondaryEfficiency: {
+            combined: 0,
+            city: 0,
+            highway: 0,
+            usesCityHighway: false
+          },
+          fuelSplit: 50
+        } : null,
+        fuelCost: FUEL_DEFAULTS.REGULAR_GASOLINE,
         isManualInput: checked,
-        cityHighwaySplit: 50,
-        useCustomSplit: false
+        usageSplit: DEFAULT_FUEL_SPLIT
       }
     }))
   }
 
-  // Handler for updating manual vehicle details
-  const handleManualVehicleUpdate = (
-    vehicleNumber: 1 | 2,
-    field: keyof ManualVehicle,
-    value: string | number | boolean
-  ) => {
-    setCalculatorState(prev => ({
-      ...prev,
-      [`vehicle${vehicleNumber}`]: {
-        ...prev[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>],
-        manual: {
-          ...prev[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>].manual,
-          [field]: value
-        },
-        cityHighwaySplit: 50,
-        useCustomSplit: false
+  // Handler for manual vehicle updates
+  const handleManualVehicleUpdate = (vehicleNumber: 1 | 2, field: keyof ManualVehicle, value: any) => {
+    setCalculatorState(prev => {
+      const vehicle = prev[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>]
+      if (!vehicle.manual) {
+        // Initialize manual vehicle if it doesn't exist
+        handleManualToggle(true, vehicleNumber)
+        return prev
       }
-    }))
+
+      // Set default fuel costs when fuel types are selected
+      let fuelCostUpdates = {}
+      if (field === 'primaryFuelType') {
+        fuelCostUpdates = {
+          fuelCost: getDefaultPrice(value)
+        }
+      } else if (field === 'secondaryFuelType') {
+        fuelCostUpdates = {
+          fuelCost2: value ? getDefaultPrice(value) : undefined
+        }
+      }
+
+      return {
+        ...prev,
+        [`vehicle${vehicleNumber}`]: {
+          ...vehicle,
+          manual: {
+            ...vehicle.manual,
+            [field]: value
+          },
+          ...fuelCostUpdates
+        }
+      }
+    })
   }
 
   // Handler for updating fuel costs
@@ -691,7 +726,7 @@ export default function FuelSavingsCalculator() {
     cityPercentage: number,
     useCustomSplit: boolean
   ): FuelCosts | null => {
-    let annualCost = 0
+    let annualCost = 0;
 
     if (vehicle.fromDb) {
       if (vehicle.fromDb.fuelType2) {
@@ -757,13 +792,24 @@ export default function FuelSavingsCalculator() {
       // For manually entered vehicles
       annualCost = calculateFuelCost({
         miles: mileage,
-        mpg: vehicle.manual.mpg,
+        mpg: vehicle.manual.primaryEfficiency.combined,
         fuelPrice: vehicle.fuelCost,
-        fuelType: vehicle.manual.isElectric ? 'electricity' : 'gasoline'
-      })
+        fuelType: vehicle.manual.primaryFuelType
+      });
+
+      // Add secondary fuel cost if present
+      if (vehicle.manual.secondaryFuelType && vehicle.manual.secondaryEfficiency && vehicle.fuelCost2) {
+        const secondaryCost = calculateFuelCost({
+          miles: mileage * ((100 - (vehicle.manual.fuelSplit || 50)) / 100),
+          mpg: vehicle.manual.secondaryEfficiency.combined,
+          fuelPrice: vehicle.fuelCost2,
+          fuelType: vehicle.manual.secondaryFuelType
+        });
+        annualCost += secondaryCost;
+      }
     }
 
-    if (annualCost === 0) return null
+    if (annualCost === 0) return null;
 
     return {
       weekly: annualCost / 52,
@@ -772,7 +818,7 @@ export default function FuelSavingsCalculator() {
       threeYear: annualCost * 3,
       fiveYear: annualCost * 5,
       tenYear: annualCost * 10
-    }
+    };
   }
 
   // Calculate all costs when inputs change
@@ -796,58 +842,127 @@ export default function FuelSavingsCalculator() {
     })
   }, [calculatorState])
 
-  // Helper function to render fuel cost input with tooltip
+  // Helper function to get fuel type label from the AVAILABLE_FUEL_TYPES
+  const getFuelTypeLabel = (fuelTypeId: string): string => {
+    const fuelType = AVAILABLE_FUEL_TYPES.find(fuel => fuel.id === fuelTypeId)
+    return fuelType?.label || fuelTypeId
+  }
+
+  // Update the renderFuelCostInput function
   const renderFuelCostInput = (
     vehicleNumber: 1 | 2,
-    fuelType: string,
+    fuelTypeId: string,
     isSecondaryFuel: boolean = false
   ) => {
     const vehicle = calculatorState[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>]
-    const fuelInfo = getFuelTypeInfo(fuelType)
     const fuelCost = isSecondaryFuel ? vehicle.fuelCost2 : vehicle.fuelCost
 
-    return (
-      <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
-                      transition-all duration-300 hover:border-blue-500/20">
-        <div className="flex items-center justify-between">
-          <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
-                 className="text-white/90 flex items-center gap-2">
-            <Fuel className="h-4 w-4 text-blue-400" />
-            <span>{fuelInfo.label}</span>
-            <span className="text-gray-400 text-sm">({fuelInfo.unit})</span>
-          </Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-800 border-gray-700">
-                <div className="space-y-2 max-w-xs">
-                  <p className="text-sm text-gray-300">{fuelInfo.explanation}</p>
-                  <p className="text-xs text-blue-400">
-                    Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType)]}/{fuelInfo.unit.split('/')[1]}
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+    // Handle database vehicles
+    if (vehicle.fromDb) {
+      const fuelType = isSecondaryFuel ? vehicle.fromDb.fuelType2 : vehicle.fromDb.fuelType1
+      if (!fuelType) return null
+      const fuelInfo = getFuelTypeInfo(fuelType)
+      
+      return (
+        <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
+                        transition-all duration-300 hover:border-blue-500/20">
+          <div className="flex items-center justify-between">
+            <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
+                   className="text-white/90 flex items-center gap-2">
+              <Fuel className="h-4 w-4 text-blue-400" />
+              <span>{fuelInfo.label}</span>
+              <span className="text-gray-400 text-sm">({fuelInfo.unit})</span>
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 border-gray-700">
+                  <div className="space-y-2 max-w-xs">
+                    <p className="text-sm text-gray-300">{fuelInfo.explanation}</p>
+                    <p className="text-xs text-blue-400">
+                      Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType)]}/{fuelInfo.unit.split('/')[1]}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="relative mt-2">
+            <Input
+              id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
+              type="number"
+              step="0.01"
+              min="0"
+              value={fuelCost}
+              onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
+              className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
+                        focus:border-blue-500/50 focus:ring-blue-500/20
+                        transition-all duration-300"
+            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+          </div>
         </div>
-        <div className="relative mt-2">
-          <Input
-            id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
-            type="number"
-            step="0.01"
-            min="0"
-            value={fuelCost}
-            onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
-            className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
-                      focus:border-blue-500/50 focus:ring-blue-500/20
-                      transition-all duration-300"
-          />
-          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+      )
+    }
+
+    // Handle manual vehicles
+    if (vehicle.manual) {
+      const manualFuelTypeId = isSecondaryFuel ? vehicle.manual.secondaryFuelType : vehicle.manual.primaryFuelType
+      if (!manualFuelTypeId) return null
+      const fuelType = AVAILABLE_FUEL_TYPES.find(fuel => fuel.id === manualFuelTypeId)
+
+      if (!fuelType) return null
+      
+      return (
+        <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
+                        transition-all duration-300 hover:border-blue-500/20">
+          <div className="flex items-center justify-between">
+            <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
+                   className="text-white/90 flex items-center gap-2">
+              <Fuel className="h-4 w-4 text-blue-400" />
+              <span>{fuelType.label} Price</span>
+              <span className="text-gray-400 text-sm">({fuelType.costUnit})</span>
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 border-gray-700">
+                  <div className="space-y-2 max-w-xs">
+                    <p className="text-sm text-gray-300">Cost per {fuelType.costUnit.split('/')[1]} of {fuelType.label.toLowerCase()}</p>
+                    <p className="text-xs text-blue-400">
+                      Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType.id)]}/{fuelType.costUnit.split('/')[1]}
+                    </p>
+                    {fuelType.sourceInfo && (
+                      <p className="text-xs text-gray-400">{fuelType.sourceInfo}</p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="relative mt-2">
+            <Input
+              id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
+              type="number"
+              step="0.01"
+              min="0"
+              value={fuelCost}
+              onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
+              className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
+                        focus:border-blue-500/50 focus:ring-blue-500/20
+                        transition-all duration-300"
+            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
+
+    return null
   }
 
   // Add this helper function before the return statement
@@ -890,7 +1005,6 @@ export default function FuelSavingsCalculator() {
     <div className="space-y-8 relative min-h-screen">
       {/* Sophisticated background with patterns */}
       <div className="absolute inset-0 bg-[#111827] bg-gradient-to-br from-gray-900/50 to-gray-800/50">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
       
       {/* Decorative orbs */}
@@ -903,17 +1017,21 @@ export default function FuelSavingsCalculator() {
         {/* Vehicle Selection Section */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Vehicle 1 Selection */}
-          <Card className="backdrop-blur-md bg-purple-400/20 border border-white/10
-                          shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-                          hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.5)]
+          <Card className="backdrop-blur-md bg-gradient-to-br from-gray-900/90 to-gray-800/90 
+                          border border-gray-700/30 hover:border-blue-500/20
+                          shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]
+                          hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.2)]
                           transition-all duration-500">
-            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
-                                  from-[#1E3A8A]/10 to-transparent">
-              <CardTitle className="text-white/90 font-heading">Vehicle 1</CardTitle>
+            <CardHeader className="border-b border-gray-700/30 bg-gradient-to-r 
+                          from-blue-500/5 to-transparent">
+              <CardTitle className="text-white/90 font-heading flex items-center gap-2">
+                <CarFront className="h-5 w-5 text-blue-400" />
+                Vehicle 1
+              </CardTitle>
             </CardHeader>
             <CardContent className="relative">
               {/* Glass card inner glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent rounded-b-lg" />
               
               {/* Rest of the Vehicle 1 content */}
               <div className="relative z-10 space-y-4">
@@ -926,8 +1044,8 @@ export default function FuelSavingsCalculator() {
                   />
                 </div>
                 
-                {calculatorState.vehicle1.isManualInput ? (
-                  <div className="space-y-4 bg-gray-900/40 p-4 rounded-lg border border-gray-700/50">
+                {calculatorState.vehicle1.isManualInput && calculatorState.vehicle1.manual ? (
+                  <div className="space-y-4 bg-gray-400/40 p-4 rounded-lg border border-gray-700/50">
                     <div className="space-y-3">
                       <div className="group">
                         <Label htmlFor="vehicle1-name" className="text-white/90 inline-flex items-center space-x-2">
@@ -936,44 +1054,48 @@ export default function FuelSavingsCalculator() {
                         </Label>
                         <Input
                           id="vehicle1-name"
-                          value={calculatorState.vehicle1.manual?.name || ''}
+                          value={calculatorState.vehicle1.manual!.name}
                           onChange={(e) => handleManualVehicleUpdate(1, 'name', e.target.value)}
-                          className="mt-1.5 bg-gray-800/50 border-gray-600/50 text-white/90 
+                          className="mt-1.5 bg-gray-800 border-gray-600/50 text-white/90 
                                     focus:border-blue-500/50 focus:ring-blue-500/20 
                                     transition-all duration-300"
                           placeholder="Enter vehicle name"
                         />
                       </div>
-                      <div className="group">
-                        <Label htmlFor="vehicle1-mpg" className="text-white/90 inline-flex items-center space-x-2">
-                          <Gauge className="h-4 w-4 text-blue-400" />
-                          <span>MPG/MPGe</span>
-                        </Label>
-                        <Input
-                          id="vehicle1-mpg"
-                          type="number"
-                          value={calculatorState.vehicle1.manual?.mpg || ''}
-                          onChange={(e) => handleManualVehicleUpdate(1, 'mpg', e.target.value)}
-                          className="mt-1.5 bg-gray-800/50 border-gray-600/50 text-white/90 
-                                    focus:border-blue-500/50 focus:ring-blue-500/20 
-                                    transition-all duration-300"
-                          placeholder="Enter MPG/MPGe"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between bg-gray-800/50 p-3 rounded-lg
+                      <div className="flex items-center justify-between bg-gray-800 p-3 rounded-lg
                                       border border-gray-700/50">
-                        <Label htmlFor="vehicle1-iselectric" 
+                        <Label htmlFor="vehicle1-fueltype" 
                                className="text-white/90 inline-flex items-center space-x-2">
-                          <Zap className="h-4 w-4 text-yellow-400" />
-                          <span>Electric Vehicle</span>
+                          <Fuel className="h-4 w-4 text-yellow-400" />
+                          <span>Primary Fuel Type</span>
                         </Label>
-                        <Switch
-                          id="vehicle1-iselectric"
-                          checked={calculatorState.vehicle1.manual?.isElectric || false}
-                          onCheckedChange={(checked) => handleManualVehicleUpdate(1, 'isElectric', checked)}
-                          className="data-[state=checked]:bg-blue-500"
-                        />
+                        <select
+                          id="vehicle1-fueltype"
+                          value={calculatorState.vehicle1.manual!.primaryFuelType}
+                          onChange={(e) => handleManualVehicleUpdate(1, 'primaryFuelType', e.target.value)}
+                          className="bg-gray-700 border-gray-600 text-white rounded-md"
+                        >
+                          {AVAILABLE_FUEL_TYPES.map(fuel => (
+                            <option key={fuel.id} value={fuel.id}>
+                              {fuel.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
+                      <EfficiencyInput
+                        fuelType={AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle1.manual!.primaryFuelType)!}
+                        efficiency={calculatorState.vehicle1.manual!.primaryEfficiency}
+                        onChange={(newEfficiency) => handleManualVehicleUpdate(1, 'primaryEfficiency', newEfficiency)}
+                        className="mt-4"
+                        allowSecondaryFuel={true}
+                        primaryFuelType={calculatorState.vehicle1.manual!.primaryFuelType}
+                        secondaryFuelType={calculatorState.vehicle1.manual!.secondaryFuelType}
+                        secondaryEfficiency={calculatorState.vehicle1.manual!.secondaryEfficiency}
+                        onSecondaryFuelSelect={(fuelType) => handleManualVehicleUpdate(1, 'secondaryFuelType', fuelType)}
+                        onSecondaryEfficiencyChange={(efficiency) => handleManualVehicleUpdate(1, 'secondaryEfficiency', efficiency)}
+                        fuelSplit={calculatorState.vehicle1.manual!.fuelSplit}
+                        onFuelSplitChange={(split) => handleManualVehicleUpdate(1, 'fuelSplit', split)}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -984,18 +1106,31 @@ export default function FuelSavingsCalculator() {
                 )}
 
                 {/* Fuel Cost Inputs */}
-                {(calculatorState.vehicle1.fromDb || calculatorState.vehicle1.manual) && (
-                  <div className="mt-6 space-y-4 bg-red-900/20 p-4 rounded-lg border border-gray-700/50">
+                {(calculatorState.vehicle1.fromDb || 
+                  (calculatorState.vehicle1.manual && calculatorState.vehicle1.manual.primaryFuelType)) && (
+                  <div className="mt-6 space-y-4 bg-gray-900/90 p-4 rounded-lg border border-gray-700/50">
                     <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
                       <Fuel className="h-5 w-5 text-blue-400" />
                       Fuel Costs
                     </h3>
                     <div className="space-y-4">
-                      {renderFuelCostInput(1, calculatorState.vehicle1.fromDb?.fuelType1 || 'Gasoline')}
-                      {calculatorState.vehicle1.fromDb?.fuelType2 && (
+                      {/* Primary Fuel Cost */}
+                      {renderFuelCostInput(1, 
+                        calculatorState.vehicle1.fromDb?.fuelType1 || 
+                        calculatorState.vehicle1.manual?.primaryFuelType || 
+                        ''
+                      )}
+                      
+                      {/* Secondary Fuel Cost */}
+                      {(calculatorState.vehicle1.fromDb?.fuelType2 || calculatorState.vehicle1.manual?.secondaryFuelType) && (
                         <>
                           <div className="border-t border-gray-700/50 my-4" />
-                          {renderFuelCostInput(1, calculatorState.vehicle1.fromDb.fuelType2, true)}
+                          {renderFuelCostInput(1, 
+                            calculatorState.vehicle1.fromDb?.fuelType2 || 
+                            calculatorState.vehicle1.manual?.secondaryFuelType || 
+                            '', 
+                            true
+                          )}
                           {renderFuelSplitSlider(1)}
                         </>
                       )}
@@ -1007,17 +1142,21 @@ export default function FuelSavingsCalculator() {
           </Card>
 
           {/* Vehicle 2 Selection - Mirror the same styling */}
-          <Card className="backdrop-blur-md bg-purple-400/20 border border-white/10
-                          shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-                          hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.5)]
+          <Card className="backdrop-blur-md bg-gradient-to-br from-gray-900/90 to-gray-800/90 
+                          border border-gray-700/30 hover:border-blue-500/20
+                          shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]
+                          hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.2)]
                           transition-all duration-500">
-            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
-                                  from-[#1E3A8A]/10 to-transparent">
-              <CardTitle className="text-white/90 font-heading">Vehicle 2</CardTitle>
+            <CardHeader className="border-b border-gray-700/30 bg-gradient-to-r 
+                          from-blue-500/5 to-transparent">
+              <CardTitle className="text-white/90 font-heading flex items-center gap-2">
+                <CarFront className="h-5 w-5 text-blue-400" />
+                Vehicle 2
+              </CardTitle>
             </CardHeader>
             <CardContent className="relative">
               {/* Glass card inner glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent rounded-b-lg" />
               
               {/* Rest of the Vehicle 2 content */}
               <div className="relative z-10 space-y-4">
@@ -1030,35 +1169,57 @@ export default function FuelSavingsCalculator() {
                   />
                 </div>
                 
-                {calculatorState.vehicle2.isManualInput ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="vehicle2-name" className="text-white">Vehicle Name</Label>
-                      <Input
-                        id="vehicle2-name"
-                        value={calculatorState.vehicle2.manual?.name || ''}
-                        onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="Enter vehicle name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehicle2-mpg" className="text-white">MPG/MPGe</Label>
-                      <Input
-                        id="vehicle2-mpg"
-                        type="number"
-                        value={calculatorState.vehicle2.manual?.mpg || ''}
-                        onChange={(e) => handleManualVehicleUpdate(2, 'mpg', e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="Enter MPG/MPGe"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehicle2-iselectric" className="text-white">Electric Vehicle</Label>
-                      <Switch
-                        id="vehicle2-iselectric"
-                        checked={calculatorState.vehicle2.manual?.isElectric || false}
-                        onCheckedChange={(checked) => handleManualVehicleUpdate(2, 'isElectric', checked)}
+                {calculatorState.vehicle2.isManualInput && calculatorState.vehicle2.manual ? (
+                  <div className="space-y-4 bg-gray-400/40 p-4 rounded-lg border border-gray-700/50">
+                    <div className="space-y-3">
+                      <div className="group">
+                        <Label htmlFor="vehicle2-name" className="text-white/90 inline-flex items-center space-x-2">
+                          <CarFront className="h-4 w-4 text-blue-400" />
+                          <span>Vehicle Name</span>
+                        </Label>
+                        <Input
+                          id="vehicle2-name"
+                          value={calculatorState.vehicle2.manual!.name}
+                          onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
+                          className="mt-1.5 bg-gray-800 border-gray-600/50 text-white/90 
+                                    focus:border-blue-500/50 focus:ring-blue-500/20 
+                                    transition-all duration-300"
+                          placeholder="Enter vehicle name"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between bg-gray-800 p-3 rounded-lg
+                                      border border-gray-700/50">
+                        <Label htmlFor="vehicle2-fueltype" 
+                               className="text-white/90 inline-flex items-center space-x-2">
+                          <Fuel className="h-4 w-4 text-yellow-400" />
+                          <span>Primary Fuel Type</span>
+                        </Label>
+                        <select
+                          id="vehicle2-fueltype"
+                          value={calculatorState.vehicle2.manual!.primaryFuelType}
+                          onChange={(e) => handleManualVehicleUpdate(2, 'primaryFuelType', e.target.value)}
+                          className="bg-gray-700 border-gray-600 text-white rounded-md"
+                        >
+                          {AVAILABLE_FUEL_TYPES.map(fuel => (
+                            <option key={fuel.id} value={fuel.id}>
+                              {fuel.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <EfficiencyInput
+                        fuelType={AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle2.manual!.primaryFuelType)!}
+                        efficiency={calculatorState.vehicle2.manual!.primaryEfficiency}
+                        onChange={(newEfficiency) => handleManualVehicleUpdate(2, 'primaryEfficiency', newEfficiency)}
+                        className="mt-4"
+                        allowSecondaryFuel={true}
+                        primaryFuelType={calculatorState.vehicle2.manual!.primaryFuelType}
+                        secondaryFuelType={calculatorState.vehicle2.manual!.secondaryFuelType}
+                        secondaryEfficiency={calculatorState.vehicle2.manual!.secondaryEfficiency}
+                        onSecondaryFuelSelect={(fuelType) => handleManualVehicleUpdate(2, 'secondaryFuelType', fuelType)}
+                        onSecondaryEfficiencyChange={(efficiency) => handleManualVehicleUpdate(2, 'secondaryEfficiency', efficiency)}
+                        fuelSplit={calculatorState.vehicle2.manual!.fuelSplit}
+                        onFuelSplitChange={(split) => handleManualVehicleUpdate(2, 'fuelSplit', split)}
                       />
                     </div>
                   </div>
@@ -1070,18 +1231,31 @@ export default function FuelSavingsCalculator() {
                 )}
 
                 {/* Fuel Cost Inputs */}
-                {(calculatorState.vehicle2.fromDb || calculatorState.vehicle2.manual) && (
-                  <div className="mt-6 space-y-4 bg-red-900/20 p-4 rounded-lg border border-gray-700/50">
+                {(calculatorState.vehicle2.fromDb || 
+                  (calculatorState.vehicle2.manual && calculatorState.vehicle2.manual.primaryFuelType)) && (
+                  <div className="mt-6 space-y-4 bg-gray-900/90 p-4 rounded-lg border border-gray-700/50">
                     <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
                       <Fuel className="h-5 w-5 text-blue-400" />
                       Fuel Costs
                     </h3>
                     <div className="space-y-4">
-                      {renderFuelCostInput(2, calculatorState.vehicle2.fromDb?.fuelType1 || 'Gasoline')}
-                      {calculatorState.vehicle2.fromDb?.fuelType2 && (
+                      {/* Primary Fuel Cost */}
+                      {renderFuelCostInput(2, 
+                        calculatorState.vehicle2.fromDb?.fuelType1 || 
+                        calculatorState.vehicle2.manual?.primaryFuelType || 
+                        ''
+                      )}
+                      
+                      {/* Secondary Fuel Cost */}
+                      {(calculatorState.vehicle2.fromDb?.fuelType2 || calculatorState.vehicle2.manual?.secondaryFuelType) && (
                         <>
                           <div className="border-t border-gray-700/50 my-4" />
-                          {renderFuelCostInput(2, calculatorState.vehicle2.fromDb.fuelType2, true)}
+                          {renderFuelCostInput(2, 
+                            calculatorState.vehicle2.fromDb?.fuelType2 || 
+                            calculatorState.vehicle2.manual?.secondaryFuelType || 
+                            '', 
+                            true
+                          )}
                           {renderFuelSplitSlider(2)}
                         </>
                       )}
@@ -1094,7 +1268,7 @@ export default function FuelSavingsCalculator() {
         </div>
 
         {/* Driving Pattern Section */}
-        <Card className="backdrop-blur-md bg-gray-700/30 border border-white/10
+        <Card className="backdrop-blur-md bg-blue-900/40 border border-white/10
                         shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
           <CardHeader className="border-b border-white/5 bg-gradient-to-r 
                                 from-[#1E3A8A]/10 to-transparent">
@@ -1108,7 +1282,7 @@ export default function FuelSavingsCalculator() {
               {/* Mileage Input */}
               <div className="space-y-4">
                 {/* Mileage Input Type Selection */}
-                <div className="grid grid-cols-4 gap-2 bg-yellow-500 p-4 rounded-lg border border-gray-700/50">
+                <div className="grid grid-cols-4 gap-2 bg-yellow-500/90 p-4 rounded-lg border border-gray-700/50">
                   {(['annual', 'monthly', 'weekly', 'daily'] as const).map((period) => (
                     <Button
                       key={period}
@@ -1202,7 +1376,7 @@ export default function FuelSavingsCalculator() {
                 Calculate Savings
               </Button>
             </div>
-          )}
+        )}
 
         {/* Results Section */}
         {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
