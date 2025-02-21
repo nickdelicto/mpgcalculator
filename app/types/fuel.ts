@@ -65,6 +65,17 @@ export const AVAILABLE_FUEL_TYPES: FuelTypeDefinition[] = [
     description: 'Standard regular (87 octane) gasoline fuel'
   },
   {
+    id: 'midgrade_gasoline',
+    label: 'Midgrade Gasoline',
+    efficiencyUnit: 'MPG',
+    costUnit: '$/gallon',
+    defaultCost: 3.50, // Average between regular ($3.15) and premium ($3.85)
+    canBePrimary: true,
+    canBeSecondary: true,
+    requiresEfficiencyConversion: false,
+    description: 'Midgrade (89 octane) gasoline fuel'
+  },
+  {
     id: 'premium_gasoline',
     label: 'Premium Gasoline',
     efficiencyUnit: 'MPG',
@@ -103,7 +114,7 @@ export const AVAILABLE_FUEL_TYPES: FuelTypeDefinition[] = [
     label: 'E85 Flex Fuel',
     efficiencyUnit: 'MPG',
     costUnit: '$/gallon',
-    defaultCost: 2.74, // From FUEL_DEFAULTS.E85
+    defaultCost: 2.52, // 20% discount from regular gasoline
     sourceInfo: 'U.S. Department of Energy Alternative Fuels Data Center',
     canBePrimary: true,
     canBeSecondary: true,
@@ -139,6 +150,14 @@ export const AVAILABLE_FUEL_TYPES: FuelTypeDefinition[] = [
 // Validation rules for each fuel type
 export const FUEL_TYPE_VALIDATION: Record<string, FuelTypeValidation> = {
   gasoline: {
+    allowedCombinations: ['electricity', 'e85'],
+    minEfficiency: 1,
+    maxEfficiency: 150,
+    minCost: 0.01,
+    maxCost: 10.00,
+    efficiencyStep: 0.1
+  },
+  midgrade_gasoline: {
     allowedCombinations: ['electricity', 'e85'],
     minEfficiency: 1,
     maxEfficiency: 150,
