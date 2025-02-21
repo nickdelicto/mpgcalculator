@@ -27,9 +27,19 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  BarChart,
+  Bar
 } from 'recharts'
 import EfficiencyInput from './EfficiencyInput'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "../../components/ui/dialog"
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
@@ -68,12 +78,13 @@ interface FuelCosts {
 // Default fuel prices with their sources
 const FUEL_DEFAULTS = {
   REGULAR_GASOLINE: 3.15,
+  MIDGRADE_GASOLINE: 3.50,
   PREMIUM_GASOLINE: 3.85,
   ELECTRICITY: 0.17,
   NATURAL_GAS: 2.91, // per GGE (Gasoline Gallon Equivalent)
   HYDROGEN: 25.00, // per kg
   DIESEL: 3.64, // per gallon
-  E85: 2.74, // per gallon
+  E85: 2.52, // per gallon (20% discount from regular gasoline)
 } as const
 
 // Fuel price sources for tooltips
@@ -196,6 +207,7 @@ const calculateDualFuelCost = (params: {
 const getFuelTypeCategory = (fuelType: string): keyof typeof FUEL_DEFAULTS => {
   const normalized = fuelType.toLowerCase()
   if (normalized.includes('premium')) return 'PREMIUM_GASOLINE'
+  if (normalized.includes('midgrade')) return 'MIDGRADE_GASOLINE'
   if (normalized.includes('electricity')) return 'ELECTRICITY'
   if (normalized.includes('natural gas')) return 'NATURAL_GAS'
   if (normalized.includes('hydrogen')) return 'HYDROGEN'
@@ -240,6 +252,13 @@ const calculateEfficiency = (params: {
     highwayMiles,
     weightedMPG
   }
+}
+
+// Add type for missing fuel values
+interface MissingFuelValues {
+  vehicleNumber: 1 | 2;
+  fuelType: 'primary' | 'secondary';
+  fuelName: string;
 }
 
 export default function FuelSavingsCalculator() {
@@ -299,6 +318,11 @@ export default function FuelSavingsCalculator() {
     vehicle2: null,
     savings: null
   })
+
+  // Add state for warning dialog
+  const [showWarningDialog, setShowWarningDialog] = useState(false)
+  const [pendingVehicles, setPendingVehicles] = useState<Array<1 | 2>>([])
+  const [missingFuelValues, setMissingFuelValues] = useState<MissingFuelValues[]>([]);
 
   // Helper function to convert mileage between different periods
   const convertMileage = (value: number, from: 'annual' | 'monthly' | 'weekly' | 'daily', to: 'annual' | 'monthly' | 'weekly' | 'daily'): number => {
@@ -369,11 +393,9 @@ export default function FuelSavingsCalculator() {
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-gray-400" />
               </TooltipTrigger>
-              <TooltipContent>
-                <div className="space-y-2 max-w-xs">
-                  <p className="text-sm">Adjust how much you use each fuel type. This affects the overall fuel cost calculation.</p>
-                  <p className="text-xs text-blue-400">Default split is {DEFAULT_FUEL_SPLIT}% primary fuel.</p>
-                </div>
+              <TooltipContent side="left" className="w-60">
+                <p className="text-sm">Adjust the split between fuel types</p>
+                <p className="text-xs text-blue-400 mt-1">Default: {DEFAULT_FUEL_SPLIT}% primary fuel</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -448,49 +470,154 @@ export default function FuelSavingsCalculator() {
     onVehicleSelect: (vehicle: Vehicle) => void
     vehicleNumber: number 
   }) {
-    const vehicle = calculatorState[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>].fromDb
+    const [showSearch, setShowSearch] = useState(false);
+    const [currentVehicle, setCurrentVehicle] = useState<Vehicle | null>(calculatorState[`vehicle${vehicleNumber}` as keyof Pick<CalculatorState, 'vehicle1' | 'vehicle2'>].fromDb);
 
     return (
       <div className="space-y-4">
-        {/* Show selected vehicle details if exists */}
-        {vehicle && (
+        {/* Show selected vehicle details if exists and not searching */}
+        {currentVehicle && !showSearch ? (
           <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden mb-4">
             <div className="bg-gradient-to-r from-blue-800 to-blue-900 p-3">
+              <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <CarFront className="h-6 w-6 text-white" />
                 <h4 className="text-lg font-semibold text-white">
-                  {vehicle.year} {vehicle.make} {vehicle.model}
+                    {currentVehicle.year} {currentVehicle.make} {currentVehicle.model}
                 </h4>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowSearch(true);
+                    setCurrentVehicle(null);
+                  }}
+                  className="min-h-[2.5rem] px-6 bg-orange-600 hover:bg-orange-500/90 text-white rounded-md text-sm transition-colors"
+                >
+                  Change Vehicle
+                </button>
               </div>
             </div>
             
             <div className="p-3 space-y-3">
+              {/* Primary Fuel */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-blue-400 flex items-center gap-2">
+                  <Fuel className="h-4 w-4" />
+                  Primary Fuel - {currentVehicle.fuelType1}
+                </h3>
               <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
                 <span className="text-gray-300">Combined</span>
                 <span className="text-xl text-green-400">
-                  {vehicle.phevComb || vehicle.comb08} {(vehicle.phevComb || vehicle.fuelType1.includes('Electricity')) ? 'MPGe' : 'MPG'}
+                    {currentVehicle.comb08} {currentVehicle.fuelType1.includes('Electricity') ? 'MPGe' : 'MPG'}
                 </span>
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
                   <span className="text-gray-300">City</span>
                   <span className="text-lg text-blue-400">
-                    {vehicle.phevCity || vehicle.city08} {(vehicle.phevCity || vehicle.fuelType1.includes('Electricity')) ? 'MPGe' : 'MPG'}
+                      {currentVehicle.city08} {currentVehicle.fuelType1.includes('Electricity') ? 'MPGe' : 'MPG'}
                   </span>
                 </div>
                 <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
                   <span className="text-gray-300">Highway</span>
                   <span className="text-lg text-red-400">
-                    {vehicle.phevHwy || vehicle.highway08} {(vehicle.phevHwy || vehicle.fuelType1.includes('Electricity')) ? 'MPGe' : 'MPG'}
+                      {currentVehicle.highway08} {currentVehicle.fuelType1.includes('Electricity') ? 'MPGe' : 'MPG'}
                   </span>
                 </div>
               </div>
+              </div>
+
+              {/* Secondary Fuel (if available) */}
+              {currentVehicle.fuelType2 && (currentVehicle.combA08 || currentVehicle.cityA08 || currentVehicle.highwayA08) && (
+                <div className="space-y-3 border-t border-gray-700 pt-3">
+                  <h3 className="text-sm font-medium text-yellow-400 flex items-center gap-2">
+                    <Fuel className="h-4 w-4" />
+                    Secondary Fuel - {currentVehicle.fuelType2}
+                  </h3>
+                  {currentVehicle.combA08 && (
+                    <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                      <span className="text-gray-300">Combined</span>
+                      <span className="text-xl text-green-400">
+                        {currentVehicle.combA08} {currentVehicle.fuelType2.includes('Electricity') ? 'MPGe' : 'MPG'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {currentVehicle.cityA08 && (
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">City</span>
+                        <span className="text-lg text-blue-400">
+                          {currentVehicle.cityA08} {currentVehicle.fuelType2.includes('Electricity') ? 'MPGe' : 'MPG'}
+                        </span>
+                      </div>
+                    )}
+                    {currentVehicle.highwayA08 && (
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">Highway</span>
+                        <span className="text-lg text-red-400">
+                          {currentVehicle.highwayA08} {currentVehicle.fuelType2.includes('Electricity') ? 'MPGe' : 'MPG'}
+                        </span>
+                      </div>
+                    )}
             </div>
           </div>
         )}
 
+              {/* Hybrid Mode (if available) */}
+              {(currentVehicle.phevComb || currentVehicle.phevCity || currentVehicle.phevHwy) && (
+                <div className="space-y-3 border-t border-gray-700 pt-3">
+                  <h3 className="text-sm font-medium text-green-400 flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Hybrid Mode
+                  </h3>
+                  {currentVehicle.phevComb && (
+                    <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                      <span className="text-gray-300">Combined</span>
+                      <span className="text-xl text-green-400">
+                        {currentVehicle.phevComb} MPGe
+                      </span>
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {currentVehicle.phevCity && (
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">City</span>
+                        <span className="text-lg text-blue-400">
+                          {currentVehicle.phevCity} MPGe
+                        </span>
+                      </div>
+                    )}
+                    {currentVehicle.phevHwy && (
+                      <div className="bg-gray-700/50 p-3 rounded flex items-center justify-between">
+                        <span className="text-gray-300">Highway</span>
+                        <span className="text-lg text-red-400">
+                          {currentVehicle.phevHwy} MPGe
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowSearch(true)}
+            className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <CarFront className="h-5 w-5" />
+            Select Vehicle {vehicleNumber}
+          </button>
+        )}
+
+        {/* Search interface - only shown when needed */}
+        <div className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${showSearch ? 'max-h-[1000px]' : 'max-h-0'}`}>
         <FuelSavingsVehicleLookup 
-          onVehicleSelect={onVehicleSelect}
+            onVehicleSelect={(vehicle) => {
+              onVehicleSelect(vehicle);
+              setCurrentVehicle(vehicle);
+              setShowSearch(false);
+            }}
           makes={makes}
           customResultDisplay={(vehicle: Vehicle) => (
             <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
@@ -531,7 +658,11 @@ export default function FuelSavingsCalculator() {
               {/* Select Button */}
               <div className="p-3 bg-gray-800/50 flex justify-end">
                 <Button 
-                  onClick={() => onVehicleSelect(vehicle)}
+                    onClick={() => {
+                      onVehicleSelect(vehicle);
+                      setCurrentVehicle(vehicle);
+                      setShowSearch(false);
+                    }}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   Select
@@ -540,6 +671,7 @@ export default function FuelSavingsCalculator() {
             </div>
           )}
         />
+        </div>
       </div>
     )
   }
@@ -608,12 +740,14 @@ export default function FuelSavingsCalculator() {
       // Set default fuel costs when fuel types are selected
       let fuelCostUpdates = {}
       if (field === 'primaryFuelType') {
+        const fuelType = AVAILABLE_FUEL_TYPES.find(f => f.id === value)
         fuelCostUpdates = {
-          fuelCost: getDefaultPrice(value)
+          fuelCost: fuelType ? fuelType.defaultCost : FUEL_DEFAULTS.REGULAR_GASOLINE
         }
       } else if (field === 'secondaryFuelType') {
+        const fuelType = AVAILABLE_FUEL_TYPES.find(f => f.id === value)
         fuelCostUpdates = {
-          fuelCost2: value ? getDefaultPrice(value) : undefined
+          fuelCost2: fuelType ? fuelType.defaultCost : undefined
         }
       }
 
@@ -656,6 +790,85 @@ export default function FuelSavingsCalculator() {
 
   // Add handler for city/highway split toggle
   const handleCustomSplitToggle = (checked: boolean) => {
+    if (checked) {
+      // Check if any vehicles are missing city/highway values
+      const missingValues: MissingFuelValues[] = []
+      
+      // Helper function to check fuel efficiency values
+      const checkFuelEfficiency = (
+        vehicleNumber: 1 | 2,
+        efficiency: FuelEfficiency | undefined,
+        fuelType: 'primary' | 'secondary',
+        fuelName: string
+      ) => {
+        if (efficiency && (!efficiency.city || !efficiency.highway)) {
+          missingValues.push({
+            vehicleNumber,
+            fuelType,
+            fuelName
+          })
+        }
+      }
+      
+      // Check Vehicle 1
+      if (calculatorState.vehicle1.manual) {
+        // Check primary fuel
+        checkFuelEfficiency(
+          1,
+          calculatorState.vehicle1.manual.primaryEfficiency,
+          'primary',
+          AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle1.manual!.primaryFuelType)?.label || 'Primary Fuel'
+        )
+        
+        // Check secondary fuel if it exists
+        if (calculatorState.vehicle1.manual.secondaryFuelType && calculatorState.vehicle1.manual.secondaryEfficiency) {
+          checkFuelEfficiency(
+            1,
+            calculatorState.vehicle1.manual.secondaryEfficiency,
+            'secondary',
+            AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle1.manual!.secondaryFuelType)?.label || 'Secondary Fuel'
+          )
+        }
+      }
+      
+      // Check Vehicle 2
+      if (calculatorState.vehicle2.manual) {
+        // Check primary fuel
+        checkFuelEfficiency(
+          2,
+          calculatorState.vehicle2.manual.primaryEfficiency,
+          'primary',
+          AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle2.manual!.primaryFuelType)?.label || 'Primary Fuel'
+        )
+        
+        // Check secondary fuel if it exists
+        if (calculatorState.vehicle2.manual.secondaryFuelType && calculatorState.vehicle2.manual.secondaryEfficiency) {
+          checkFuelEfficiency(
+            2,
+            calculatorState.vehicle2.manual.secondaryEfficiency,
+            'secondary',
+            AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle2.manual!.secondaryFuelType)?.label || 'Secondary Fuel'
+          )
+        }
+      }
+
+      if (missingValues.length > 0) {
+        // Group missing values by vehicle
+        const vehicleGroups = missingValues.reduce((acc, curr) => {
+          if (!acc[curr.vehicleNumber]) {
+            acc[curr.vehicleNumber] = [];
+          }
+          acc[curr.vehicleNumber].push(curr);
+          return acc;
+        }, {} as Record<number, MissingFuelValues[]>);
+
+        setPendingVehicles(Object.keys(vehicleGroups).map(Number) as Array<1 | 2>);
+        setMissingFuelValues(missingValues);
+        setShowWarningDialog(true);
+        return;
+      }
+    }
+
     setCalculatorState(prev => ({
       ...prev,
       useCustomSplit: checked
@@ -670,53 +883,24 @@ export default function FuelSavingsCalculator() {
     }))
   }
 
-  // Helper function to render city/highway split section
-  const renderCityHighwaySplit = () => {
-    return (
-      <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-        <div className="flex items-center justify-between">
-          <Label className="text-gray-300 font-semibold">Specify Your City vs Highway Driving?</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="space-y-2 max-w-xs">
-                  <p className="text-sm">Adjust the percentage of city vs highway driving to get more accurate fuel costs.</p>
-                  <p className="text-xs text-blue-400">This split applies to both vehicles being compared.</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label htmlFor="custom-split" className="text-white">Toggle to Adjust Driving Percentage</Label>
-          <Switch
-            id="custom-split"
-            checked={calculatorState.useCustomSplit}
-            onCheckedChange={handleCustomSplitToggle}
-          />
-        </div>
-
-        {calculatorState.useCustomSplit && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Highway ({100 - calculatorState.cityHighwaySplit}%)</span>
-              <span className="text-sm text-gray-400">City ({calculatorState.cityHighwaySplit}%)</span>
-            </div>
-            <Slider
-              value={[calculatorState.cityHighwaySplit]}
-              onValueChange={handleCityHighwaySplitUpdate}
-              max={100}
-              step={5}
-              className="cursor-pointer touch-none"
-            />
-          </div>
-        )}
-      </div>
-    )
+  // Add helper function to scroll to vehicle
+  const scrollToVehicle = (vehicleNumber: number) => {
+    const element = document.getElementById(`vehicle-${vehicleNumber}-card`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+      // Expand the city/highway inputs if not already expanded
+      if (vehicleNumber === 1 && calculatorState.vehicle1.manual) {
+        handleManualVehicleUpdate(1, 'primaryEfficiency', {
+          ...calculatorState.vehicle1.manual.primaryEfficiency,
+          usesCityHighway: true
+        })
+      } else if (vehicleNumber === 2 && calculatorState.vehicle2.manual) {
+        handleManualVehicleUpdate(2, 'primaryEfficiency', {
+          ...calculatorState.vehicle2.manual.primaryEfficiency,
+          usesCityHighway: true
+        })
+      }
+    }
   }
 
   // Calculate fuel costs for a vehicle
@@ -730,7 +914,7 @@ export default function FuelSavingsCalculator() {
 
     if (vehicle.fromDb) {
       if (vehicle.fromDb.fuelType2) {
-        // For dual-fuel vehicles
+        // DUAL-FUEL DB VEHICLE CALCULATION
         const primaryMiles = mileage * (vehicle.usageSplit / 100)
         const secondaryMiles = mileage * (1 - vehicle.usageSplit / 100)
 
@@ -770,8 +954,9 @@ export default function FuelSavingsCalculator() {
         })
 
         annualCost = primaryCost + secondaryCost
+
       } else {
-        // For single-fuel vehicles
+        // SINGLE-FUEL DB VEHICLE CALCULATION
         const efficiency = useCustomSplit
           ? calculateEfficiency({
               cityMPG: vehicle.fromDb.city08,
@@ -789,23 +974,123 @@ export default function FuelSavingsCalculator() {
         })
       }
     } else if (vehicle.manual) {
-      // For manually entered vehicles
-      annualCost = calculateFuelCost({
-        miles: mileage,
-        mpg: vehicle.manual.primaryEfficiency.combined,
-        fuelPrice: vehicle.fuelCost,
-        fuelType: vehicle.manual.primaryFuelType
-      });
+      // Validate required data for manual vehicles
+      if (!vehicle.manual.primaryEfficiency.combined) return null;
 
-      // Add secondary fuel cost if present
-      if (vehicle.manual.secondaryFuelType && vehicle.manual.secondaryEfficiency && vehicle.fuelCost2) {
-        const secondaryCost = calculateFuelCost({
-          miles: mileage * ((100 - (vehicle.manual.fuelSplit || 50)) / 100),
-          mpg: vehicle.manual.secondaryEfficiency.combined,
-          fuelPrice: vehicle.fuelCost2,
-          fuelType: vehicle.manual.secondaryFuelType
+      if (vehicle.manual.secondaryFuelType && vehicle.manual.secondaryEfficiency) {
+        // DUAL-FUEL MANUAL VEHICLE
+        const primaryMiles = mileage * ((vehicle.manual.fuelSplit || DEFAULT_FUEL_SPLIT) / 100);
+        const secondaryMiles = mileage * (1 - (vehicle.manual.fuelSplit || DEFAULT_FUEL_SPLIT) / 100);
+
+        // Calculate primary fuel efficiency with city/highway split
+        let primaryEfficiency;
+        if (vehicle.manual.primaryEfficiency.usesCityHighway && useCustomSplit) {
+          // If using city/highway values and toggle is ON, calculate weighted MPG
+          if (vehicle.manual.primaryEfficiency.city && vehicle.manual.primaryEfficiency.highway) {
+            primaryEfficiency = calculateEfficiency({
+              cityMPG: vehicle.manual.primaryEfficiency.city,
+              highwayMPG: vehicle.manual.primaryEfficiency.highway,
+              cityPercentage: cityPercentage,
+              miles: primaryMiles
+            });
+          } else {
+            // If city/highway values are missing, use combined
+            primaryEfficiency = {
+              weightedMPG: vehicle.manual.primaryEfficiency.combined,
+              cityMiles: 0,
+              highwayMiles: primaryMiles 
+            };
+          }
+        } else {
+          // If not using city/highway or toggle is OFF, use combined directly
+          primaryEfficiency = {
+            weightedMPG: vehicle.manual.primaryEfficiency.combined,
+            cityMiles: 0,
+            highwayMiles: primaryMiles
+          };
+        }
+
+        // Calculate secondary fuel efficiency with city/highway split
+        let secondaryEfficiency;
+        if (vehicle.manual.secondaryEfficiency.usesCityHighway && useCustomSplit) {
+          // If using city/highway values and toggle is ON, calculate weighted MPG
+          if (vehicle.manual.secondaryEfficiency.city && vehicle.manual.secondaryEfficiency.highway) {
+            secondaryEfficiency = calculateEfficiency({
+              cityMPG: vehicle.manual.secondaryEfficiency.city,
+              highwayMPG: vehicle.manual.secondaryEfficiency.highway,
+              cityPercentage: cityPercentage,
+              miles: secondaryMiles
+            });
+          } else {
+            // If city/highway values are missing, use combined
+            secondaryEfficiency = {
+              weightedMPG: vehicle.manual.secondaryEfficiency.combined,
+              cityMiles: 0,
+              highwayMiles: secondaryMiles 
+            };
+          }
+        } else {
+          // If not using city/highway or toggle is OFF, use combined directly
+          secondaryEfficiency = {
+            weightedMPG: vehicle.manual.secondaryEfficiency.combined,
+            cityMiles: 0,
+            highwayMiles: secondaryMiles
+          };
+        }
+
+        // Calculate costs for each fuel type
+        const primaryCost = calculateFuelCost({
+          miles: primaryMiles,
+          mpg: primaryEfficiency.weightedMPG,
+          fuelPrice: vehicle.fuelCost,
+          fuelType: vehicle.manual.primaryFuelType
         });
-        annualCost += secondaryCost;
+
+        const secondaryCost = vehicle.fuelCost2
+          ? calculateFuelCost({
+              miles: secondaryMiles,
+              mpg: secondaryEfficiency.weightedMPG,
+              fuelPrice: vehicle.fuelCost2,
+              fuelType: vehicle.manual.secondaryFuelType
+            })
+          : 0;
+
+        annualCost = primaryCost + secondaryCost;
+      } else {
+        // SINGLE-FUEL MANUAL VEHICLE
+        let efficiency;
+        if (vehicle.manual.primaryEfficiency.usesCityHighway && useCustomSplit) {
+          // If using city/highway values and toggle is ON, calculate weighted MPG
+          if (vehicle.manual.primaryEfficiency.city && vehicle.manual.primaryEfficiency.highway) {
+            efficiency = calculateEfficiency({
+              cityMPG: vehicle.manual.primaryEfficiency.city,
+              highwayMPG: vehicle.manual.primaryEfficiency.highway,
+              cityPercentage: cityPercentage,
+              miles: mileage
+            });
+          } else {
+            // If city/highway values are missing, use combined
+            efficiency = {
+              weightedMPG: vehicle.manual.primaryEfficiency.combined,
+              cityMiles: 0,
+              highwayMiles: mileage 
+            };
+          }
+        } else {
+          // If not using city/highway or toggle is OFF, use combined directly
+          efficiency = {
+            weightedMPG: vehicle.manual.primaryEfficiency.combined,
+            cityMiles: 0,
+            highwayMiles: mileage
+          };
+        }
+
+        annualCost = calculateFuelCost({
+          miles: mileage,
+          mpg: efficiency.weightedMPG,
+          fuelPrice: vehicle.fuelCost,
+          fuelType: vehicle.manual.primaryFuelType
+        });
       }
     }
 
@@ -862,49 +1147,34 @@ export default function FuelSavingsCalculator() {
       const fuelType = isSecondaryFuel ? vehicle.fromDb.fuelType2 : vehicle.fromDb.fuelType1
       if (!fuelType) return null
       const fuelInfo = getFuelTypeInfo(fuelType)
-      
-      return (
-        <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
-                        transition-all duration-300 hover:border-blue-500/20">
-          <div className="flex items-center justify-between">
-            <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
-                   className="text-white/90 flex items-center gap-2">
-              <Fuel className="h-4 w-4 text-blue-400" />
-              <span>{fuelInfo.label}</span>
-              <span className="text-gray-400 text-sm">({fuelInfo.unit})</span>
-            </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-gray-800 border-gray-700">
-                  <div className="space-y-2 max-w-xs">
-                    <p className="text-sm text-gray-300">{fuelInfo.explanation}</p>
-                    <p className="text-xs text-blue-400">
-                      Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType)]}/{fuelInfo.unit.split('/')[1]}
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="relative mt-2">
-            <Input
-              id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
-              type="number"
-              step="0.01"
-              min="0"
-              value={fuelCost}
-              onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
-              className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
-                        focus:border-blue-500/50 focus:ring-blue-500/20
-                        transition-all duration-300"
-            />
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
-          </div>
+
+    return (
+      <div className="space-y-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50
+                      transition-all duration-300 hover:border-blue-500/20">
+        <div className="flex items-center justify-between">
+          <Label htmlFor={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`} 
+                 className="text-white/90 flex items-center gap-2">
+            <Fuel className="h-4 w-4 text-blue-400" />
+            <span>{fuelInfo.label}</span>
+            <span className="text-gray-400 text-sm">({fuelInfo.unit})</span>
+          </Label>
         </div>
-      )
+        <div className="relative mt-2">
+          <Input
+            id={`v${vehicleNumber}-fuel-cost${isSecondaryFuel ? '-2' : ''}`}
+            type="number"
+            step="0.01"
+            min="0"
+            value={fuelCost}
+            onChange={(e) => handleFuelCostUpdate(vehicleNumber, e.target.value, isSecondaryFuel)}
+            className="bg-gray-900/50 border-gray-600/50 text-white/90 pl-6
+                      focus:border-blue-500/50 focus:ring-blue-500/20
+                      transition-all duration-300"
+          />
+          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+        </div>
+      </div>
+    )
     }
 
     // Handle manual vehicles
@@ -925,24 +1195,6 @@ export default function FuelSavingsCalculator() {
               <span>{fuelType.label} Price</span>
               <span className="text-gray-400 text-sm">({fuelType.costUnit})</span>
             </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-gray-400 hover:text-blue-400 transition-colors" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-gray-800 border-gray-700">
-                  <div className="space-y-2 max-w-xs">
-                    <p className="text-sm text-gray-300">Cost per {fuelType.costUnit.split('/')[1]} of {fuelType.label.toLowerCase()}</p>
-                    <p className="text-xs text-blue-400">
-                      Default: ${FUEL_DEFAULTS[getFuelTypeCategory(fuelType.id)]}/{fuelType.costUnit.split('/')[1]}
-                    </p>
-                    {fuelType.sourceInfo && (
-                      <p className="text-xs text-gray-400">{fuelType.sourceInfo}</p>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
           <div className="relative mt-2">
             <Input
@@ -1001,6 +1253,53 @@ export default function FuelSavingsCalculator() {
     ]
   }
 
+  // Helper function to render city/highway split section
+  const renderCityHighwaySplit = () => {
+    return (
+      <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+        <div className="flex items-center justify-between">
+          <Label className="text-gray-300 font-semibold">Specify Your City vs Highway Driving?</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-4 w-4 text-gray-400" />
+              </TooltipTrigger>
+              <TooltipContent side="right" align="start" className="max-w-[200px] p-2 bg-gray-100 border border-gray-700">
+                <p className="text-xs text-gray-800">Adjust city/highway driving percentages for more accurate fuel costs</p>
+                <p className="text-xs text-blue-600 mt-1">Applied to both vehicles</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="custom-split" className="text-white">Toggle to Adjust Driving Percentage</Label>
+          <Switch
+            id="custom-split"
+            checked={calculatorState.useCustomSplit}
+            onCheckedChange={handleCustomSplitToggle}
+          />
+        </div>
+
+        {calculatorState.useCustomSplit && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-400">Highway ({100 - calculatorState.cityHighwaySplit}%)</span>
+              <span className="text-sm text-gray-400">City ({calculatorState.cityHighwaySplit}%)</span>
+            </div>
+            <Slider
+              value={[calculatorState.cityHighwaySplit]}
+              onValueChange={handleCityHighwaySplitUpdate}
+              max={100}
+              step={5}
+              className="cursor-pointer touch-none"
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8 relative min-h-screen">
       {/* Sophisticated background with patterns */}
@@ -1014,16 +1313,79 @@ export default function FuelSavingsCalculator() {
       
       {/* Content wrapper with glass effect */}
       <div className="relative z-10 space-y-8">
+        {/* Warning Dialog */}
+        <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+          <DialogContent className="sm:max-w-md md:max-w-lg bg-gradient-to-b from-gray-900 to-gray-800 border-2 border-red-500/20 shadow-xl shadow-red-500/10">
+            <DialogHeader className="border-b border-gray-700 pb-4">
+              <DialogTitle className="text-2xl font-bold text-red-400 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Action Required
+              </DialogTitle>
+              <DialogDescription className="pt-4 text-lg text-gray-300">
+                To specify city vs. driving percentages, the following values are needed:
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-6 space-y-6">
+              {Object.entries(
+                missingFuelValues.reduce((acc, curr) => {
+                  const key = `vehicle-${curr.vehicleNumber}`;
+                  if (!acc[key]) {
+                    acc[key] = [];
+                  }
+                  acc[key].push(curr);
+                  return acc;
+                }, {} as Record<string, MissingFuelValues[]>)
+              ).map(([vehicleKey, fuelValues]) => (
+                <div key={vehicleKey} className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Vehicle {vehicleKey.split('-')[1]}</h3>
+                  <div className="grid gap-3">
+                    {fuelValues.map((value, index) => (
+                      <Button
+                        key={`${vehicleKey}-${value.fuelType}-${index}`}
+                        onClick={() => {
+                          scrollToVehicle(value.vehicleNumber);
+                          setShowWarningDialog(false);
+                        }}
+                        className="w-full min-h-[3.5rem] px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 
+                                  hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg 
+                                  shadow-lg hover:shadow-blue-500/20 transition-all duration-200
+                                  flex items-center justify-start gap-3 text-left"
+                      >
+                        <div className="flex-shrink-0">
+                          <CarFront className="h-5 w-5" />
+                        </div>
+                        <span className="flex-grow">
+                          Update {value.fuelName} City/Highway Values
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <DialogFooter className="border-t border-gray-700 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowWarningDialog(false)}
+                className="w-full sm:w-auto border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Vehicle Selection Section */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Vehicle 1 Selection */}
-          <Card className="backdrop-blur-md bg-gradient-to-br from-gray-900/90 to-gray-800/90 
-                          border border-gray-700/30 hover:border-blue-500/20
-                          shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]
-                          hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.2)]
-                          transition-all duration-500">
-            <CardHeader className="border-b border-gray-700/30 bg-gradient-to-r 
-                          from-blue-500/5 to-transparent">
+          <Card id="vehicle-1-card" className="backdrop-blur-md bg-blue-900/40 border border-white/10
+                        shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                  from-[#1E3A8A]/10 to-transparent">
               <CardTitle className="text-white/90 font-heading flex items-center gap-2">
                 <CarFront className="h-5 w-5 text-blue-400" />
                 Vehicle 1
@@ -1142,13 +1504,10 @@ export default function FuelSavingsCalculator() {
           </Card>
 
           {/* Vehicle 2 Selection - Mirror the same styling */}
-          <Card className="backdrop-blur-md bg-gradient-to-br from-gray-900/90 to-gray-800/90 
-                          border border-gray-700/30 hover:border-blue-500/20
-                          shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]
-                          hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.2)]
-                          transition-all duration-500">
-            <CardHeader className="border-b border-gray-700/30 bg-gradient-to-r 
-                          from-blue-500/5 to-transparent">
+          <Card id="vehicle-2-card" className="backdrop-blur-md bg-blue-900/40 border border-white/10
+                        shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+            <CardHeader className="border-b border-white/5 bg-gradient-to-r 
+                                  from-[#1E3A8A]/10 to-transparent">
               <CardTitle className="text-white/90 font-heading flex items-center gap-2">
                 <CarFront className="h-5 w-5 text-blue-400" />
                 Vehicle 2
@@ -1177,16 +1536,16 @@ export default function FuelSavingsCalculator() {
                           <CarFront className="h-4 w-4 text-blue-400" />
                           <span>Vehicle Name</span>
                         </Label>
-                        <Input
-                          id="vehicle2-name"
+                      <Input
+                        id="vehicle2-name"
                           value={calculatorState.vehicle2.manual!.name}
-                          onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
+                        onChange={(e) => handleManualVehicleUpdate(2, 'name', e.target.value)}
                           className="mt-1.5 bg-gray-800 border-gray-600/50 text-white/90 
                                     focus:border-blue-500/50 focus:ring-blue-500/20 
                                     transition-all duration-300"
-                          placeholder="Enter vehicle name"
-                        />
-                      </div>
+                        placeholder="Enter vehicle name"
+                      />
+                    </div>
                       <div className="flex items-center justify-between bg-gray-800 p-3 rounded-lg
                                       border border-gray-700/50">
                         <Label htmlFor="vehicle2-fueltype" 
@@ -1194,18 +1553,18 @@ export default function FuelSavingsCalculator() {
                           <Fuel className="h-4 w-4 text-yellow-400" />
                           <span>Primary Fuel Type</span>
                         </Label>
-                        <select
-                          id="vehicle2-fueltype"
+                      <select
+                        id="vehicle2-fueltype"
                           value={calculatorState.vehicle2.manual!.primaryFuelType}
-                          onChange={(e) => handleManualVehicleUpdate(2, 'primaryFuelType', e.target.value)}
+                        onChange={(e) => handleManualVehicleUpdate(2, 'primaryFuelType', e.target.value)}
                           className="bg-gray-700 border-gray-600 text-white rounded-md"
-                        >
-                          {AVAILABLE_FUEL_TYPES.map(fuel => (
-                            <option key={fuel.id} value={fuel.id}>
-                              {fuel.label}
-                            </option>
-                          ))}
-                        </select>
+                      >
+                        {AVAILABLE_FUEL_TYPES.map(fuel => (
+                          <option key={fuel.id} value={fuel.id}>
+                            {fuel.label}
+                          </option>
+                        ))}
+                      </select>
                       </div>
                       <EfficiencyInput
                         fuelType={AVAILABLE_FUEL_TYPES.find(f => f.id === calculatorState.vehicle2.manual!.primaryFuelType)!}
@@ -1464,6 +1823,87 @@ export default function FuelSavingsCalculator() {
               {/* Cost Comparison Graph */}
               <div className="mt-8 bg-gray-900/50 p-6 rounded-lg border border-gray-700">
                 <h3 className="text-xl font-semibold text-white mb-6">Cost Comparison Over Time</h3>
+                
+                {/* Bar Graph */}
+                <div className="space-y-4 mb-12">
+                  <h4 className="text-lg font-medium text-blue-400 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="12" width="6" height="8"/><rect x="8" y="8" width="6" height="12"/><rect x="14" y="4" width="6" height="16"/></svg>
+                    Bar Graph Visualization
+                  </h4>
+                  <div className="h-[400px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={prepareChartData({ vehicle1: costs.vehicle1, vehicle2: costs.vehicle2 })}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis 
+                          dataKey="period" 
+                          stroke="#9CA3AF"
+                          tick={{ fill: '#9CA3AF' }}
+                        />
+                        <YAxis 
+                          stroke="#9CA3AF"
+                          tick={{ fill: '#9CA3AF' }}
+                          tickFormatter={(value) => `$${value.toLocaleString()}`}
+                        />
+                        <RechartsTooltip
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length > 1) {
+                              const value1 = (payload[0] as any).value;
+                              const value2 = (payload[1] as any).value;
+                              const vehicle1Name = calculatorState.vehicle1.fromDb ? 
+                                `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                                calculatorState.vehicle1.manual?.name || 'Vehicle 1';
+                              const vehicle2Name = calculatorState.vehicle2.fromDb ? 
+                                `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                                calculatorState.vehicle2.manual?.name || 'Vehicle 2';
+                              return (
+                                <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
+                                  <p className="text-gray-300 mb-2">{label}</p>
+                                  <p className="text-blue-400">
+                                    {vehicle1Name}: ${value1.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                  </p>
+                                  <p className="text-green-400">
+                                    {vehicle2Name}: ${value2.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                  </p>
+                                </div>
+                              )
+                            }
+                            return null
+                          }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ 
+                            paddingTop: '20px',
+                            color: '#9CA3AF'
+                          }}
+                        />
+                        <Bar
+                          dataKey="vehicle1"
+                          name={calculatorState.vehicle1.fromDb ? 
+                            `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                            calculatorState.vehicle1.manual?.name || 'Vehicle 1'}
+                          fill="#3B82F6"
+                        />
+                        <Bar
+                          dataKey="vehicle2"
+                          name={calculatorState.vehicle2.fromDb ? 
+                            `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                            calculatorState.vehicle2.manual?.name || 'Vehicle 2'}
+                          fill="#10B981"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Line Graph */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-blue-400 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Line Graph Visualization
+                  </h4>
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
@@ -1486,14 +1926,20 @@ export default function FuelSavingsCalculator() {
                           if (active && payload && payload.length > 1) {
                             const value1 = (payload[0] as any).value;
                             const value2 = (payload[1] as any).value;
+                              const vehicle1Name = calculatorState.vehicle1.fromDb ? 
+                                `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                                calculatorState.vehicle1.manual?.name || 'Vehicle 1';
+                              const vehicle2Name = calculatorState.vehicle2.fromDb ? 
+                                `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                                calculatorState.vehicle2.manual?.name || 'Vehicle 2';
                             return (
                               <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
                                 <p className="text-gray-300 mb-2">{label}</p>
                                 <p className="text-blue-400">
-                                  Vehicle 1: ${value1.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                    {vehicle1Name}: ${value1.toLocaleString(undefined, {maximumFractionDigits: 2})}
                                 </p>
                                 <p className="text-green-400">
-                                  Vehicle 2: ${value2.toLocaleString(undefined, {maximumFractionDigits: 2})}
+                                    {vehicle2Name}: ${value2.toLocaleString(undefined, {maximumFractionDigits: 2})}
                                 </p>
                               </div>
                             )
@@ -1582,16 +2028,42 @@ export default function FuelSavingsCalculator() {
                   </div>
                 </div>
                 <div className="mt-4 text-sm text-blue-100">
-                  {costs.savings.annual >= 0 ? (
-                    <p>Vehicle 2 could save you money on fuel costs compared to Vehicle 1.</p>
-                  ) : (
-                    <p>Vehicle 1 could save you money on fuel costs compared to Vehicle 2.</p>
-                  )}
+                  {costs.savings.annual === 0 ? (
+                    <p>
+                      Both vehicles have identical fuel costs.
+                    </p>
+                  ) : costs.savings.annual > 0 ? (
+                      <p>
+                        {calculatorState.vehicle2.fromDb ? 
+                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'} saves you money on fuel costs compared to {
+                          calculatorState.vehicle1.fromDb ? 
+                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'}.
+                      </p>
+                    ) : (
+                      <p>
+                        {calculatorState.vehicle1.fromDb ? 
+                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'} saves you money on fuel costs compared to {
+                          calculatorState.vehicle2.fromDb ? 
+                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'}.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Disclaimer */}
+        <div className="mt-8 p-4 bg-gray-900/30 rounded-lg border border-gray-700/50">
+          <p className="text-xs italic text-gray-400 leading-relaxed">
+            This Fuel Savings Calculator tool is provided for informational and educational purposes only. The MPG data used is sourced from the U.S. Environmental Protection Agency (EPA), an official government resource, and while efforts are made to ensure accuracy, discrepancies or updates may occur. Calculations are based on standard assumptions and estimates, which may not reflect individual circumstances or real-world conditions. Users are responsible for verifying results with their own data and should consult additional resources or/and professionals for critical decisions. This tool is provided "as is" without warranties of any kind, and the developers disclaim any liability for decisions or actions taken based on its output. The tool may be updated or modified without notice, affecting its functionality or results. By using this tool, you acknowledge and agree to these terms.
+          </p>
+        </div>
       </div>
     </div>
   )

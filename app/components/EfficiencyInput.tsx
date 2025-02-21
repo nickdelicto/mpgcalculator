@@ -149,7 +149,7 @@ export default function EfficiencyInput({
       if (validation.isValid) {
         onChange({
           ...efficiency,
-          combined: combinedValue,
+          combined: Math.round(combinedValue), // Round to whole number
           kwhPer100mi: kwhValue,
           usesCityHighway: false
         })
@@ -162,7 +162,7 @@ export default function EfficiencyInput({
       if (validation.isValid) {
         onChange({
           ...efficiency,
-          combined: numValue,
+          combined: Math.round(numValue), // Round to whole number
           usesCityHighway: false
         })
       }
@@ -181,6 +181,39 @@ export default function EfficiencyInput({
     }
   }, [evFormat])
 
+  // Handle toggle between city/highway and combined modes
+  const handleToggleChange = (checked: boolean) => {
+    // Clear local values when switching modes
+    setLocalCityValue('')
+    setLocalHighwayValue('')
+    setLocalMpgeValue('')
+    setLocalKwhValue('')
+    
+    if (checked) {
+      // Switching to city/highway mode - clear all values
+      const newEfficiency: FuelEfficiency = {
+        ...efficiency,
+        city: undefined,
+        highway: undefined,
+        combined: 0, // Set to 0 when clearing
+        kwhPer100mi: undefined,
+        usesCityHighway: true
+      }
+      onChange(newEfficiency)
+    } else {
+      // Switching to combined mode - clear all values
+      const newEfficiency: FuelEfficiency = {
+        ...efficiency,
+        city: undefined,
+        highway: undefined,
+        combined: 0, // Set to 0 when clearing
+        kwhPer100mi: undefined,
+        usesCityHighway: false
+      }
+      onChange(newEfficiency)
+    }
+  }
+
   // Handle city/highway efficiency inputs
   const handleCityHighwayChange = (type: 'city' | 'highway', value: string) => {
     // Update local state
@@ -192,11 +225,14 @@ export default function EfficiencyInput({
 
     // Allow empty input
     if (value === '') {
-      onChange({
+      const newEfficiency: FuelEfficiency = {
         ...efficiency,
         [type]: undefined,
-        usesCityHighway: true
-      })
+        usesCityHighway: true,
+        combined: 0, // Set to 0 when clearing
+        kwhPer100mi: undefined
+      }
+      onChange(newEfficiency)
       return
     }
 
@@ -214,61 +250,48 @@ export default function EfficiencyInput({
       setValidationMessage(validation.message || '')
 
       if (validation.isValid) {
-        const newEfficiency = {
+        const newEfficiency: FuelEfficiency = {
           ...efficiency,
-          [type]: efficiencyValue,
-          usesCityHighway: true
+          [type]: Math.round(efficiencyValue), // Round to whole number
+          usesCityHighway: true,
+          combined: 0, // Initialize to 0
+          kwhPer100mi: undefined
         }
 
-        // Calculate combined if both city and highway are present
-        if (newEfficiency.city && newEfficiency.highway) {
-          newEfficiency.combined = calculateCombinedEfficiency(
-            newEfficiency.city,
-            newEfficiency.highway
-          )
-          
-          // Calculate kWh/100mi from the combined MPGe
-          newEfficiency.kwhPer100mi = mpgeToKwh(newEfficiency.combined)
-        }
-
-        // Update local state with the entered value
-        if (type === 'city') {
-          setLocalCityValue(evFormat === 'mpge' 
-            ? efficiencyValue.toString()
-            : numValue.toString())
-        } else {
-          setLocalHighwayValue(evFormat === 'mpge'
-            ? efficiencyValue.toString()
-            : numValue.toString())
+        // Calculate combined only if both city and highway are present
+        if ((type === 'city' && efficiency.highway) || (type === 'highway' && efficiency.city)) {
+          const cityVal = type === 'city' ? efficiencyValue : efficiency.city
+          const highwayVal = type === 'highway' ? efficiencyValue : efficiency.highway
+          if (cityVal && highwayVal) {
+            // Calculate combined using 55/45 split and round to whole number
+            newEfficiency.combined = Math.round(calculateCombinedEfficiency(cityVal, highwayVal))
+            newEfficiency.kwhPer100mi = mpgeToKwh(newEfficiency.combined)
+          }
         }
 
         onChange(newEfficiency)
       }
     } else {
-      // For non-electric vehicles, handle as before
+      // For non-electric vehicles
       const validation = validateEfficiency(numValue, fuelType, type === 'highway')
       setValidationMessage(validation.message || '')
 
       if (validation.isValid) {
-        const newEfficiency = {
+        const newEfficiency: FuelEfficiency = {
           ...efficiency,
-          [type]: numValue,
-          usesCityHighway: true
+          [type]: Math.round(numValue), // Round to whole number
+          usesCityHighway: true,
+          combined: 0 // Initialize to 0
         }
 
-        // Calculate combined if both city and highway are present
-        if (newEfficiency.city && newEfficiency.highway) {
-          newEfficiency.combined = calculateCombinedEfficiency(
-            newEfficiency.city,
-            newEfficiency.highway
-          )
-        }
-
-        // Update local state with the entered value
-        if (type === 'city') {
-          setLocalCityValue(numValue.toString())
-        } else {
-          setLocalHighwayValue(numValue.toString())
+        // Calculate combined only if both city and highway are present
+        if ((type === 'city' && efficiency.highway) || (type === 'highway' && efficiency.city)) {
+          const cityVal = type === 'city' ? numValue : efficiency.city
+          const highwayVal = type === 'highway' ? numValue : efficiency.highway
+          if (cityVal && highwayVal) {
+            // Calculate combined using 55/45 split and round to whole number
+            newEfficiency.combined = Math.round(calculateCombinedEfficiency(cityVal, highwayVal))
+          }
         }
 
         onChange(newEfficiency)
@@ -353,28 +376,7 @@ export default function EfficiencyInput({
               <Switch
                 id="city-highway-toggle"
                 checked={efficiency.usesCityHighway}
-                onCheckedChange={(checked) => {
-                  // Clear local values when switching modes
-                  setLocalCityValue('')
-                  setLocalHighwayValue('')
-                  setLocalMpgeValue('')
-                  setLocalKwhValue('')
-                  
-                  if (checked) {
-                    onChange({
-                      ...efficiency,
-                      city: efficiency.combined,
-                      highway: efficiency.combined,
-                      usesCityHighway: true
-                    })
-                  } else {
-                    onChange({
-                      combined: efficiency.combined,
-                      kwhPer100mi: efficiency.kwhPer100mi,
-                      usesCityHighway: false
-                    })
-                  }
-                }}
+                onCheckedChange={handleToggleChange}
               />
             </div>
           </div>
@@ -462,8 +464,8 @@ export default function EfficiencyInput({
                         <TooltipTrigger>
                           <Info className="h-4 w-4 text-gray-900" />
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">Add a second fuel type for hybrid, flex-fuel, or plug-in hybrid vehicles</p>
+                        <TooltipContent side="right" align="start" className="max-w-[200px] p-2 bg-gray-100 border border-gray-700">
+                          <p className="text-xs text-gray-800">For hybrid, flex-fuel, or plug-in hybrid vehicles</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -536,13 +538,25 @@ export default function EfficiencyInput({
 
                 {/* Fuel Distribution Section */}
                 {secondaryFuelType && secondaryEfficiency && onFuelSplitChange && (
-                  <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700/50">
-                    <div className="bg-gray-800/50 px-4 py-3 border-b border-gray-700/50">
-                      <h3 className="text-lg font-medium text-white">Fuel Usage Distribution</h3>
+                  <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-gray-300 font-semibold">Fuel Usage Distribution</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="w-60">
+                            <p className="text-sm">Adjust the split between fuel types</p>
+                            <p className="text-xs text-blue-400 mt-1">Default: 50% primary fuel</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                    <div className="p-4 space-y-4">
+
+                    <div className="space-y-4">
                       {/* Primary Fuel Info */}
-                      <div className="bg-blue-900/20 p-3 rounded-lg border border-blue-500/20">
+                      <div className="bg-gray-800/50 p-3 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-blue-400 font-medium">{fuelType.label}</span>
                           <span className="text-sm text-gray-400">{fuelSplit}%</span>
@@ -552,27 +566,29 @@ export default function EfficiencyInput({
                         </div>
                       </div>
 
-                      {/* Slider with improved styling */}
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="5"
-                        value={fuelSplit}
-                        onChange={(e) => handleFuelSplitChange(parseInt(e.target.value))}
-                        className="w-full accent-blue-500"
-                      />
+                      {/* Slider */}
+                      <div className="py-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={fuelSplit}
+                          onChange={(e) => onFuelSplitChange(parseInt(e.target.value))}
+                          className="w-full accent-blue-500"
+                        />
+                      </div>
 
                       {/* Secondary Fuel Info */}
-                      <div className="bg-green-900/20 p-3 rounded-lg border border-green-500/20">
+                      <div className="bg-gray-800/50 p-3 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-green-400 font-medium">
-                            {AVAILABLE_FUEL_TYPES.find((f: FuelTypeDefinition) => f.id === secondaryFuelType)?.label}
+                            {AVAILABLE_FUEL_TYPES.find(f => f.id === secondaryFuelType)?.label}
                           </span>
                           <span className="text-sm text-gray-400">{100 - fuelSplit}%</span>
                         </div>
                         <div className="text-sm text-gray-400">
-                          Combined: {secondaryEfficiency.combined} {AVAILABLE_FUEL_TYPES.find((f: FuelTypeDefinition) => f.id === secondaryFuelType)?.efficiencyUnit}
+                          Combined: {secondaryEfficiency.combined} {AVAILABLE_FUEL_TYPES.find(f => f.id === secondaryFuelType)?.efficiencyUnit}
                         </div>
                       </div>
                     </div>
