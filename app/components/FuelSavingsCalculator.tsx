@@ -1641,7 +1641,7 @@ export default function FuelSavingsCalculator() {
               {/* Mileage Input */}
               <div className="space-y-4">
                 {/* Mileage Input Type Selection */}
-                <div className="grid grid-cols-4 gap-2 bg-yellow-500/90 p-4 rounded-lg border border-gray-700/50">
+                <div className="grid grid-cols-4 gap-2 bg-orange-500/90 p-4 rounded-lg border border-gray-700/50">
                   {(['annual', 'monthly', 'weekly', 'daily'] as const).map((period) => (
                     <Button
                       key={period}

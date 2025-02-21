@@ -31,12 +31,17 @@ export function Header() {
             <ul className="flex space-x-4 font-sans">
               <li>
                 <Button asChild variant="ghost" className="text-white hover:text-green-300 hover:bg-gray-900">
-                  <Link href="/vehicles">Vehicle MPG Lookup</Link>
+                  <Link href="/vehicles">Vehicle MPG Checker</Link>
                 </Button>
               </li>
               <li>
                 <Button asChild variant="ghost" className="text-white hover:text-green-300 hover:bg-gray-900">
-                  <Link href="/fuel-economy-compare">Vehicle MPG Comparison</Link>
+                  <Link href="/fuel-economy-compare">Compare Vehicle MPG</Link>
+                </Button>
+              </li>
+              <li>
+                <Button asChild variant="ghost" className="text-white hover:text-green-300 hover:bg-gray-900">
+                  <Link href="/fuel-savings-calculator">Fuel Savings Calculator</Link>
                 </Button>
               </li>
               <li>
