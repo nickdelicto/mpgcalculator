@@ -33,3 +33,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Specific public files to ignore
+public/favicon.ico
+public/gauge-icon.svg
+public/mpg-calculator-screenshot.jpg
