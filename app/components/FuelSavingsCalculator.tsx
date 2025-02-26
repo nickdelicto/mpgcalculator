@@ -1246,16 +1246,6 @@ export default function FuelSavingsCalculator() {
   const prepareChartData = (costs: { vehicle1: FuelCosts, vehicle2: FuelCosts }) => {
     return [
       {
-        period: 'Weekly',
-        vehicle1: costs.vehicle1.weekly,
-        vehicle2: costs.vehicle2.weekly
-      },
-      {
-        period: 'Monthly',
-        vehicle1: costs.vehicle1.monthly,
-        vehicle2: costs.vehicle2.monthly
-      },
-      {
         period: 'Annual',
         vehicle1: costs.vehicle1.annual,
         vehicle2: costs.vehicle2.annual
@@ -1281,9 +1271,9 @@ export default function FuelSavingsCalculator() {
   // Helper function to render city/highway split section
   const renderCityHighwaySplit = () => {
     return (
-      <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+      <div className="space-y-4 bg-gray-900/90 p-4 rounded-lg border border-gray-700">
         <div className="flex items-center justify-between">
-          <Label className="text-gray-300 font-semibold">Specify Your City vs Highway Driving?</Label>
+          <Label className="text-gray-300 font-semibold">Adjust City vs Highway Driving?</Label>
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -1307,7 +1297,7 @@ export default function FuelSavingsCalculator() {
         </div>
 
         <div className="flex items-center justify-between">
-          <Label htmlFor="custom-split" className="text-white">Toggle to Adjust Driving Percentage</Label>
+          <Label htmlFor="custom-split" className="text-white">Toggle to Adjust</Label>
           <Switch
             id="custom-split"
             checked={calculatorState.useCustomSplit}
@@ -1349,9 +1339,9 @@ export default function FuelSavingsCalculator() {
       <div className="relative z-10 space-y-8">
         {/* Warning Dialog */}
         <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
-          <DialogContent className="sm:max-w-md md:max-w-lg bg-gradient-to-b from-gray-900 to-gray-800 border-2 border-red-500/20 shadow-xl shadow-red-500/10">
+          <DialogContent className="sm:max-w-md md:max-w-lg bg-gradient-to-b from-gray-900 to-gray-800 border-2 border-red-500/20 shadow-xl shadow-red-500/10 p-6">
             <DialogHeader className="border-b border-gray-700 pb-4">
-              <DialogTitle className="text-2xl font-bold text-red-400 flex items-center gap-2">
+              <DialogTitle className="text-2xl font-bold text-red-400 flex items-center gap-2 justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/>
@@ -1360,7 +1350,7 @@ export default function FuelSavingsCalculator() {
                 Action Required
               </DialogTitle>
               <DialogDescription className="pt-4 text-lg text-gray-300">
-                To specify city vs. driving percentages, the following values are needed:
+                To adjust City vs. Highway driving percentages, first update the following fuel efficiency values:
               </DialogDescription>
             </DialogHeader>
             <div className="py-6 space-y-6">
@@ -1393,7 +1383,7 @@ export default function FuelSavingsCalculator() {
                           <CarFront className="h-5 w-5" />
                         </div>
                         <span className="flex-grow">
-                          Update {value.fuelName} City/Highway Values
+                          {value.fuelName} City & Highway MPGs
                         </span>
                       </Button>
                     ))}
@@ -1405,7 +1395,7 @@ export default function FuelSavingsCalculator() {
               <Button
                 variant="outline"
                 onClick={() => setShowWarningDialog(false)}
-                className="w-full sm:w-auto border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
+                className="w-full sm:w-auto border-gray-600 text-gray-600 hover:bg-red-700 hover:text-white"
               >
                 Cancel
               </Button>
@@ -1673,13 +1663,11 @@ export default function FuelSavingsCalculator() {
         </div>
 
         {/* Driving Pattern Section */}
-        <Card className="backdrop-blur-md bg-blue-900/40 border border-white/10
-                        shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
-          <CardHeader className="border-b border-white/5 bg-gradient-to-r 
-                                from-[#1E3A8A]/10 to-transparent">
-            <CardTitle className="text-white/90 font-heading flex items-center gap-2">
-              <Gauge className="h-5 w-5 text-[#047857]" />
-              Your Driving Pattern
+        <Card className="backdrop-blur-md bg-white/90 border border-indigo-500/20">
+          <CardHeader className="border-b border-indigo-400/10">
+            <CardTitle className="text-gray-900 font-heading flex items-center gap-2 text-xl">
+              {/* <Gauge className="h-5 w-5 text-[#047857]" /> */}
+              How Many Miles Do You Drive?
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1687,7 +1675,7 @@ export default function FuelSavingsCalculator() {
               {/* Mileage Input */}
               <div className="space-y-4">
                 {/* Mileage Input Type Selection */}
-                <div className="grid grid-cols-4 gap-2 bg-orange-500/90 p-4 rounded-lg border border-gray-700/50">
+                <div className="grid grid-cols-4 gap-2 bg-indigo-900/90 p-4 rounded-xl border border-amber-400/20 shadow-lg">
                   {(['annual', 'monthly', 'weekly', 'daily'] as const).map((period) => (
                     <Button
                       key={period}
@@ -1699,7 +1687,11 @@ export default function FuelSavingsCalculator() {
                         useCustomSplit: false,
                         annualMileage: prev.annualMileage
                       }))}
-                      className="capitalize"
+                      className={`capitalize font-medium transition-all duration-200 ${
+                        calculatorState.mileageInputType === period 
+                          ? "bg-white text-amber-600 shadow-md hover:bg-gray-100" 
+                          : "bg-transparent border-white/30 text-white hover:bg-white/20"
+                      }`}
                     >
                       {period}
                     </Button>
@@ -1707,9 +1699,9 @@ export default function FuelSavingsCalculator() {
                 </div>
 
                 {/* Mileage Input */}
-                <div className="space-y-4">
+                <div className="space-y-4 bg-indigo-500/20 p-4 rounded-xl border border-indigo-500/20">
                   <div>
-                    <Label htmlFor="mileage-input" className="text-white capitalize">
+                    <Label htmlFor="mileage-input" className="text-indigo-900 capitalize font-medium mb-2 block">
                       {calculatorState.mileageInputType} Mileage
                     </Label>
                     <div className="flex items-center space-x-2">
@@ -1729,26 +1721,28 @@ export default function FuelSavingsCalculator() {
                             handleMileageChange(value, calculatorState.mileageInputType)
                           }
                         }}
-                        className="bg-gray-700 border-gray-600 text-white"
+                        className="bg-indigo-800/80 border-indigo-400/30 text-white placeholder-indigo-300/50
+                                 focus:border-amber-400/50 focus:ring-amber-400/20 transition-all duration-200"
                         placeholder={`Enter ${calculatorState.mileageInputType} mileage`}
                       />
-                      <span className="text-gray-400 whitespace-nowrap">
+                      <span className="text-indigo-900/70 whitespace-nowrap font-medium">
                         miles/{getPeriodSuffix(calculatorState.mileageInputType)}
                       </span>
                     </div>
                   </div>
 
                   {/* Other Period Displays */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     {(['annual', 'monthly', 'weekly', 'daily'] as const)
                       .filter(period => period !== calculatorState.mileageInputType)
                       .map(period => (
-                        <div key={period} className="bg-gray-700/50 p-3 rounded-lg">
+                        <div key={period} className="bg-indigo-900/90 p-4 rounded-lg
+                                                   border border-indigo-400/10 shadow-inner">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-400 capitalize">{period}:</span>
-                            <span className="text-white">
+                            <span className="text-indigo-200 capitalize font-medium">{period}:</span>
+                            <span className="text-amber-400 font-semibold">
                               {convertMileage(calculatorState.annualMileage, 'annual', period).toLocaleString()} 
-                              <span className="text-gray-400 text-sm ml-1">
+                              <span className="text-indigo-300 text-sm ml-1 font-normal">
                                 miles/{getPeriodSuffix(period)}
                               </span>
                             </span>
@@ -1865,6 +1859,82 @@ export default function FuelSavingsCalculator() {
                   </div>
                 </div>
               </div>
+
+              {/* Savings Summary */}
+              <div className="mt-8 p-6 bg-blue-900/30 rounded-lg border border-blue-800">
+                <h3 className="text-xl font-semibold text-white mb-4">Potential Fuel Savings</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Weekly Savings:</span>
+                      <span className={costs.savings.weekly >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.weekly).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Monthly Savings:</span>
+                      <span className={costs.savings.monthly >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.monthly).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Annual Savings:</span>
+                      <span className={costs.savings.annual >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.annual).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Right Column */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">3-Year Savings:</span>
+                      <span className={costs.savings.threeYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.threeYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">5-Year Savings:</span>
+                      <span className={costs.savings.fiveYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.fiveYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">10-Year Savings:</span>
+                      <span className={costs.savings.tenYear >= 0 ? "text-green-400" : "text-red-400"}>
+                        ${Math.abs(costs.savings.tenYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 text-sm text-blue-100">
+                  {costs.savings.annual === 0 ? (
+                    <p>
+                      Both vehicles have identical fuel costs.
+                    </p>
+                  ) : costs.savings.annual > 0 ? (
+                      <p>
+                        {calculatorState.vehicle1.fromDb ? 
+                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'} saves you money on fuel costs compared to {
+                          calculatorState.vehicle2.fromDb ? 
+                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'}.
+                      </p>
+                    ) : (
+                      <p>
+                        {calculatorState.vehicle2.fromDb ? 
+                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
+                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'} saves you money on fuel costs compared to {
+                          calculatorState.vehicle1.fromDb ? 
+                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
+                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'}.
+                      </p>
+                    )}
+                  </div>
+                </div>
 
               {/* Cost Comparison Graph */}
               <div className="mt-8 bg-gray-900/50 p-6 rounded-lg border border-gray-700">
@@ -2026,79 +2096,7 @@ export default function FuelSavingsCalculator() {
                 </div>
               </div>
 
-              {/* Savings Summary */}
-              <div className="mt-8 p-6 bg-blue-900/30 rounded-lg border border-blue-800">
-                <h3 className="text-xl font-semibold text-white mb-4">Potential Savings</h3>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Weekly Savings:</span>
-                      <span className={costs.savings.weekly >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.weekly).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Monthly Savings:</span>
-                      <span className={costs.savings.monthly >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.monthly).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Annual Savings:</span>
-                      <span className={costs.savings.annual >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.annual).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">3-Year Savings:</span>
-                      <span className={costs.savings.threeYear >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.threeYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">5-Year Savings:</span>
-                      <span className={costs.savings.fiveYear >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.fiveYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">10-Year Savings:</span>
-                      <span className={costs.savings.tenYear >= 0 ? "text-green-400" : "text-red-400"}>
-                        ${Math.abs(costs.savings.tenYear).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 text-sm text-blue-100">
-                  {costs.savings.annual === 0 ? (
-                    <p>
-                      Both vehicles have identical fuel costs.
-                    </p>
-                  ) : costs.savings.annual > 0 ? (
-                      <p>
-                        {calculatorState.vehicle2.fromDb ? 
-                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
-                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'} saves you money on fuel costs compared to {
-                          calculatorState.vehicle1.fromDb ? 
-                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
-                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'}.
-                      </p>
-                    ) : (
-                      <p>
-                        {calculatorState.vehicle1.fromDb ? 
-                          `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}` :
-                          calculatorState.vehicle1.manual?.name || 'Vehicle 1'} saves you money on fuel costs compared to {
-                          calculatorState.vehicle2.fromDb ? 
-                          `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}` :
-                          calculatorState.vehicle2.manual?.name || 'Vehicle 2'}.
-                      </p>
-                    )}
-                  </div>
-                </div>
+
               </div>
             </CardContent>
           </Card>
