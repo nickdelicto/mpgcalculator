@@ -43,7 +43,7 @@ export default function FuelSavingsPage() {
       </Card>
 
       {/* Embed Section */}
-      <div className="bg-gradient-to-r from-green-900 to-blue-900 rounded-2xl p-8 border border-blue-700/50">
+      {/* <div className="bg-gradient-to-r from-green-900 to-blue-900 rounded-2xl p-8 border border-blue-700/50">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-4">
             <h2 className="text-2xl md:text-3xl font-bold text-white font-heading flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function FuelSavingsPage() {
             <EmbedCodeGenerator />
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 } 
