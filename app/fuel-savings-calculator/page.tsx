@@ -42,6 +42,44 @@ export default function FuelSavingsPage() {
         </CardContent>
       </Card>
 
+      {/* Donation Section */}
+      <div className="mb-12 bg-gradient-to-r from-rose-200 to-teal-200 dark:from-rose-500/30 dark:to-teal-500/30 rounded-2xl p-4 sm:p-8 border border-rose-300 dark:border-rose-500/30 backdrop-blur-sm shadow-lg">
+        <div className="text-center space-y-4">
+          <h3 className="text-xl sm:text-2xl font-heading font-semibold bg-gradient-to-r from-rose-700 to-teal-700 inline-block text-transparent bg-clip-text">
+          ✨ Enjoying the Calculator? <em>I won't mind a coffee</em> ☕️
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300 max-w-lg mx-auto text-sm sm:text-base">
+          No pressure at all, but if you find this tool helpful, I'd appreciate a coffee. I intend to keep this version of the tool free.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-2">
+            <a 
+              href="https://venmo.com/u/NickTCA" 
+              className="px-6 py-2.5 bg-[#008CFF] text-white rounded-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-[#008CFF]/20 text-sm sm:text-base"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Venmo
+            </a>
+            <a 
+              href="https://cash.app/$nickndegwaG" 
+              className="px-6 py-2.5 bg-[#00D632] text-white rounded-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-[#00D632]/20 text-sm sm:text-base"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Cash App
+            </a>
+            <a 
+              href="https://paypal.me/nickndegwaG" 
+              className="px-6 py-2.5 bg-[#0079C1] text-white rounded-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-[#0079C1]/20 text-sm sm:text-base"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PayPal
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Embed Section */}
       {/* <div className="bg-gradient-to-r from-green-900 to-blue-900 rounded-2xl p-8 border border-blue-700/50">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
