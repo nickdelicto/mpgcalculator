@@ -333,45 +333,53 @@ export default function EfficiencyInput({
     <div className={`space-y-6 ${className}`}>
       {/* Input fields section with improved grouping */}
       <div className="space-y-6">
-        {/* EV Format Selection - with distinct styling */}
+        {/* EV Format Selection - with modern glassmorphism styling */}
         {fuelType.id === 'electricity' && (
-          <div className="bg-blue-900/70 border border-blue-500/20 rounded-lg overflow-hidden">
-            <div className="bg-gray-800/50 px-4 py-3 border-b border-blue-500/20">
-              <Label className="text-white font-medium">Input Format</Label>
+          <div className="backdrop-blur-md bg-indigo-600/10 border border-white/10 rounded-xl overflow-hidden shadow-lg">
+            <div className="bg-indigo-500/20 px-4 py-3 border-b border-white/10">
+              <Label className="text-black font-medium flex items-center gap-2">
+                Input Format
+              </Label>
             </div>
-            <div className="p-4">
+            <div className="p-6">
               <div className="flex items-center justify-center space-x-8">
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <label className="relative flex items-center space-x-3 cursor-pointer group">
                   <input
                     type="radio"
                     name="evFormat"
                     checked={evFormat === 'mpge'}
                     onChange={() => handleFormatChange('mpge')}
-                    className="text-blue-500"
+                    className="peer sr-only"
                   />
-                  <span className="text-white">MPGe</span>
+                  <div className="w-5 h-5 border-2 border-indigo-400 rounded-full flex items-center justify-center transition-all duration-200 peer-checked:border-indigo-400 peer-checked:bg-indigo-600/40">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 scale-0 transition-transform duration-200 peer-checked:scale-100"></div>
+                  </div>
+                  <span className="text-indigo-400 font-medium transition-colors duration-200 group-hover:text-indigo-400 peer-checked:text-indigo-400">MPGe</span>
                 </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <label className="relative flex items-center space-x-3 cursor-pointer group">
                   <input
                     type="radio"
                     name="evFormat"
                     checked={evFormat === 'kwh'}
                     onChange={() => handleFormatChange('kwh')}
-                    className="text-blue-500"
+                    className="peer sr-only"
                   />
-                  <span className="text-white">kWh/100mi</span>
+                  <div className="w-5 h-5 border-2 border-indigo-400 rounded-full flex items-center justify-center transition-all duration-200 peer-checked:border-indigo-400 peer-checked:bg-indigo-600/40">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 scale-0 transition-transform duration-200 peer-checked:scale-100"></div>
+                  </div>
+                  <span className="text-indigo-400 font-medium transition-colors duration-200 group-hover:text-indigo-400 peer-checked:text-indigo-400">kWh/100mi</span>
                 </label>
               </div>
             </div>
           </div>
         )}
 
-        {/* City/Highway Toggle - with improved visual grouping */}
-        <div className="bg-green-800/70 rounded-lg overflow-hidden border border-gray-700/50">
-          <div className="bg-gray-800/50 px-4 py-3 border-b border-gray-700/50">
+        {/* City/Highway Toggle - with modern styling */}
+        <div className="rounded-lg overflow-hidden border border-indigo-500/30">
+          <div className="bg-indigo-900/90 px-4 py-3 border-b border-indigo-500/30">
             <div className="flex items-center justify-between">
-              <Label htmlFor="city-highway-toggle" className="text-white font-medium">
-                Specify City/Highway Efficiency?
+              <Label htmlFor="city-highway-toggle" className="text-indigo-100 font-medium">
+                Split City & Highway MPG?
               </Label>
               <Switch
                 id="city-highway-toggle"
@@ -382,12 +390,12 @@ export default function EfficiencyInput({
           </div>
 
           {/* Efficiency Inputs */}
-          <div className="p-4">
+          <div className="p-4 bg-indigo-500/20">
             {efficiency.usesCityHighway ? (
-              // City and Highway inputs with improved layout
+              // City and Highway inputs with modern layout
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="city-efficiency" className="text-white/90">
+                  <Label htmlFor="city-efficiency" className="text-black">
                     City {fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}
                   </Label>
                   <Input
@@ -396,17 +404,17 @@ export default function EfficiencyInput({
                     inputMode="decimal"
                     value={localCityValue || ''}
                     onChange={(e) => handleCityHighwayChange('city', e.target.value)}
-                    className="bg-gray-700/50 border-gray-600/50 text-white focus:border-blue-500/50 focus:ring-blue-500/20"
+                    className="bg-gray-200 border-indigo-500/30 text-black placeholder-indigo-300/50 focus:border-indigo-400 focus:ring-indigo-400/20"
                     placeholder={`Enter city ${fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}`}
                   />
                   {(efficiency.city ?? 0) > 0 && fuelType.id === 'electricity' && (
-                    <div className="mt-2 text-xs text-gray-400">
+                    <div className="mt-2 text-xs text-indigo-800/80">
                       Equivalent to {formatEfficiencyValue(efficiency.city ?? 0, evFormat === 'mpge' ? 'kwh' : 'mpge')} {evFormat === 'mpge' ? 'kWh/100mi' : 'MPGe'}
                     </div>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="highway-efficiency" className="text-white/90">
+                  <Label htmlFor="highway-efficiency" className="text-black">
                     Highway {fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}
                   </Label>
                   <Input
@@ -415,20 +423,20 @@ export default function EfficiencyInput({
                     inputMode="decimal"
                     value={localHighwayValue || ''}
                     onChange={(e) => handleCityHighwayChange('highway', e.target.value)}
-                    className="bg-gray-700/50 border-gray-600/50 text-white focus:border-blue-500/50 focus:ring-blue-500/20"
+                    className="bg-gray-200 border-indigo-500/30 text-black placeholder-indigo-300/50 focus:border-indigo-400 focus:ring-indigo-400/20"
                     placeholder={`Enter highway ${fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}`}
                   />
                   {(efficiency.highway ?? 0) > 0 && fuelType.id === 'electricity' && (
-                    <div className="mt-2 text-xs text-gray-400">
+                    <div className="mt-2 text-xs text-indigo-800/80">
                       Equivalent to {formatEfficiencyValue(efficiency.highway ?? 0, evFormat === 'mpge' ? 'kwh' : 'mpge')} {evFormat === 'mpge' ? 'kWh/100mi' : 'MPGe'}
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              // Combined input with improved styling
+              // Combined input with modern styling
               <div className="space-y-2">
-                <Label htmlFor="combined-efficiency" className="text-white/90">
+                <Label htmlFor="combined-efficiency" className="text-black">
                   Combined {fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}
                 </Label>
                 <Input
@@ -437,11 +445,11 @@ export default function EfficiencyInput({
                   inputMode="decimal"
                   value={fuelType.id === 'electricity' ? (evFormat === 'mpge' ? localMpgeValue : localKwhValue) : (efficiency.combined || '')}
                   onChange={(e) => handleEfficiencyChange(e.target.value, evFormat)}
-                  className="bg-gray-700/50 border-gray-600/50 text-white focus:border-blue-500/50 focus:ring-blue-500/20"
+                  className="bg-gray-200 border-indigo-500/30 text-black placeholder-indigo-300/50 focus:border-indigo-400 focus:ring-indigo-400/20"
                   placeholder={`Enter combined ${fuelType.id === 'electricity' ? getUnitLabel(evFormat) : fuelType.efficiencyUnit}`}
                 />
                 {efficiency.combined > 0 && (
-                  <div className="mt-2 text-xs text-gray-400">
+                  <div className="mt-2 text-xs text-indigo-800/80">
                     Equivalent to {formatEfficiencyValue(efficiency.combined, evFormat === 'mpge' ? 'kwh' : 'mpge')} {evFormat === 'mpge' ? 'kWh/100mi' : 'MPGe'}
                   </div>
                 )}
@@ -454,15 +462,17 @@ export default function EfficiencyInput({
         {allowSecondaryFuel && (
           <div className="mt-8 space-y-4">
             {/* Secondary Fuel Toggle */}
-            <div className="bg-orange-500/90 rounded-lg overflow-hidden border border-gray-700/50">
+            <div className="bg-emerald-500 rounded-lg overflow-hidden border border-gray-700/50">
               <div className="px-4 py-3 border-b border-gray-700/50">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="add-secondary-fuel" className="text-white font-medium flex items-center gap-2">
+                  <Label htmlFor="add-secondary-fuel" className="text-white font-bold flex items-center gap-2">
                     <span>Add Secondary Fuel Type</span>
-                    <TooltipProvider>
+                    <TooltipProvider delayDuration={0}>
                       <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-4 w-4 text-gray-900" />
+                        <TooltipTrigger asChild>
+                          <button type="button" className="focus:outline-none">
+                            <Info className="h-4 w-4 text-gray-100" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent side="right" align="start" className="max-w-[200px] p-2 bg-gray-100 border border-gray-700">
                           <p className="text-xs text-gray-800">For hybrid, flex-fuel, or plug-in hybrid vehicles</p>
@@ -490,7 +500,7 @@ export default function EfficiencyInput({
             {showSecondaryFuel && (
               <div className="space-y-6">
                 {/* Secondary Fuel Type Selector */}
-                <div className="bg-gray-800/30 rounded-lg overflow-hidden border border-gray-700/50">
+                <div className="bg-gray-200/50 rounded-lg overflow-hidden border border-gray-700/50">
                   <div className="bg-gray-800 px-4 py-3 border-b border-gray-700/50">
                     <Label htmlFor="secondary-fuel-type" className="text-white font-medium flex items-center gap-2">
                       <Fuel className="h-4 w-4 text-yellow-400" />
@@ -503,7 +513,7 @@ export default function EfficiencyInput({
                         id="secondary-fuel-type"
                         value={secondaryFuelType}
                         onChange={handleSecondaryFuelSelect}
-                        className="flex-1 bg-gray-700/50 border-gray-600/50 text-white rounded-md focus:border-blue-500/50 focus:ring-blue-500/20"
+                        className="flex-1 bg-white border-gray-600/50 text-black rounded-md focus:border-blue-500/50 focus:ring-blue-500/20"
                       >
                         <option value="">Select secondary fuel</option>
                         {filterSecondaryFuels(primaryFuelType).map(fuel => (
@@ -525,8 +535,8 @@ export default function EfficiencyInput({
 
                 {/* Secondary Fuel Efficiency Section */}
                 {secondaryFuelType && secondaryEfficiency && onSecondaryEfficiencyChange && (
-                  <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700/50">
-                    <div className="p-4">
+                  <div className="bg-white rounded-lg overflow-hidden">
+                    <div className="">
                       <EfficiencyInput
                         fuelType={AVAILABLE_FUEL_TYPES.find((f: FuelTypeDefinition) => f.id === secondaryFuelType) as FuelTypeDefinition}
                         efficiency={secondaryEfficiency}
@@ -538,36 +548,56 @@ export default function EfficiencyInput({
 
                 {/* Fuel Distribution Section */}
                 {secondaryFuelType && secondaryEfficiency && onFuelSplitChange && (
-                  <div className="space-y-4 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                  <div className="space-y-4 bg-gray-800 p-6 rounded-xl border border-slate-700/30 shadow-xl backdrop-blur-sm">
                     <div className="flex items-center justify-between">
-                      <Label className="text-gray-300 font-semibold">Fuel Usage Distribution</Label>
-                      <TooltipProvider>
+                      <Label className="text-slate-100 font-semibold flex items-center gap-2">
+                        {/* <Gauge className="h-4 w-4 text-emerald-400" /> */}
+                        Fuel Usage Distribution
+                      </Label>
+                      <TooltipProvider delayDuration={0}>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-gray-400" />
+                          <TooltipTrigger asChild>
+                            <button 
+                              type="button" 
+                              className="hover:bg-slate-700/30 p-1.5 rounded-full transition-colors focus:outline-none touch-manipulation"
+                            >
+                              <Info className="h-4 w-4 text-slate-300" />
+                            </button>
                           </TooltipTrigger>
-                          <TooltipContent side="left" className="w-60">
+                          <TooltipContent 
+                            side="left" 
+                            className="w-60 bg-white border-slate-600 text-slate-600"
+                            sideOffset={5}
+                          >
                             <p className="text-sm">Adjust the split between fuel types</p>
-                            <p className="text-xs text-blue-400 mt-1">Default: 50% primary fuel</p>
+                            <p className="text-xs text-emerald-500 mt-1">Default: 50% for each fuel type</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {/* Primary Fuel Info */}
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
+                      <div className="bg-gray-100 p-4 rounded-lg border border-slate-600/20 shadow-inner">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-blue-400 font-medium">{fuelType.label}</span>
-                          <span className="text-sm text-gray-400">{fuelSplit}%</span>
+                          <span className="text-emerald-600 font-medium flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
+                            {fuelType.label}
+                          </span>
+                          <span className="text-sm bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-full font-medium">
+                            {fuelSplit}%
+                          </span>
                         </div>
-                        <div className="text-sm text-gray-400">
-                          Combined: {efficiency.combined} {fuelType.efficiencyUnit}
+                        <div className="text-sm text-slate-600 flex items-center gap-2">
+                          <span>Combined:</span>
+                          <span className="font-medium text-slate-500">
+                            {efficiency.combined} {fuelType.efficiencyUnit}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Slider */}
-                      <div className="py-2">
+                      {/* Slider - Updated gradient direction */}
+                      <div className="py-2 px-1">
                         <input
                           type="range"
                           min="0"
@@ -575,20 +605,39 @@ export default function EfficiencyInput({
                           step="5"
                           value={fuelSplit}
                           onChange={(e) => onFuelSplitChange(parseInt(e.target.value))}
-                          className="w-full accent-blue-500"
+                          className="w-full h-2 rounded-lg appearance-none cursor-pointer
+                            bg-gradient-to-r from-violet-600 to-emerald-600
+                            [&::-webkit-slider-thumb]:appearance-none
+                            [&::-webkit-slider-thumb]:w-4
+                            [&::-webkit-slider-thumb]:h-4
+                            [&::-webkit-slider-thumb]:rounded-full
+                            [&::-webkit-slider-thumb]:bg-white
+                            [&::-webkit-slider-thumb]:shadow-lg
+                            [&::-webkit-slider-thumb]:cursor-pointer
+                            [&::-webkit-slider-thumb]:transition-all
+                            [&::-webkit-slider-thumb]:border-2
+                            [&::-webkit-slider-thumb]:border-slate-200/20
+                            [&::-webkit-slider-thumb]:hover:scale-110
+                            touch-manipulation"
                         />
                       </div>
 
                       {/* Secondary Fuel Info */}
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
+                      <div className="bg-gray-100 p-4 rounded-lg border border-slate-600/20 shadow-inner">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-green-400 font-medium">
+                          <span className="text-violet-600 font-medium flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-violet-600"></div>
                             {AVAILABLE_FUEL_TYPES.find(f => f.id === secondaryFuelType)?.label}
                           </span>
-                          <span className="text-sm text-gray-400">{100 - fuelSplit}%</span>
+                          <span className="text-sm bg-violet-500/10 text-violet-600 px-2 py-1 rounded-full font-medium">
+                            {100 - fuelSplit}%
+                          </span>
                         </div>
-                        <div className="text-sm text-gray-400">
-                          Combined: {secondaryEfficiency.combined} {AVAILABLE_FUEL_TYPES.find(f => f.id === secondaryFuelType)?.efficiencyUnit}
+                        <div className="text-sm text-slate-600 flex items-center gap-2">
+                          <span>Combined:</span>
+                          <span className="font-medium text-slate-500">
+                            {secondaryEfficiency.combined} {AVAILABLE_FUEL_TYPES.find(f => f.id === secondaryFuelType)?.efficiencyUnit}
+                          </span>
                         </div>
                       </div>
                     </div>
