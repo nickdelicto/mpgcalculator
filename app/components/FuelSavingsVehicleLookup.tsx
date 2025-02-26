@@ -130,7 +130,7 @@ export default function FuelSavingsVehicleLookup({
         <div className="grid gap-6">
           {/* Make Selection */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-200">
+            <label className="text-sm font-medium text-gray-800">
               Select Make
             </label>
             <Select
@@ -157,7 +157,7 @@ export default function FuelSavingsVehicleLookup({
 
           {/* Model Selection */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-200">
+            <label className="text-sm font-medium text-gray-800">
               Select Model
             </label>
             <Select
@@ -185,7 +185,7 @@ export default function FuelSavingsVehicleLookup({
 
           {/* Year Selection */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-200">
+            <label className="text-sm font-medium text-gray-800">
               Select Year
             </label>
             <Select
@@ -215,7 +215,7 @@ export default function FuelSavingsVehicleLookup({
           <Button 
             onClick={handleSearch}
             disabled={!selectedMake || !selectedModel || !selectedYear || isLoadingDetails}
-            className="mt-4 bg-green-600 hover:bg-green-700"
+            className="mt-4 bg-orange-600 hover:bg-orange-700"
           >
             {isLoadingDetails ? 'Loading...' : 'View Vehicle Details'}
           </Button>
