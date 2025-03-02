@@ -1,18 +1,56 @@
 import { Metadata } from 'next'
 import FuelSavingsCalculator from '../components/FuelSavingsCalculator'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Calculator, DollarSign, Share2 } from 'lucide-react'
-import EmbedCodeGenerator from '../components/EmbedCodeGenerator'
+import { Calculator, DollarSign } from 'lucide-react'
+import EmbedSection from '../components/EmbedSection'
+import Script from 'next/script'
+
+// Structured Data Component
+const StructuredData = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Fuel Savings Calculator",
+    "applicationCategory": "CalculatorApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "provider": {
+      "@type": "Organization",
+      "name": "MPGCalculator.net",
+      "url": "https://mpgcalculator.net"
+    },
+    "description": "Calculate and compare fuel costs between different vehicles. See potential savings over time with our interactive fuel cost savings comparison tool.",
+    "featureList": [
+      "Compare fuel costs between vehicles",
+      "Calculate potential savings over time",
+      "Support for gas, electric, and hybrid vehicles",
+      "Interactive cost comparison visualization",
+      "Customizable mileage and fuel price inputs"
+    ]
+  }
+
+  return (
+    <Script id="structured-data" type="application/ld+json">
+      {JSON.stringify(structuredData)}
+    </Script>
+  )
+}
 
 export const metadata: Metadata = {
   title: 'Fuel Savings Calculator | Compare Vehicle Fuel Costs',
-  description: 'Calculate and compare fuel costs between different vehicles. See potential savings over time with our interactive fuel cost savings comparison tool.',
-  keywords: 'fuel savings calculator, gas savings calculator, ev savings calculator, gas vs electric car cost, vehicle fuel cost comparison, hybrid vs gas calculator, fuel efficiency savings, car fuel cost comparison',
+  description: 'Use our interactive fuel savings calculator to compare fuel costs between 2 cars and see fuel savings over time.',
+  keywords: 'fuel savings calculator, gas savings calculator, ev savings calculator, phev savings calculator, gas vs ev savings calculator, hybrid vs gas cost calculator, fuel efficiency savings, car fuel cost comparison',
 }
 
 export default function FuelSavingsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
+      <StructuredData />
       {/* Hero Section */}
       <div className="relative mb-12 bg-gradient-to-r from-blue-900 to-blue-800 rounded-2xl p-8 overflow-hidden">
         <div className="relative z-10">
@@ -41,6 +79,11 @@ export default function FuelSavingsPage() {
           <FuelSavingsCalculator />
         </CardContent>
       </Card>
+
+      {/* Embed Section */}
+      <div className="mb-12">
+        <EmbedSection />
+      </div>
 
       {/* Donation Section */}
       <div className="mb-12 bg-gradient-to-r from-rose-200 to-teal-200 dark:from-rose-500/30 dark:to-teal-500/30 rounded-2xl p-4 sm:p-8 border border-rose-300 dark:border-rose-500/30 backdrop-blur-sm shadow-lg">
@@ -79,25 +122,6 @@ export default function FuelSavingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Embed Section */}
-      {/* <div className="bg-gradient-to-r from-green-900 to-blue-900 rounded-2xl p-8 border border-blue-700/50">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-white font-heading flex items-center gap-2">
-              <Share2 className="h-8 w-8 text-green-400" />
-              Add This Calculator to Your Website
-            </h2>
-            <p className="text-blue-100 max-w-2xl">
-              Help your visitors calculate their potential fuel savings by embedding this calculator on your website. 
-              It's free, responsive, and automatically updates with our latest features.
-            </p>
-          </div>
-          <div className="w-full md:w-auto">
-            <EmbedCodeGenerator />
-          </div>
-        </div>
-      </div> */}
     </div>
   )
 } 
