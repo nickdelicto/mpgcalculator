@@ -7,8 +7,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/private/']
+      disallow: [
+        '/embed/',    // Embed calculator pages
+        '/private/',
+        '/api/',     // All API routes
+        '/bolingo/', // Admin section (renamed from /admin for security)
+        '/bolingo/login',
+        '/bolingo/embed-analytics'
+      ]
     },
     sitemap: `${baseUrl}/sitemap.xml`
   }
-} 
+}

@@ -8,17 +8,18 @@ export function middleware(request: NextRequest) {
   // Create a new response
   let response = NextResponse.next()
   
-  // Check if this is an admin route
-  if (pathname.startsWith('/admin')) {
+  // Check if accessing admin routes
+  if (pathname.startsWith('/bolingo')) {
     // Allow access to login page
-    if (pathname === '/admin/login') {
-      return response
+    if (pathname === '/bolingo/login') {
+      return NextResponse.next()
     }
 
-    // Check for admin session cookie
-    const adminSession = request.cookies.get('admin_session')
-    if (!adminSession?.value) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+    // Check for admin cookie
+    const adminToken = request.cookies.get('admin_token')
+    if (!adminToken || adminToken.value !== process.env.ADMIN_SECRET) {
+      // Redirect to login if not authenticated
+      return NextResponse.redirect(new URL('/bolingo/login', request.url))
     }
   }
 
@@ -32,7 +33,8 @@ export function middleware(request: NextRequest) {
 // Configure the middleware to run on specific paths
 export const config = {
   matcher: [
-    '/admin/:path*',
+    '/bolingo/:path*',
+    '/api/admin/:path*',
     // Match all paths
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],

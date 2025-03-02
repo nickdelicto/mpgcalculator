@@ -18,7 +18,7 @@ export default function AdminLogin() {
     })
 
     if (response.ok) {
-      router.push('/admin/embed-analytics')
+      router.push('/bolingo/embed-analytics')
     } else {
       setError('Invalid password')
     }
