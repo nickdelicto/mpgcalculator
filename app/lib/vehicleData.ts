@@ -11,7 +11,7 @@ export async function getVehicleDetails(id: string): Promise<Vehicle | null> {
     }
 
     // Create URL object to handle special characters properly
-    const url = new URL('/api/vehicles/details', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+    const url = new URL('/api/vehicles/details', process.env.NEXT_BASE_URL || 'http://localhost:3000')
     url.searchParams.append('make', make)
     url.searchParams.append('model', model)
     url.searchParams.append('year', year.toString())
