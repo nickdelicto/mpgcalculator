@@ -40,6 +40,8 @@ import {
   DialogDescription,
   DialogFooter
 } from "../../components/ui/dialog"
+import ProductRecommendations from './ProductRecommendations'
+import { ProductErrorBoundary } from './ProductErrorBoundary'
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
@@ -2101,6 +2103,28 @@ export default function FuelSavingsCalculator() {
             </CardContent>
           </Card>
         )}
+
+        {/* Product Recommendations */}
+        <ProductErrorBoundary>
+          {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
+            <div className="mt-8 p-6 bg-gray-900/50 rounded-lg border border-gray-700">
+              <ProductRecommendations 
+                usesElectricity={
+                  // Vehicle 1 uses electricity
+                  (calculatorState.vehicle1.fromDb?.fuelType1.toLowerCase().includes('electricity') ||
+                   calculatorState.vehicle1.fromDb?.fuelType2?.toLowerCase().includes('electricity') ||
+                   calculatorState.vehicle1.manual?.primaryFuelType === 'electricity' ||
+                   calculatorState.vehicle1.manual?.secondaryFuelType === 'electricity') ||
+                  // OR Vehicle 2 uses electricity
+                  (calculatorState.vehicle2.fromDb?.fuelType1.toLowerCase().includes('electricity') ||
+                   calculatorState.vehicle2.fromDb?.fuelType2?.toLowerCase().includes('electricity') ||
+                   calculatorState.vehicle2.manual?.primaryFuelType === 'electricity' ||
+                   calculatorState.vehicle2.manual?.secondaryFuelType === 'electricity')
+                }
+              />
+            </div>
+          )}
+        </ProductErrorBoundary>
 
         {/* Disclaimer */}
         <div className="mt-8 p-4 bg-gray-900/30 rounded-lg border border-gray-700/50">
