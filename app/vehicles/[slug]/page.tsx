@@ -1,13 +1,14 @@
 import { Metadata } from 'next'
 import { Vehicle } from '../../types/vehicle'
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
-import { Fuel, CarFront, Leaf, Gauge, LineChart } from 'lucide-react'
+import { Fuel, CarFront, Leaf, Gauge, LineChart, DollarSign } from 'lucide-react'
 import VehicleComparison from '../../components/VehicleComparison'
 import VehicleTimeline from '../../components/VehicleTimeline'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 import Script from 'next/script'
+import FuelSavingsCalculator from '../../components/FuelSavingsCalculator'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -703,9 +704,28 @@ async function VehicleContent({ params }: Props) {
         </Card>
 
           {/* Comparison Tool */}
-          <section id="compare">
+          {/* <section id="compare">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Compare MPG with Other Vehicles</h2>
             <VehicleComparison />
+          </section> */}
+
+          {/* Fuel Savings Calculator */}
+          <section id="savings" className="mt-12 border-t border-gray-700 pt-12">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Compare & Calculate Your Fuel Savings</h2>
+            <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-gray-700">
+              <CardHeader className="border-b border-gray-700">
+                <CardTitle className="text-white flex items-center gap-2 text-2xl">
+                  <DollarSign className="h-6 w-6 text-green-400" />
+                  Estimate Fuel Savings Over Time
+                </CardTitle>
+                <p className="text-gray-400 mt-2 text-sm">
+                  To embed this FREE calculator on your site, visit our <Link href="/fuel-savings-calculator" className="text-blue-400 hover:text-blue-300 transition-colors">fuel savings calculator</Link> page, and copy the embed code.
+                </p>
+              </CardHeader>
+              <CardContent className="pt-6 font-heading">
+                <FuelSavingsCalculator />
+              </CardContent>
+            </Card>
           </section>
 
           {/* Vehicle Variants Section */}
