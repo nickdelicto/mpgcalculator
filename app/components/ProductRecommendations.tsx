@@ -145,8 +145,8 @@ export default function ProductRecommendations({ usesElectricity }: ProductRecom
 
   // Truncate title based on current window width
   const truncateTitle = (title: string) => {
-    const maxLength = windowWidth < 640 ? 40 : 
-                     windowWidth < 1024 ? 45 : 50
+    const maxLength = windowWidth < 640 ? 75 : 
+                     windowWidth < 1024 ? 75 : 75
     if (title.length <= maxLength) return title
     return title.substring(0, maxLength).trim() + '...'
   }
@@ -184,14 +184,14 @@ export default function ProductRecommendations({ usesElectricity }: ProductRecom
   return (
     <div className="relative space-y-4">
       <h3 className="text-lg font-semibold text-gray-300 flex items-center gap-2">
-        Recommended Products
+        Featured Items
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
               <Info className="h-4 w-4 text-gray-400" />
             </TooltipTrigger>
             <TooltipContent>
-              <p className="text-sm">These high quality products might be useful to you.</p>
+              <p className="text-sm">These items might be useful to you.</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -295,7 +295,7 @@ export default function ProductRecommendations({ usesElectricity }: ProductRecom
                           console.log('Product clicked:', product.asin)
                         }}
                       >
-                        View on Amazon
+                        Shop on Amazon
                       </a>
                     </Button>
                   </div>

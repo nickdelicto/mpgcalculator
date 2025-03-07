@@ -9,6 +9,8 @@ import { Suspense } from 'react'
 import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 import Script from 'next/script'
 import FuelSavingsCalculator from '../../components/FuelSavingsCalculator'
+import VehiclePageProducts from '../../components/VehiclePageProducts'
+import type { AmazonProduct } from '../../components/VehiclePageProducts'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -222,6 +224,12 @@ async function VehicleContent({ params }: Props) {
   const resolvedParams = await params
   const vehicles = await getVehicleData(resolvedParams.slug)
   
+  // Add this: Fetch products
+  const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/amazon/products`, {
+    cache: 'no-store'
+  })
+  const products = await productsResponse.json()
+
   if (!vehicles.length) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -348,6 +356,19 @@ async function VehicleContent({ params }: Props) {
   // Generate schemas with proper async handling
   const schemas = await generateVehicleSchema(vehicle, variants)
 
+  // Add shuffle utility function at the top with other utility functions
+  function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
+
+  // Add type annotation here
+  const shuffledProducts = shuffleArray<AmazonProduct>(products)
+  
   return (
     <>
       <Script id="vehicle-schema" type="application/ld+json">
@@ -392,6 +413,12 @@ async function VehicleContent({ params }: Props) {
             </p>
           </CardContent>
         </Card>
+
+        {/* First placement after Quick Summary */}
+        <VehiclePageProducts
+          title="Featured Products*"
+          products={shuffledProducts.slice(0, 3)}
+        />
 
         {/* Main MPG Data */}
         <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -682,6 +709,12 @@ async function VehicleContent({ params }: Props) {
           </div>
         </section>
 
+        {/* Second placement after Maximizing Fuel Economy */}
+        <VehiclePageProducts
+          title="More Featured Products*"
+          products={shuffledProducts.slice(3, 6)}
+        />
+
         {/* Base Model Timeline */}
         <Card className="bg-gray-800 border-gray-700 mb-8">
           <CardHeader>
@@ -702,12 +735,6 @@ async function VehicleContent({ params }: Props) {
             />
           </CardContent> 
         </Card>
-
-          {/* Comparison Tool */}
-          {/* <section id="compare">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Compare MPG with Other Vehicles</h2>
-            <VehicleComparison />
-          </section> */}
 
           {/* Fuel Savings Calculator */}
           <section id="savings" className="mt-12 border-t border-gray-700 pt-12">
@@ -1075,6 +1102,13 @@ async function VehicleContent({ params }: Props) {
               </p>
           </section>
         )}
+
+        {/* Third placement after Similar Vehicles */}
+        <VehiclePageProducts
+          title="Recommended Products*"
+          products={shuffledProducts.slice(6, 9)}
+        />
+
         </div>
       </div>
     </>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PREFERRED_EV_CHARGERS } from '../../../config/amazon-products'
+import { VEHICLE_PAGES_PRODUCTS as PREFERRED_EV_CHARGERS } from '../../../config/amazon-products'
 import { signRequest } from '../../../lib/amazon-paapi'
 
 // Types
@@ -112,6 +112,44 @@ async function searchAdditionalProducts(count: number) {
   return data?.SearchResult?.Items || []
 }
 
+// Add this helper function for shuffling arrays
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+// Add this function to arrange products according to rules
+function arrangeProducts(preferred: AmazonProduct[], additional: AmazonProduct[]): AmazonProduct[] {
+  const shuffledPreferred = shuffleArray(preferred)
+  const shuffledAdditional = shuffleArray(additional)
+  
+  // Initialize array with 7 empty slots
+  const result: (AmazonProduct | null)[] = Array(7).fill(null)
+  
+  // Place preferred products in required positions (1st, 5th, and 7th)
+  result[0] = shuffledPreferred[0] // 1st position
+  result[2] = shuffledPreferred[1] // 5th position
+  result[6] = shuffledPreferred[2] // 7th position
+  
+  // Fill remaining positions with mix of additional and remaining preferred
+  const remainingProducts = [...shuffledPreferred.slice(3), ...shuffledAdditional]
+  const shuffledRemaining = shuffleArray(remainingProducts)
+  
+  let remainingIndex = 0
+  for (let i = 0; i < 7; i++) {
+    if (result[i] === null) {
+      result[i] = shuffledRemaining[remainingIndex]
+      remainingIndex++
+    }
+  }
+  
+  return result as AmazonProduct[]
+}
+
 export async function GET() {
   try {
     // Check cache first
@@ -120,20 +158,10 @@ export async function GET() {
       return NextResponse.json(productCache.evChargers.data)
     }
 
-    // Log credentials (remove in production)
-    console.log('API Key exists:', !!process.env.AMAZON_PA_API_KEY)
-    console.log('Secret Key exists:', !!process.env.AMAZON_PA_API_SECRET)
-    console.log('Associate Tag exists:', !!process.env.AMAZON_ASSOCIATE_TAG)
-
-    // Always include all preferred ASINs
+    // Get all ASINs
     const preferredAsins = [...PREFERRED_EV_CHARGERS.preferredAsins]
-    console.log('Preferred ASINs:', preferredAsins)
-
-    // Calculate how many additional products we need
-    const additionalNeeded = PREFERRED_EV_CHARGERS.settings.maxDisplay - preferredAsins.length
+    const additionalAsins = [...PREFERRED_EV_CHARGERS.additionalAsins]
     
-    let allProducts: AmazonProduct[] = []
-
     // First, get preferred products
     const preferredPayload = JSON.stringify({
       ItemIds: preferredAsins,
@@ -142,96 +170,99 @@ export async function GET() {
         'ItemInfo.Title',
         'ItemInfo.Features',
         'Offers.Listings.Price',
-        'Offers.Listings.DeliveryInfo.IsPrimeEligible'
+        'Offers.Listings.DeliveryInfo.IsPrimeEligible',
+        'CustomerReviews.Count',
+        'CustomerReviews.StarRating'
       ],
       PartnerTag: process.env.AMAZON_ASSOCIATE_TAG,
       PartnerType: 'Associates',
       Marketplace: 'www.amazon.com'
     })
 
-    console.log('Preferred products request payload:', preferredPayload)
-
-    // Sign and make the request for preferred products
-    const preferredRequestOptions = signRequest(
-      'POST',
-      HOST,
-      URI,
-      REGION,
-      SERVICE,
-      preferredPayload,
-      process.env.AMAZON_PA_API_KEY || '',
-      process.env.AMAZON_PA_API_SECRET || ''
-    )
-
-    const preferredResponse = await fetch(`https://${HOST}${URI}`, {
-      method: 'POST',
-      headers: preferredRequestOptions.headers,
-      body: preferredPayload
+    // Get additional products
+    const additionalPayload = JSON.stringify({
+      ItemIds: additionalAsins,
+      Resources: [
+        'Images.Primary.Large',
+        'ItemInfo.Title',
+        'ItemInfo.Features',
+        'Offers.Listings.Price',
+        'Offers.Listings.DeliveryInfo.IsPrimeEligible',
+        'CustomerReviews.Count',
+        'CustomerReviews.StarRating'
+      ],
+      PartnerTag: process.env.AMAZON_ASSOCIATE_TAG,
+      PartnerType: 'Associates',
+      Marketplace: 'www.amazon.com'
     })
 
-    if (!preferredResponse.ok) {
-      console.error('Preferred products API Error:', await preferredResponse.text())
-      throw new Error('Failed to fetch preferred products')
+    // Make both requests in parallel
+    const [preferredResponse, additionalResponse] = await Promise.all([
+      fetch(`https://${HOST}${URI}`, {
+        method: 'POST',
+        headers: signRequest('POST', HOST, URI, REGION, SERVICE, preferredPayload, 
+          process.env.AMAZON_PA_API_KEY || '', process.env.AMAZON_PA_API_SECRET || '').headers,
+        body: preferredPayload
+      }),
+      fetch(`https://${HOST}${URI}`, {
+        method: 'POST',
+        headers: signRequest('POST', HOST, URI, REGION, SERVICE, additionalPayload,
+          process.env.AMAZON_PA_API_KEY || '', process.env.AMAZON_PA_API_SECRET || '').headers,
+        body: additionalPayload
+      })
+    ])
+
+    if (!preferredResponse.ok || !additionalResponse.ok) {
+      throw new Error('Failed to fetch products')
     }
 
     const preferredData = await preferredResponse.json()
-    if (preferredData?.ItemsResult?.Items) {
-      allProducts = preferredData.ItemsResult.Items.map((item: any) => ({
-        asin: item.ASIN,
-        title: item.ItemInfo.Title.DisplayValue,
-        imageUrl: item.Images.Primary.Large.URL,
-        affiliateUrl: `https://www.amazon.com/dp/${item.ASIN}?tag=${process.env.AMAZON_ASSOCIATE_TAG}`,
-        features: item.ItemInfo.Features?.DisplayValues || [],
-        prime: item.Offers?.Listings?.[0]?.DeliveryInfo?.IsPrimeEligible || false
-      }))
-    }
+    const additionalData = await additionalResponse.json()
 
-    // If we need additional products and we're not in development mode
-    if (additionalNeeded > 0 && process.env.NODE_ENV !== 'development') {
-      try {
-        const additionalProducts = await searchAdditionalProducts(additionalNeeded)
-        const additionalProcessed = additionalProducts
-          .filter((item: any) => !preferredAsins.includes(item.ASIN))
-          .map((item: any) => ({
-            asin: item.ASIN,
-            title: item.ItemInfo.Title.DisplayValue,
-            imageUrl: item.Images.Primary.Large.URL,
-            affiliateUrl: `https://www.amazon.com/dp/${item.ASIN}?tag=${process.env.AMAZON_ASSOCIATE_TAG}`,
-            features: item.ItemInfo.Features?.DisplayValues || [],
-            prime: item.Offers?.Listings?.[0]?.DeliveryInfo?.IsPrimeEligible || false
-          }))
-          .slice(0, additionalNeeded)
+    // Process preferred products
+    const preferredProducts = preferredData?.ItemsResult?.Items?.map((item: any) => ({
+      asin: item.ASIN,
+      title: item.ItemInfo.Title.DisplayValue,
+      imageUrl: item.Images.Primary.Large.URL,
+      affiliateUrl: `https://www.amazon.com/dp/${item.ASIN}?tag=${process.env.AMAZON_ASSOCIATE_TAG}`,
+      features: item.ItemInfo.Features?.DisplayValues || [],
+      prime: item.Offers?.Listings?.[0]?.DeliveryInfo?.IsPrimeEligible || false,
+      rating: item.CustomerReviews?.StarRating || null,
+      reviewCount: item.CustomerReviews?.Count || 0
+    })) || []
 
-        allProducts = [...allProducts, ...additionalProcessed]
-      } catch (error) {
-        console.error('Error fetching additional products:', error)
-        // Continue with just the preferred products
-      }
-    }
+    // Process additional products
+    const additionalProducts = additionalData?.ItemsResult?.Items?.map((item: any) => ({
+      asin: item.ASIN,
+      title: item.ItemInfo.Title.DisplayValue,
+      imageUrl: item.Images.Primary.Large.URL,
+      affiliateUrl: `https://www.amazon.com/dp/${item.ASIN}?tag=${process.env.AMAZON_ASSOCIATE_TAG}`,
+      features: item.ItemInfo.Features?.DisplayValues || [],
+      prime: item.Offers?.Listings?.[0]?.DeliveryInfo?.IsPrimeEligible || false,
+      rating: item.CustomerReviews?.StarRating || null,
+      reviewCount: item.CustomerReviews?.Count || 0
+    })) || []
+
+    // Arrange products according to rules
+    const arrangedProducts = arrangeProducts(preferredProducts, additionalProducts)
 
     // Update cache
     productCache.evChargers = {
-      data: allProducts,
+      data: arrangedProducts,
       timestamp: Date.now()
     }
 
-    return NextResponse.json(allProducts)
+    return NextResponse.json(arrangedProducts)
 
   } catch (error) {
     console.error('Amazon PA-API Error:', error)
-    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
     
-    // If cache exists but is expired, use it as fallback
-    if (productCache.evChargers) {
-      console.log('Using expired cache as fallback')
-      return NextResponse.json(productCache.evChargers.data)
-    }
-
-    // Use mock data in development
+    // If in development, return mock data with proper arrangement
     if (process.env.NODE_ENV === 'development') {
-      console.log('Using mock data in development')
-      const mockProducts = getMockProducts(PREFERRED_EV_CHARGERS.preferredAsins)
-      return NextResponse.json(mockProducts)
+      const mockPreferred = getMockProducts(PREFERRED_EV_CHARGERS.preferredAsins)
+      const mockAdditional = getMockProducts(PREFERRED_EV_CHARGERS.additionalAsins)
+      const arrangedMock = arrangeProducts(mockPreferred, mockAdditional)
+      return NextResponse.json(arrangedMock)
     }
 
     return NextResponse.json(
