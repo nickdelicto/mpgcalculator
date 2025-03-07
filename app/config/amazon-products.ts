@@ -1,4 +1,4 @@
-export const PREFERRED_EV_CHARGERS = {
+export const VEHICLE_PAGES_PRODUCTS = {
   // Our curated list of preferred/verified chargers
   preferredAsins: [
     'B0C6YMS4KH',  // ChargePoint
@@ -9,19 +9,35 @@ export const PREFERRED_EV_CHARGERS = {
     'B0BDLQMR51',  // Additional charger
     'B0D2NPCGYB'   // Additional charger
   ],
+  // Additional automotive accessories
+  additionalAsins: [
+    'B0CC1FLWXP',  // DENVIX Tire Inflator
+    'B015TKSSB8',  // NOCO GB150 Jump Starter
+    'B08WZFPXFM',  // NOCO GBX155 Power Bank
+    'B09NNGMZNQ',  // MeeFar Car Carrier
+    'B0C6YBHKJ5',  // Car Vacuum
+    'B073CQMF25',  // Autel Scanner
+    'B0BJQMTY48',  // Car Cleaning Kit
+    'B00IPS4APU'   // Rain-X Windshield Repair
+  ],
   settings: {
-    maxDisplay: 12,          // Show up to 12 products
-    minPreferred: 7,         // Always show all preferred products
-    searchTerm: "EV Charger Level 2", // Search term for additional products
+    maxDisplay: 7,           // Show exactly 7 products
+    minPreferred: 3,         // Always show at least 3 preferred products
+    fixedPositions: {        // Fixed position rules
+      first: 'preferred',    // Position 1 must be preferred
+      fifth: 'preferred',    // Position 5 must be preferred
+      seventh: 'preferred'   // Position 7 must be preferred
+    },
+    searchTerm: "EV Charger Level 2",
     searchFilters: {
-      minRating: 4,          // Minimum rating for additional products
-      minReviews: 50,        // Minimum number of reviews
+      minRating: 4,
+      minReviews: 50,
       priceRange: {
-        min: 200,            // Minimum price
-        max: 1000           // Maximum price
+        min: 200,
+        max: 1000
       }
     },
-    randomize: true,         // Randomize selection of additional products
-    cacheTime: 21600        // 6 hours in seconds
+    randomize: true,
+    cacheTime: 21600
   }
 } 
