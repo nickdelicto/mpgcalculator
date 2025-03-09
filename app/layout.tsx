@@ -5,6 +5,7 @@ import { Header } from './components/Header'
 import { Footer } from './components/Footer'
 import Script from 'next/script'
 import { headers } from 'next/headers'
+import MetaPixel from './components/MetaPixel'
 
 // Open Sans for body text
 const openSans = Open_Sans({ 
@@ -55,6 +56,7 @@ export default async function RootLayout({
       <html lang="en">
         <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
+          <MetaPixel />
         </head>
         <body className={`${openSans.variable} ${nunito.variable} font-sans bg-white`}>
           {children}
@@ -90,6 +92,7 @@ export default async function RootLayout({
             </Script>
           </>
         )}
+        <MetaPixel />
       </head>
       <body className={`${openSans.variable} ${nunito.variable} font-sans text-gray-900 bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen flex flex-col`}>
         <Header />

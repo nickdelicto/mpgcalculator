@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { JSX } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Vehicle, Make } from '../types/vehicle'
 import { ManualVehicleFuel, FuelTypeDefinition, FuelEfficiency, AVAILABLE_FUEL_TYPES, FUEL_TYPE_VALIDATION } from '../types/fuel'
 import FuelSavingsVehicleLookup from './FuelSavingsVehicleLookup'
@@ -42,6 +42,7 @@ import {
 } from "../../components/ui/dialog"
 import ProductRecommendations from './ProductRecommendations'
 import { ProductErrorBoundary } from './ProductErrorBoundary'
+import { trackFacebookEvent } from '../utils/analytics'
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
@@ -325,6 +326,9 @@ export default function FuelSavingsCalculator() {
   const [showWarningDialog, setShowWarningDialog] = useState(false)
   const [pendingVehicles, setPendingVehicles] = useState<Array<1 | 2>>([])
   const [missingFuelValues, setMissingFuelValues] = useState<MissingFuelValues[]>([]);
+
+  // Add hasTrackedResults ref before other state
+  const hasTrackedResults = useRef(false)
 
   // Helper function to convert mileage between different periods
   const convertMileage = (value: number, from: 'annual' | 'monthly' | 'weekly' | 'daily', to: 'annual' | 'monthly' | 'weekly' | 'daily'): number => {
@@ -1152,6 +1156,23 @@ export default function FuelSavingsCalculator() {
       vehicle2: v2Costs,
       savings
     })
+
+    // Track first successful calculation
+    if (v1Costs && v2Costs && savings && !hasTrackedResults.current) {
+      trackFacebookEvent('CalculatorResults', {
+        content_name: 'Fuel Savings Calculator Results',
+        value: Math.abs(savings.annual),
+        currency: 'USD',
+        vehicle1_type: calculatorState.vehicle1.fromDb 
+          ? `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}`
+          : calculatorState.vehicle1.manual?.name || 'Manual Input',
+        vehicle2_type: calculatorState.vehicle2.fromDb 
+          ? `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}`
+          : calculatorState.vehicle2.manual?.name || 'Manual Input',
+        annual_mileage: calculatorState.annualMileage
+      })
+      hasTrackedResults.current = true
+    }
   }, [calculatorState])
 
   // Helper function to get fuel type label from the AVAILABLE_FUEL_TYPES
