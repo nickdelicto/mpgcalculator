@@ -43,13 +43,23 @@ import {
 import ProductRecommendations from './ProductRecommendations'
 import { ProductErrorBoundary } from './ProductErrorBoundary'
 import { trackFacebookEvent } from '../utils/analytics'
+import SaveReportButton from './SaveReportButton'
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
   // Additional fields specific to the calculator can be added here
 }
 
-interface VehicleSelection {
+export interface FuelCosts {
+  weekly: number
+  monthly: number
+  annual: number
+  threeYear: number
+  fiveYear: number
+  tenYear: number
+}
+
+export interface VehicleSelection {
   fromDb: Vehicle | null
   manual: ManualVehicle | null
   fuelCost: number
@@ -67,15 +77,6 @@ interface CalculatorState {
   vehicle2: VehicleSelection
   annualMileage: number
   mileageInputType: 'annual' | 'monthly' | 'weekly' | 'daily'
-}
-
-interface FuelCosts {
-  weekly: number
-  monthly: number
-  annual: number
-  threeYear: number
-  fiveYear: number
-  tenYear: number
 }
 
 // Default fuel prices with their sources
@@ -329,6 +330,17 @@ export default function FuelSavingsCalculator() {
 
   // Add hasTrackedResults ref before other state
   const hasTrackedResults = useRef(false)
+
+  // Add this near other state declarations
+  const [hasNewResults, setHasNewResults] = useState(true)
+  const [hasEmailedResults, setHasEmailedResults] = useState(() => {
+    // Check if we're in the browser
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('lastEmailedResults')
+      return stored ? JSON.parse(stored) : false
+    }
+    return false
+  })
 
   // Helper function to convert mileage between different periods
   const convertMileage = (value: number, from: 'annual' | 'monthly' | 'weekly' | 'daily', to: 'annual' | 'monthly' | 'weekly' | 'daily'): number => {
@@ -1151,29 +1163,22 @@ export default function FuelSavingsCalculator() {
       tenYear: v2Costs.tenYear - v1Costs.tenYear
     } : null
 
-    setCosts({
-      vehicle1: v1Costs,
-      vehicle2: v2Costs,
-      savings
-    })
-
-    // Track first successful calculation
-    if (v1Costs && v2Costs && savings && !hasTrackedResults.current) {
-      trackFacebookEvent('CalculatorResults', {
-        content_name: 'Fuel Savings Calculator Results',
-        value: Math.abs(savings.annual),
-        currency: 'USD',
-        vehicle1_type: calculatorState.vehicle1.fromDb 
-          ? `${calculatorState.vehicle1.fromDb.year} ${calculatorState.vehicle1.fromDb.make} ${calculatorState.vehicle1.fromDb.model}`
-          : calculatorState.vehicle1.manual?.name || 'Manual Input',
-        vehicle2_type: calculatorState.vehicle2.fromDb 
-          ? `${calculatorState.vehicle2.fromDb.year} ${calculatorState.vehicle2.fromDb.make} ${calculatorState.vehicle2.fromDb.model}`
-          : calculatorState.vehicle2.manual?.name || 'Manual Input',
-        annual_mileage: calculatorState.annualMileage
+    if (v1Costs && v2Costs && savings) {
+      setCosts({
+        vehicle1: v1Costs,
+        vehicle2: v2Costs,
+        savings
       })
-      hasTrackedResults.current = true
+      
+      // Only set hasNewResults to true if we have emailed results before
+      // This prevents the "new results" state from triggering unnecessarily
+      if (hasEmailedResults) {
+        setHasNewResults(true)
+      }
     }
-  }, [calculatorState])
+
+    // Rest of the existing useEffect code...
+  }, [calculatorState, hasEmailedResults])
 
   // Helper function to get fuel type label from the AVAILABLE_FUEL_TYPES
   const getFuelTypeLabel = (fuelTypeId: string): string => {
@@ -1331,8 +1336,8 @@ export default function FuelSavingsCalculator() {
         {calculatorState.useCustomSplit && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Highway ({100 - calculatorState.cityHighwaySplit}%)</span>
-              <span className="text-sm text-gray-400">City ({calculatorState.cityHighwaySplit}%)</span>
+              <span className="text-sm text-gray-400">Highway ({calculatorState.cityHighwaySplit}%)</span>
+              <span className="text-sm text-gray-400">City ({100 - calculatorState.cityHighwaySplit}%)</span>
             </div>
             <Slider
               value={[calculatorState.cityHighwaySplit]}
@@ -1345,6 +1350,39 @@ export default function FuelSavingsCalculator() {
         )}
       </div>
     )
+  }
+
+  const handleSaveReport = async (email: string) => {
+    const reportData = {
+      vehicle1: calculatorState.vehicle1,
+      vehicle2: calculatorState.vehicle2,
+      annualMileage: calculatorState.annualMileage,
+      cityHighwaySplit: calculatorState.cityHighwaySplit,
+      costs: {
+        vehicle1: costs.vehicle1!,
+        vehicle2: costs.vehicle2!
+      }
+    }
+
+    const response = await fetch('/api/save-report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        reportData
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to save report')
+    }
+
+    // After successful email submission
+    setHasEmailedResults(true)
+    setHasNewResults(false)
+    localStorage.setItem('lastEmailedResults', 'true')
   }
 
   return (
@@ -2153,6 +2191,15 @@ export default function FuelSavingsCalculator() {
             This Fuel Savings Calculator tool is provided for informational and educational purposes only. The MPG data used is sourced from the U.S. Environmental Protection Agency (EPA), an official government resource, and while efforts are made to ensure accuracy, discrepancies or updates may occur. Calculations are based on standard assumptions and estimates, which may not reflect individual circumstances or real-world conditions. Users are responsible for verifying results with their own data and should consult additional resources or/and professionals for critical decisions. This tool is provided "as is" without warranties of any kind, and the developers disclaim any liability for decisions or actions taken based on its output. The tool may be updated or modified without notice, affecting its functionality or results. By using this tool, you acknowledge and agree to these terms.
           </p>
         </div>
+
+        {/* Add the Save Report button only when results are available */}
+        {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
+          <SaveReportButton 
+            onSaveReport={handleSaveReport} 
+            hasNewResults={hasNewResults}
+            hasEmailedResults={hasEmailedResults}
+          />
+        )}
       </div>
     </div>
   )
