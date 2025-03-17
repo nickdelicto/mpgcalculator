@@ -43,7 +43,7 @@ import {
 import ProductRecommendations from './ProductRecommendations'
 import { ProductErrorBoundary } from './ProductErrorBoundary'
 import { trackFacebookEvent } from '../utils/analytics'
-import SaveReportButton from './SaveReportButton'
+import SaveReportButton from '../components/SaveReportButton'
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
@@ -1168,6 +1168,12 @@ export default function FuelSavingsCalculator() {
         vehicle1: v1Costs,
         vehicle2: v2Costs,
         savings
+      })
+      
+      // Track calculator results
+      trackFacebookEvent('CalculatorResults', {
+        value: Math.abs(savings.annual),
+        currency: 'USD'
       })
       
       // Only set hasNewResults to true if we have emailed results before
