@@ -85,9 +85,9 @@ export default function SaveReportButton({
 
       {/* Email Collection Modal */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center mb-2">
+            <DialogTitle className="text-2xl font-bold text-center mb-2 text-gray-800">
               Get Your Fuel Savings Results
             </DialogTitle>
           </DialogHeader>
@@ -105,7 +105,7 @@ export default function SaveReportButton({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white text-gray-800 placeholder-gray-400"
                   disabled={isSubmitting || success}
                 />
               </div>
@@ -117,8 +117,8 @@ export default function SaveReportButton({
               <Button
                 type="submit"
                 disabled={isSubmitting || success}
-                className="w-full bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700
-                  text-white font-medium py-3 rounded-lg transition-all duration-200
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg
+                  transition-all duration-200 shadow-md hover:shadow-lg
                   disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Sending...' : success ? 'Sent! ✓' : 'Get Results'}
