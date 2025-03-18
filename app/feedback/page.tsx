@@ -5,7 +5,7 @@ import Link from 'next/link'
 export default function Feedback() {
   const emailSubject = encodeURIComponent("MPG Calculator Feedback")
   const emailBody = encodeURIComponent("I'd like to provide feedback on the MPG Calculator:")
-  const mailtoLink = `mailto:delictodelight@gmail.com?subject=${emailSubject}&body=${emailBody}`
+  const mailtoLink = `mailto:nickg@mpgcalculator.net?subject=${emailSubject}&body=${emailBody}`
 
   return (
     <div className="max-w-2xl mx-auto mt-8 p-6 bg-gray-800 rounded-lg shadow-md text-white">
@@ -17,7 +17,7 @@ export default function Feedback() {
         </Link>
       </Button>
       <p className="mt-4 text-sm text-gray-400">
-        Note: This will open your default email client. If it doesn't work, please send your feedback directly to the developer at delictodelight at gmail dot com
+        Note: This will open your default email client. If it doesn't work, please send your feedback directly to the developer at <strong>nickg at mpgcalculator dot net</strong>
       </p>
     </div>
   )
