@@ -24,6 +24,38 @@ const config = {
 };
 
 /**
+ * Verify that the key file is accessible and valid
+ * @returns {Promise<boolean>} Whether the key file is valid
+ */
+async function verifyKeyFile() {
+  return new Promise((resolve) => {
+    const keyUrl = config.keyLocation;
+    console.log(`Verifying key file at ${keyUrl}`);
+    
+    exec(`curl -s ${keyUrl}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error checking key file: ${error.message}`);
+        resolve(false);
+        return;
+      }
+      
+      if (stderr) {
+        console.error(`Error in curl command: ${stderr}`);
+      }
+      
+      // Check if the response contains the correct key
+      if (stdout.trim() === config.key) {
+        console.log('Key file verification successful');
+        resolve(true);
+      } else {
+        console.error(`Key file verification failed. Expected: ${config.key}, Got: ${stdout.trim()}`);
+        resolve(false);
+      }
+    });
+  });
+}
+
+/**
  * Get the list of all current URLs on your site from the Next.js generated sitemap.xml
  * @returns {Promise<Array<string>>} List of all current URLs
  */
@@ -32,25 +64,82 @@ async function getAllCurrentUrls() {
     // Most reliable approach is to fetch the XML sitemap after build is complete
     const sitemapUrl = `https://${config.host}/sitemap.xml`;
     
-    // Use curl to fetch the sitemap
-    exec(`curl -s ${sitemapUrl}`, (error, stdout, stderr) => {
+    console.log(`Attempting to fetch sitemap from ${sitemapUrl}`);
+    
+    // Use curl with increased buffer size to fetch the sitemap
+    exec(`curl -s ${sitemapUrl}`, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {
-        console.error(`Error fetching sitemap: ${error.message}`);
-        // Fallback to local file if we can't fetch the live sitemap
+        console.error(`Error fetching remote sitemap: ${error.message}`);
+        
+        // Try multiple potential locations for the local sitemap file
+        const possibleSitemapPaths = [
+          path.join(__dirname, '../.next/server/app/sitemap.xml'),
+          path.join(__dirname, '../.next/server/pages/sitemap.xml'),
+          path.join(__dirname, '../public/sitemap.xml')
+        ];
+        
+        console.log('Attempting to find local sitemap file...');
+        for (const sitemapPath of possibleSitemapPaths) {
+          console.log(`Checking ${sitemapPath}`);
+          try {
+            if (fs.existsSync(sitemapPath) && fs.lstatSync(sitemapPath).isFile()) {
+              console.log(`Found sitemap at ${sitemapPath}`);
+              const sitemapContent = fs.readFileSync(sitemapPath, 'utf8');
+              const urls = parseSitemapXml(sitemapContent);
+              console.log(`Parsed ${urls.length} URLs from local sitemap`);
+              resolve(urls);
+              return;
+            }
+          } catch (err) {
+            console.error(`Error checking ${sitemapPath}:`, err);
+          }
+        }
+
+        // If we can't find the sitemap file, let's try to search for it
+        console.log('Searching for sitemap.xml in build output directory...');
         try {
-          // Check if the sitemap exists locally after build (in .next/server/app)
-          const localSitemapPath = path.join(__dirname, '../.next/server/app/sitemap.xml');
-          if (fs.existsSync(localSitemapPath)) {
-            const sitemapContent = fs.readFileSync(localSitemapPath, 'utf8');
+          const findSitemap = (dir) => {
+            const files = fs.readdirSync(dir);
+            for (const file of files) {
+              const fullPath = path.join(dir, file);
+              try {
+                const stat = fs.statSync(fullPath);
+                if (stat.isDirectory()) {
+                  const found = findSitemap(fullPath);
+                  if (found) return found;
+                } else if (file === 'sitemap.xml') {
+                  return fullPath;
+                }
+              } catch (err) {
+                // Skip files we can't access
+              }
+            }
+            return null;
+          };
+          
+          const sitemapPath = findSitemap(path.join(__dirname, '../.next'));
+          if (sitemapPath) {
+            console.log(`Found sitemap at ${sitemapPath}`);
+            const sitemapContent = fs.readFileSync(sitemapPath, 'utf8');
             const urls = parseSitemapXml(sitemapContent);
+            console.log(`Parsed ${urls.length} URLs from found sitemap`);
             resolve(urls);
             return;
           }
         } catch (err) {
-          console.error('Error reading local sitemap:', err);
+          console.error('Error searching for sitemap:', err);
         }
-        // If all else fails, return an empty array
-        resolve([]);
+        
+        // If all else fails, let's create a minimal list of known URLs
+        console.log('Could not find sitemap. Using fallback URLs...');
+        const fallbackUrls = [
+          `https://${config.host}/`,
+          `https://${config.host}/vehicles`,
+          `https://${config.host}/fuel-savings-calculator`,
+          `https://${config.host}/fuel-economy-compare`
+        ];
+        console.log(`Using ${fallbackUrls.length} fallback URLs`);
+        resolve(fallbackUrls);
         return;
       }
       
@@ -60,6 +149,7 @@ async function getAllCurrentUrls() {
       
       // Parse the XML to extract URLs
       const urls = parseSitemapXml(stdout);
+      console.log(`Parsed ${urls.length} URLs from remote sitemap`);
       resolve(urls);
     });
   });
@@ -148,8 +238,10 @@ function submitUrlBatch(urlList) {
       });
       
       res.on('end', () => {
-        if (res.statusCode === 200) {
-          console.log(`Successfully submitted batch of ${urlList.length} URLs`);
+        // 202 (Accepted) should be treated as success
+        // This is Bing's way of saying "I've accepted your submission and will process it asynchronously"
+        if (res.statusCode === 200 || res.statusCode === 202) {
+          console.log(`Successfully submitted batch of ${urlList.length} URLs (Status: ${res.statusCode})`);
           resolve();
         } else {
           console.error(`Error submitting URLs: ${res.statusCode} - ${responseData}`);
@@ -176,6 +268,23 @@ async function main() {
   try {
     console.log('Starting IndexNow URL submission process...');
     
+    // First verify the key file is accessible
+    const isKeyValid = await verifyKeyFile();
+    if (!isKeyValid) {
+      console.error(`
+=======================================================
+ERROR: Your key file could not be verified!
+-------------------------------------------------------
+1. Make sure the file ${config.key}.txt exists at the root of your website
+2. The file should contain only: ${config.key}
+3. The file should be accessible at: ${config.keyLocation}
+
+Until this is fixed, search engines won't accept your IndexNow submissions.
+=======================================================
+`);
+      // Continue with the process, but warn that submissions might fail
+    }
+    
     // Get all current URLs
     console.log('Fetching current URLs from sitemap...');
     const currentUrls = await getAllCurrentUrls();
@@ -200,11 +309,47 @@ async function main() {
     
     console.log(`Found ${newUrls.length} new URLs to submit to search engines`);
     
+    // For initial testing, limit to a small batch to avoid overwhelming the API
+    const isInitialTest = previousUrls.length === 0 && newUrls.length > 10;
+    const batchSize = isInitialTest ? 5 : config.maxUrlsPerBatch;
+    
+    if (isInitialTest) {
+      console.log(`TESTING MODE: Limiting initial submission to ${batchSize} URLs for testing`);
+    }
+    
     // Submit URLs in batches to avoid hitting IndexNow limits
-    for (let i = 0; i < newUrls.length; i += config.maxUrlsPerBatch) {
-      const batch = newUrls.slice(i, i + config.maxUrlsPerBatch);
-      console.log(`Submitting batch ${Math.floor(i/config.maxUrlsPerBatch) + 1} (${batch.length} URLs)...`);
-      await submitUrlBatch(batch);
+    for (let i = 0; i < (isInitialTest ? batchSize : newUrls.length); i += batchSize) {
+      const batch = newUrls.slice(i, i + batchSize);
+      console.log(`Submitting batch ${Math.floor(i/batchSize) + 1} (${batch.length} URLs)...`);
+      try {
+        await submitUrlBatch(batch);
+        
+        // If we're in test mode and the first batch succeeds, save just these URLs
+        if (isInitialTest) {
+          console.log('Test submission successful! Saving these URLs as submitted.');
+          saveSubmittedUrls(batch);
+          console.log(`
+=======================================================
+SUCCESS! Test submission of ${batch.length} URLs was accepted.
+-------------------------------------------------------
+To submit all ${newUrls.length} URLs, run this script again.
+Each run will submit more URLs until all are processed.
+=======================================================
+`);
+          return;
+        }
+      } catch (error) {
+        console.error(`Error submitting batch: ${error.message}`);
+        if (i === 0) {
+          // If the first batch fails, stop the process
+          throw error;
+        } else {
+          // If a later batch fails, save what we've submitted so far
+          console.log('Saving successfully submitted URLs up to this point');
+          saveSubmittedUrls(newUrls.slice(0, i));
+          return;
+        }
+      }
     }
     
     // Save the current URLs as "previously submitted"
