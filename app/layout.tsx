@@ -78,6 +78,39 @@ export default async function RootLayout({
         {/* Google Analytics - Only included in production */}
         {isProduction && (
           <>
+            {/* Internal traffic detection script - runs before GA loads */}
+            <Script id="internal-traffic-detection" strategy="beforeInteractive">
+              {`
+                (function() {
+                  // Check various conditions that might indicate localhost/internal traffic
+                  var isInternal = false;
+                  
+                  // Check referrer for localhost or specific port patterns
+                  if (document.referrer.indexOf('localhost') !== -1 || 
+                      document.referrer.indexOf(':8080') !== -1) {
+                    isInternal = true;
+                    console.log('Internal traffic detected via referrer:', document.referrer);
+                  }
+                  
+                  // Check URL parameters (useful if you want to manually flag traffic)
+                  var urlParams = new URLSearchParams(window.location.search);
+                  if (urlParams.get('internal_traffic') === 'true') {
+                    isInternal = true;
+                    console.log('Internal traffic detected via URL parameter');
+                  }
+                  
+                  // If internal traffic detected, disable analytics
+                  if (isInternal) {
+                    // Disable GA4 - using your actual measurement ID
+                    window['ga-disable-${process.env.NEXT_PUBLIC_GA_ID}'] = true;
+                    console.log('Analytics disabled due to internal traffic detection');
+                    
+                    // Optional: Set a cookie to remember this for the session
+                    document.cookie = "analytics_disabled=true; path=/; max-age=3600";
+                  }
+                })();
+              `}
+            </Script>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
               strategy="afterInteractive"
