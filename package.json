@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/auto-indexnow.js",
     "start": "next start",
     "lint": "next lint",
     "create-table": "node scripts/create_table.js",
