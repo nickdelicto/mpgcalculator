@@ -52,12 +52,6 @@ const AdUnit: React.FC<AdUnitProps> = ({
     const isProduction = process.env.NODE_ENV === 'production';
     if (!isProduction && placeholder) return;
     
-    // Skip if no slot ID is provided (we'll return to placeholder view)
-    if (!slot && isProduction) {
-      console.warn(`AdUnit ${id} has no slot ID. Skipping AdSense initialization.`);
-      return;
-    }
-    
     try {
       // Wait for AdSense to be initialized
       if (adRef.current) {
