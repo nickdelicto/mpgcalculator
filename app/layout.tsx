@@ -57,12 +57,11 @@ export default async function RootLayout({
         <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <MetaPixel />
-          {/* Google AdSense */}
-          <Script
-            async
+          {/* Google AdSense - Standard script tag for better compatibility */}
+          <script 
+            async 
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4543471446143087"
             crossOrigin="anonymous"
-            strategy="afterInteractive"
           />
         </head>
         <body className={`${openSans.variable} ${nunito.variable} font-sans bg-white`}>
@@ -82,12 +81,11 @@ export default async function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        {/* Google AdSense */}
-        <Script
-          async
+        {/* Google AdSense - Standard script tag for better compatibility */}
+        <script 
+          async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4543471446143087"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
         
         {/* Google Analytics - Only included in production */}
