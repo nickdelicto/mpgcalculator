@@ -79,17 +79,66 @@
 
 /* Default styles (no ads) */
 .container {
-  max-width: 64rem; /* Adjust as needed */
+  /* Removing max-width constraints to allow full-width layout */
+  width: 100%;
+  padding-left: clamp(1rem, 5%, 2rem);
+  padding-right: clamp(1rem, 5%, 2rem);
 }
 
 /* Styles when ads are enabled */
 .with-ads .container {
-  max-width: 80rem; /* Wider container to accommodate sidebar */
+  /* Also full width with ads */
+  width: 100%;
 }
 
-.ad-slot {
+/* For very large screens, increase padding for better readability */
+@media (min-width: 1536px) {
+  .container, .with-ads .container {
+    padding-left: clamp(2rem, 8%, 4rem);
+    padding-right: clamp(2rem, 8%, 4rem);
+  }
+}
+
+@media (max-width: 1024px) {
+  .container, .with-ads .container {
+    /* Consistent padding on smaller screens */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Ad unit styling */
+.ad-unit {
   min-height: 100px; /* Adjust based on your ad sizes */
-  background-color: #2d3748; /* A placeholder color, remove when actual ads are inserted */
+  width: 100%;
+}
+
+/* Ad placeholder styling (only shown in development) */
+.ad-placeholder {
+  min-height: 100px;
+  background-color: #2d3748;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  font-size: 0.875rem;
+  width: 100%;
+  border-radius: 0.375rem;
+}
+
+/* Format-specific placeholder heights */
+.ad-unit[data-ad-format="vertical"] .ad-placeholder {
+  min-height: 250px;
+}
+
+.ad-unit[data-ad-format="rectangle"] .ad-placeholder {
+  min-height: 250px;
+}
+
+/* Support for legacy ad-slot class for backward compatibility */
+.ad-slot {
+  min-height: 100px;
+  background-color: #2d3748;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,12 +148,5 @@
 
 .ad-slot::before {
   content: 'Advertisement';
-  /* Remove this ::before pseudo-element when actual ads are inserted */
-}
-
-@media (max-width: 1024px) {
-  .with-ads .container {
-    max-width: 64rem; /* Same as non-ad version on smaller screens */
-  }
 }
 
