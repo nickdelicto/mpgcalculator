@@ -55,7 +55,7 @@ export default async function RootLayout({
     return (
       <html lang="en">
         <head>
-          <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="icon" href="/favicon.png" sizes="any" />
           <MetaPixel />
           {/* Google AdSense - Standard script tag for better compatibility */}
           <script 
@@ -80,7 +80,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.png" sizes="any" />
         {/* Google AdSense - Standard script tag for better compatibility */}
         <script 
           async 
