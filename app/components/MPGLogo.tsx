@@ -10,8 +10,8 @@ export default function MPGLogo({ className = "" }: MPGLogoProps) {
       <Image 
         src="/Website-Logo.png" 
         alt="MPG Calculator Logo" 
-        width={180} 
-        height={50} 
+        width={130} 
+        height={36} 
         className="h-auto"
         priority
       />

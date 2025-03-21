@@ -11,11 +11,11 @@ export function Header() {
 
   return (
     <header className="bg-gradient-to-r from-[#057C57] to-[#046A4A] text-[#EDEDED] border-b border-[#046A4A]">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-2">
         {/* Desktop and Mobile Layout */}
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center">
-            <div className="bg-[#EFF6FF] bg-opacity-100 px-4 py-2 rounded-md border border-[#EDEDED] border-opacity-30">
+            <div className="bg-[#EFF6FF] bg-opacity-100 px-3 py-1 rounded-md border border-[#EDEDED] border-opacity-30">
               <MPGLogo />
             </div>
           </Link>
