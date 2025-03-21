@@ -73,17 +73,48 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params
-  const [year, make, model] = resolvedParams.slug.split('-')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const canonicalUrl = `${baseUrl}/vehicles/${resolvedParams.slug}`
   
-  const title = `${year} ${make} ${model} MPG - Fuel Economy Data & Ratings`
-  const description = `Get official ${year} ${make} ${model} MPG ratings. View detailed city, highway, and combined fuel economy data and compare with similar vehicles.`
+  // Fetch the complete vehicle data first
+  const vehicles = await getVehicleData(resolvedParams.slug)
+  
+  let title = ''
+  let description = ''
+  
+  if (vehicles.length > 0) {
+    // Use the complete vehicle data to create a unique title
+    const vehicle = vehicles[0]
+    title = `${vehicle.year} ${vehicle.make} ${vehicle.model} MPG - Fuel Efficiency Data`
+    description = `Get official ${vehicle.year} ${vehicle.make} ${vehicle.model} MPG ratings. View detailed city, highway, and combined fuel efficiency data and compare with similar vehicles.`
+  } else {
+    // Fallback to simple parsing if vehicle data isn't available
+    const [year, make, ...modelParts] = resolvedParams.slug.replace(/-mpg$/, '').split('-')
+    // For special makes like Mercedes-Benz, handle with care
+    let fullMake = make
+    let fullModel = modelParts.join(' ')
+    
+    if (SPECIAL_MAKES.has(make.toLowerCase())) {
+      // If the make is in our special list, make sure we handle it properly
+      const specialMakeEnd = modelParts.findIndex((part, idx) => {
+        const possibleMake = [make, ...modelParts.slice(0, idx + 1)].join(' ').toLowerCase()
+        return SPECIAL_MAKES.has(possibleMake)
+      })
+      
+      if (specialMakeEnd !== -1) {
+        fullMake = [make, ...modelParts.slice(0, specialMakeEnd + 1)].join(' ')
+        fullModel = modelParts.slice(specialMakeEnd + 1).join(' ')
+      }
+    }
+    
+    title = `${year} ${fullMake} ${fullModel} MPG - Fuel Economy Data`
+    description = `Get official ${year} ${fullMake} ${fullModel} MPG ratings. View detailed city, highway, and combined fuel efficiency data and compare with similar vehicles.`
+  }
 
   return {
     title,
     description,
-    keywords: `${year} ${make} ${model} mpg, ${year} ${make} ${model} fuel economy, ${make} ${model} gas mileage, ${make} ${model} fuel efficiency`,
+    keywords: `${title.replace(' - Fuel Economy Data & Ratings', '')}, ${title.replace('MPG - Fuel Economy Data & Ratings', 'fuel economy')}, ${title.replace('MPG - Fuel Economy Data & Ratings', 'gas mileage')}, ${title.replace('MPG - Fuel Economy Data & Ratings', 'fuel efficiency')}`,
     
     // Open Graph
     openGraph: {
@@ -91,7 +122,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       url: canonicalUrl,
-      siteName: 'MPG Calculator',
+      siteName: 'MPGCalculator.net',
     },
 
     // Twitter
