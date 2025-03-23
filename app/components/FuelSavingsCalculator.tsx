@@ -40,7 +40,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "../../components/ui/dialog"
-// import ProductRecommendations from './ProductRecommendations'
+import ProductRecommendations from './ProductRecommendations'
 import { ProductErrorBoundary } from './ProductErrorBoundary'
 import { trackFacebookEvent } from '../utils/analytics'
 import SaveReportButton from '../components/SaveReportButton'
@@ -2171,7 +2171,7 @@ export default function FuelSavingsCalculator() {
         )}
 
         {/* Product Recommendations */}
-        {/* <ProductErrorBoundary>
+        <ProductErrorBoundary>
           {costs?.vehicle1 && costs?.vehicle2 && costs?.savings && (
             <div className="mt-8 p-6 bg-gray-900/50 rounded-lg border border-gray-700">
               <ProductRecommendations 
@@ -2190,7 +2190,7 @@ export default function FuelSavingsCalculator() {
               />
             </div>
           )}
-        </ProductErrorBoundary> */}
+        </ProductErrorBoundary>
 
         {/* Disclaimer */}
         <div className="mt-8 p-4 bg-gray-900/30 rounded-lg border border-gray-700/50">
