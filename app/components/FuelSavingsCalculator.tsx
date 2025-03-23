@@ -44,9 +44,6 @@ import {
 import { ProductErrorBoundary } from './ProductErrorBoundary'
 import { trackFacebookEvent } from '../utils/analytics'
 import SaveReportButton from '../components/SaveReportButton'
-// Import AdUnit component and config
-import AdUnit from './AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from '../config/ads'
 
 // Types for our calculator
 interface ManualVehicle extends ManualVehicleFuel {
@@ -273,9 +270,6 @@ export default function FuelSavingsCalculator() {
   const [makes, setMakes] = useState<Make[]>([])
   const [isLoadingMakes, setIsLoadingMakes] = useState(true)
 
-  // Ad configuration
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.fuelSavings.enabled;
-  const adConfig = PAGE_AD_CONFIG.fuelSavings.adUnits;
 
   // Fetch makes once when component mounts
   useEffect(() => {
@@ -1934,15 +1928,6 @@ export default function FuelSavingsCalculator() {
                 </div>
               </div>
 
-              {/* Ad between results */}
-              {adsEnabled && (
-                <AdUnit 
-                  id={adConfig.betweenResults.id}
-                  format="horizontal"
-                  className="my-8"
-                />
-              )}
-
               {/* Savings Summary */}
               <div className="mt-8 p-6 bg-blue-900/30 rounded-lg border border-blue-800">
                 <h3 className="text-xl font-semibold text-white mb-4">Potential Fuel Savings</h3>
@@ -2096,15 +2081,6 @@ export default function FuelSavingsCalculator() {
                     </ResponsiveContainer>
                   </div>
                 </div>
-
-                {/* Ad between graphs */}
-                {adsEnabled && (
-                  <AdUnit 
-                    id={adConfig.betweenGraphs.id}
-                    format="horizontal"
-                    className="my-8"
-                  />
-                )}
 
                 {/* Line Graph */}
                 <div className="space-y-4">

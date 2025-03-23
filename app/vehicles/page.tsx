@@ -2,8 +2,6 @@ import { Metadata } from 'next'
 import VehicleLookupWrapper from '../components/VehicleLookupWrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { CarFront, Gauge, Leaf, Info } from 'lucide-react'
-import AdUnit from '../components/AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from '../config/ads'
 
 export const metadata: Metadata = {
   title: 'Vehicle MPG Directory | Search Fuel Economy Data',
@@ -12,10 +10,6 @@ export const metadata: Metadata = {
 }
 
 export default function VehiclesPage() {
-  // Ad configuration
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.vehicles.enabled;
-  const adConfig = PAGE_AD_CONFIG.vehicles.adUnits;
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
@@ -34,19 +28,8 @@ export default function VehiclesPage() {
         </div>
       </div>
 
-      {/* Top banner ad */}
-      {adsEnabled && (
-        <div className="mb-12">
-          <AdUnit 
-            id={adConfig.topBanner.id}
-            format="horizontal"
-            className="w-full"
-          />
-        </div>
-      )}
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        <main className={adsEnabled ? 'lg:w-3/4 2xl:w-4/5' : 'w-full'}>
+      <div className="flex flex-col">
+        <main className="w-full">
           {/* Search Card */}
           <Card className="bg-gray-800 border-gray-700 mb-12">
             <CardHeader className="border-b border-gray-700">
@@ -59,17 +42,6 @@ export default function VehiclesPage() {
               <VehicleLookupWrapper />
             </CardContent>
           </Card>
-
-          {/* In-content ad */}
-          {adsEnabled && (
-            <div className="mb-12">
-              <AdUnit 
-                id={adConfig.inContent.id}
-                format="horizontal"
-                className="w-full"
-              />
-            </div>
-          )}
 
           {/* Information Section */}
           <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
@@ -136,29 +108,7 @@ export default function VehiclesPage() {
               </div>
             </div>
           </div>
-
-          {/* Bottom ad */}
-          {adsEnabled && (
-            <div className="mt-12">
-              <AdUnit 
-                id={adConfig.bottom.id}
-                format="horizontal"
-                className="w-full"
-              />
-            </div>
-          )}
         </main>
-
-        {/* Sidebar ad */}
-        {adsEnabled && (
-          <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
-            <AdUnit 
-              id={adConfig.sidebar.id}
-              format="vertical"
-              className="sticky top-8"
-            />
-          </aside>
-        )}
       </div>
     </div>
   )

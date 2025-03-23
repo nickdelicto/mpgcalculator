@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Calculator, DollarSign } from 'lucide-react'
 import EmbedSection from '../components/EmbedSection'
 import Script from 'next/script'
-import AdUnit from '../components/AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from '../config/ads'
 
 // Structured Data Component
 const StructuredData = () => {
@@ -50,25 +48,12 @@ export const metadata: Metadata = {
 }
 
 export default function FuelSavingsPage() {
-  // Ad configuration
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.fuelSavings.enabled;
-  const adConfig = PAGE_AD_CONFIG.fuelSavings.adUnits;
-
   return (
-    <div className={`container mx-auto px-4 py-8 ${adsEnabled ? 'with-ads' : ''}`}>
+    <div className="container mx-auto px-4 py-8">
       <StructuredData />
       
-      <div className="flex flex-col lg:flex-row gap-8">
-        <main className={adsEnabled ? 'lg:w-3/4 2xl:w-4/5' : 'w-full'}>
-          {/* Top banner ad */}
-          {adsEnabled && (
-            <AdUnit 
-              id={adConfig.topBanner.id}
-              format="horizontal"
-              className="mb-8"
-            />
-          )}
-        
+      <div className="flex flex-col">
+        <main className="w-full">
           {/* Hero Section */}
           <div className="relative mb-12 bg-gradient-to-r from-blue-900 to-blue-800 rounded-2xl p-8 overflow-hidden">
             <div className="relative z-10">
@@ -97,15 +82,6 @@ export default function FuelSavingsPage() {
               <FuelSavingsCalculator />
             </CardContent>
           </Card>
-
-          {/* Ad below calculator */}
-          {adsEnabled && (
-            <AdUnit 
-              id={adConfig.belowCalculator.id}
-              format="horizontal"
-              className="mb-12"
-            />
-          )}
 
           {/* Embed Section */}
           <div className="mb-12">
@@ -149,27 +125,7 @@ export default function FuelSavingsPage() {
               </div>
             </div>
           </div>
-          
-          {/* Bottom ad */}
-          {adsEnabled && (
-            <AdUnit 
-              id={adConfig.bottom.id}
-              format="horizontal"
-              className="mb-8"
-            />
-          )}
         </main>
-        
-        {/* Sidebar with ad */}
-        {adsEnabled && (
-          <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
-            <AdUnit 
-              id={adConfig.sidebar.id}
-              format="vertical"
-              className="sticky top-8"
-            />
-          </aside>
-        )}
       </div>
     </div>
   )

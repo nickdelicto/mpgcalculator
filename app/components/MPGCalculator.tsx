@@ -11,9 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../..
 // Icon imports from lucide-react
 import { PlusCircle, Trash2, CarFront, Fuel, Gauge, Car, Cog, Compass, BarChart2, Circle, Zap, Leaf, Battery } from 'lucide-react'
 import { VersionToggle } from './VersionToggle'
-// Import AdUnit component and config
-import AdUnit from './AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from '../config/ads'
 
 // Interface for individual trip data entry
 interface Trip {
@@ -74,11 +71,6 @@ export default function MPGCalculator() {
   const [currentPage, setCurrentPage] = useState(1)  // Current page in pagination
   const vehiclesPerPage = 10  // Number of vehicles shown per page
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false)  // Loading state for API calls
-
-  // Ad configuration
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.similarVehicles.enabled;
-  const adFrequency = PAGE_AD_CONFIG.similarVehicles.frequency;
-  const adConfig = PAGE_AD_CONFIG.similarVehicles.adUnits;
 
   // Trip management functions
   const addTrip = () => {
@@ -545,15 +537,6 @@ export default function MPGCalculator() {
                     )}
                   </div>
                 </div>
-
-                {/* Insert ad after every few vehicles based on frequency setting */}
-                {adsEnabled && (index + 1) % adFrequency === 0 && index < currentVehicles.length - 1 && (
-                  <AdUnit 
-                    id={`${adConfig.inResults.id}-${Math.floor(index/adFrequency)}`}
-                    format="rectangle"
-                    className="my-4"
-                  />
-                )}
               </React.Fragment>
             ))}
 

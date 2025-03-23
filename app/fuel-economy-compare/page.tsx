@@ -2,8 +2,6 @@ import { Metadata } from 'next'
 import { Suspense } from 'react'
 import VehicleComparison from '../components/VehicleComparison'
 import SearchParamsWrapper from '../components/SearchParamsWrapper'
-import AdUnit from '../components/AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from '../config/ads'
 
 export const metadata: Metadata = {
   title: 'Compare Vehicle Fuel Economy | MPG Comparison Tool',
@@ -20,14 +18,10 @@ function LoadingState() {
 }
 
 export default function FuelEconomyComparePage() {
-  // Ad configuration
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.fuelEconomyCompare.enabled;
-  const adConfig = PAGE_AD_CONFIG.fuelEconomyCompare.adUnits;
-
   return (
-    <div className={`container mx-auto px-4 py-8 ${adsEnabled ? 'with-ads' : ''}`}>
-      <div className="flex flex-col lg:flex-row gap-8">
-        <main className={adsEnabled ? 'lg:w-3/4 2xl:w-4/5' : 'w-full'}>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col">
+        <main className="w-full">
           <h1 className="text-3xl font-heading font-bold text-gray-800 mb-6">
             Compare Vehicle Fuel Economy
           </h1>
@@ -35,31 +29,11 @@ export default function FuelEconomyComparePage() {
             Select up to three vehicles to compare MPG, side by side.
           </p>
 
-          {/* Top banner ad */}
-          {adsEnabled && (
-            <div className="mb-8">
-              <AdUnit 
-                id={adConfig.topBanner.id}
-                format="horizontal"
-              />
-            </div>
-          )}
-
           <Suspense fallback={<LoadingState />}>
             <SearchParamsWrapper>
               <VehicleComparison />
             </SearchParamsWrapper>
           </Suspense>
-
-          {/* Between comparison and guide ad */}
-          {adsEnabled && (
-            <div className="my-8">
-              <AdUnit 
-                id={adConfig.betweenComparison.id}
-                format="horizontal"
-              />
-            </div>
-          )}
 
           {/* Expert Guide and FAQs */}
           <div className="text-gray-600 p-8 rounded-lg space-y-8 mt-8 font-heading">
@@ -84,16 +58,6 @@ export default function FuelEconomyComparePage() {
               </li>
             </ul>
 
-            {/* In content comparison ad */}
-            {adsEnabled && (
-              <div className="mt-8">
-                <AdUnit 
-                  id={adConfig.inContentComparison.id}
-                  format="horizontal" 
-                />
-              </div>
-            )}
-
             <h3 className="text-xl font-heading font-semibold text-gray-800">Making Sense of Different Fuel Types</h3>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li><strong>Gasoline/Diesel</strong>: Measured in MPG, these are traditional fuel types.</li>
@@ -107,16 +71,6 @@ export default function FuelEconomyComparePage() {
               <li><strong>Fuel Price Volatility</strong>: Consider how fluctuating prices might impact your budget.</li>
               <li><em>Example</em>: Compare the cost of driving a gasoline vehicle vs. an electric vehicle over a year.</li>
             </ul>
-
-            {/* In content comparison ad */}
-            {adsEnabled && (
-              <div className="mt-8">
-                <AdUnit 
-                  id={adConfig.inContentComparison.id}
-                  format="horizontal"
-                />
-              </div>
-            )}
 
             <h3 className="text-xl font-heading font-semibold text-gray-800">Frequently Asked Questions</h3>
             <div className="space-y-4 text-gray-600">
@@ -138,28 +92,7 @@ export default function FuelEconomyComparePage() {
               </div>
             </div>
           </div>
-
-          {/* Bottom ad */}
-          {adsEnabled && (
-            <div className="mt-8">
-              <AdUnit 
-                id={adConfig.bottom.id}
-                format="horizontal"
-              />
-            </div>
-          )}
         </main>
-
-        {/* Sidebar ad */}
-        {adsEnabled && (
-          <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
-            <AdUnit 
-              id={adConfig.sidebar.id}
-              format="vertical"
-              className="sticky top-8"
-            />
-          </aside>
-        )}
       </div>
     </div>
   )
