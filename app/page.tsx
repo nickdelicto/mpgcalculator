@@ -2,8 +2,6 @@ import React from 'react'
 import MPGCalculator from './components/MPGCalculator'
 import MPGCalculatorSchema from './components/MPGCalculatorSchema'
 import { Metadata } from 'next'
-import AdUnit from './components/AdUnit'
-import { ADS_ENABLED, PAGE_AD_CONFIG } from './config/ads'
 
 export const metadata: Metadata = {
   title: 'MPG Calculator | Fuel Efficiency Calculator with Cost Analysis',
@@ -12,26 +10,13 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
-  // Get ad configuration from centralized config
-  const adsEnabled = ADS_ENABLED && PAGE_AD_CONFIG.home.enabled;
-  const adConfig = PAGE_AD_CONFIG.home.adUnits;
-
   return (
     <>
       <MPGCalculatorSchema />
-      <div className={`container mx-auto px-4 py-8 ${adsEnabled ? 'with-ads' : ''}`}>
+      <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          <main className={adsEnabled ? 'lg:w-3/4 2xl:w-4/5' : 'w-full'}>
-            {/* Top banner ad */}
-            {adsEnabled && (
-              <AdUnit 
-                id={adConfig.topBanner.id}
-                format="horizontal"
-                className="mb-8"
-              />
-            )}
-            
-            {/* Calculator component - NO ADS HERE */}
+          <main className="w-full">
+            {/* Calculator component */}
             <MPGCalculator />
             
             <div className="mt-12 text-gray-900 space-y-6 font-heading">
@@ -39,15 +24,6 @@ export default function Home() {
               <p>
                 Our MPG (Miles Per Gallon) Calculator is a powerful tool designed to help vehicle owners and enthusiasts accurately measure and analyze their fuel efficiency. Whether you're tracking a single trip or comparing multiple journeys, this calculator provides precise insights into your vehicle's performance.
               </p>
-              
-              {/* First mid-content ad */}
-              {adsEnabled && (
-                <AdUnit 
-                  id={adConfig.midContent1.id}
-                  format="horizontal"
-                  className="my-8"
-                />
-              )}
               
               <h3 className="text-2xl font-semibold mt-6 font-heading">How to Use the MPG Calculator</h3>
               <ol className="list-decimal list-inside space-y-2">
@@ -57,15 +33,6 @@ export default function Home() {
                 <li><strong>Calculate:</strong> Click the "Calculate" button to see your results.</li>
                 <li><strong>Analyze Results:</strong> View your MPG, and in Advanced mode, see total cost and cost per mile/km.</li>
               </ol>
-
-              {/* Second mid-content ad */}
-              {adsEnabled && (
-                <AdUnit 
-                  id={adConfig.midContent2.id}
-                  format="horizontal"
-                  className="my-8"
-                />
-              )}
 
               <h3 className="text-2xl font-semibold mt-6 font-heading">Why Use Our MPG Calculator?</h3>
               <ul className="list-disc list-inside space-y-2">
@@ -86,32 +53,7 @@ export default function Home() {
               </p>
             </div>
           </main>
-          
-          {/* Sidebar ads */}
-          {adsEnabled && (
-            <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
-              <AdUnit 
-                id={adConfig.sidebar1.id}
-                format="vertical"
-                className="sticky top-8"
-              />
-              <AdUnit 
-                id={adConfig.sidebar2.id}
-                format="vertical"
-                className="sticky top-8 mt-8"
-              />
-            </aside>
-          )}
         </div>
-        
-        {/* Bottom ad */}
-        {adsEnabled && (
-          <AdUnit 
-            id={adConfig.bottom.id}
-            format="horizontal"
-            className="mt-8"
-          />
-        )}
       </div>
     </>
   )

@@ -10,7 +10,6 @@ import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 import Script from 'next/script'
 import FuelSavingsCalculator from '../../components/FuelSavingsCalculator'
 import VehiclePageProducts from '../../components/VehiclePageProducts'
-import { VehiclePageAdWrapper } from '../../components/VehiclePageAdWrapper'
 import type { AmazonProduct } from '../../components/VehiclePageProducts'
 
 // Helper function to determine if fuel type uses MPGe
@@ -411,24 +410,19 @@ async function VehicleContent({ params }: Props) {
         <div className="flex flex-col lg:flex-row gap-8">
           <main className="lg:w-3/4 2xl:w-4/5">
         {/* Enhanced Hero Section */}
-            <VehiclePageAdWrapper position="topBanner">
-        <div className="relative mb-12 bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-8 overflow-hidden">
-          {/* Decorative Car Silhouette */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-10">
-            <CarFront className="h-48 w-48 text-blue-400" />
-          </div>
-          
-          {/* Title and Subtitle - Maintaining h1 for SEO */}
-          <div className="relative z-10 max-w-3xl">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
-              {vehicle.year} {vehicle.make} {vehicle.model}
-              <span className="block text-2xl sm:text-3xl text-blue-300 mt-2">
+            <div className="relative mb-8 bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-6 overflow-hidden">
+              {/* Decorative car silhouette */}
+              <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4">
+                <CarFront size={180} />
+              </div>
+
+              <h1 className="text-3xl font-bold text-white mb-2 font-heading relative z-10">
+                {vehicle.year} {vehicle.make} {vehicle.model}
+              </h1>
+              <p className="text-blue-200 font-heading relative z-10">
                 MPG & Fuel Economy Data
-              </span>
-            </h1>
-          </div>
-        </div>
-            </VehiclePageAdWrapper>
+              </p>
+            </div>
 
         {/* Quick Summary */}
         <Card className="bg-blue-900/90 border-blue-800/30 mb-8">
@@ -450,12 +444,6 @@ async function VehicleContent({ params }: Props) {
             </p>
           </CardContent>
         </Card>
-
-            {/* Ad after Quick Summary */}
-            <VehiclePageAdWrapper position="afterSummary">
-              <div></div>
-            </VehiclePageAdWrapper>
-
 
         {/* Main MPG Data */}
         <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -728,11 +716,6 @@ async function VehicleContent({ params }: Props) {
                         </div>
           </section>
 
-              {/* Ad before Maximizing Fuel Economy */}
-              <VehiclePageAdWrapper position="inContent">
-                <div></div>
-              </VehiclePageAdWrapper>
-
           {/* Fuel Economy Tips - always show */}
           <section>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -757,12 +740,6 @@ async function VehicleContent({ params }: Props) {
           </div>
         </section>
 
-        {/* Second placement after Maximizing Fuel Economy */}
-            {/* <VehiclePageProducts
-          title="More Featured Products*"
-          products={shuffledProducts.slice(3, 6)}
-            /> */}
-
         {/* Base Model Timeline */}
         <Card className="bg-gray-800 border-gray-700 mb-8">
           <CardHeader>
@@ -783,11 +760,6 @@ async function VehicleContent({ params }: Props) {
             />
           </CardContent> 
         </Card>
-
-            {/* Ad after Base Model Timeline */}
-            <VehiclePageAdWrapper position="inContent">
-              <div></div>
-            </VehiclePageAdWrapper>
 
           {/* Fuel Savings Calculator */}
           <section id="savings" className="mt-12 border-t border-gray-700 pt-12">
@@ -822,11 +794,6 @@ async function VehicleContent({ params }: Props) {
                     {variant.year} {variant.make} {variant.model} - {differentiator}
                   </h2>
 
-                      {/* Ad before Quick Summary */}
-                      <VehiclePageAdWrapper position="inContent">
-                        <div></div>
-                      </VehiclePageAdWrapper>
-
                   {/* Quick Summary */}
                   <Card className="bg-blue-900/90 border-blue-800/30 mb-8">
                     <CardHeader>
@@ -846,11 +813,6 @@ async function VehicleContent({ params }: Props) {
                       </p>
                     </CardContent>
                   </Card>
-
-                      {/* Ad after Quick Summary */}
-                      <VehiclePageAdWrapper position="afterSummary">
-                        <div></div>
-                      </VehiclePageAdWrapper>
 
                   {/* Variant MPG Data */}
                   <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -1041,7 +1003,6 @@ async function VehicleContent({ params }: Props) {
                         products={shuffledProducts.slice(3, 6)}
                       />
 
-
                   {/* Environmental Performance - Only show if data exists */}
                   {(variant.co2 !== null || variant.ghgScore !== null || variant.co2A !== null || variant.ghgScoreA !== null) && (
                     <section className="space-y-6">
@@ -1098,9 +1059,10 @@ async function VehicleContent({ params }: Props) {
                   </section>
 
                       {/* Ad after Technical Specifications */}
-                      <VehiclePageAdWrapper position="inContent">
-                        <div></div>
-                      </VehiclePageAdWrapper>
+                      <VehiclePageProducts
+                        title="More Featured Products*"
+                        products={shuffledProducts.slice(3, 6)}
+                      />
 
                   {/* Variant Timeline */}
                   <Card className="bg-gray-800 border-gray-700 mb-8">
@@ -1122,11 +1084,6 @@ async function VehicleContent({ params }: Props) {
                       />
                     </CardContent>  
                   </Card>
-
-                      {/* Ad after Variant Timeline */}
-                      <VehiclePageAdWrapper position="inContent">
-                        <div></div>
-                      </VehiclePageAdWrapper>
 
                 </section>
               )
@@ -1180,26 +1137,13 @@ async function VehicleContent({ params }: Props) {
           </section>
         )}
 
-        {/* Third placement after Similar Vehicles */}
-            {/* <VehiclePageProducts
-          title="Recommended Products*"
-          products={shuffledProducts.slice(6, 9)}
-            /> */}
-
-            {/* Ad after Similar Vehicles-bottom */}
-            <VehiclePageAdWrapper position="bottom">
-              <div></div>
-            </VehiclePageAdWrapper>
-
             </div>
           </main>
           
-          {/* Sidebar ad */}
+          {/* Sidebar */}
           <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
             <div className="sticky top-8">
-              <VehiclePageAdWrapper position="sidebar">
-                <div></div>
-              </VehiclePageAdWrapper>
+              {/* This will be handled by auto ads */}
             </div>
           </aside>
         </div>
