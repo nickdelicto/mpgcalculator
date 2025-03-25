@@ -16,6 +16,18 @@ const nextConfig = {
         ]
       }
     ]
+  },
+  
+  // Add redirects configuration
+  async redirects() {
+    return [
+      {
+        source: '/fuel_economy_calculator_mpg.html',
+        destination: '/',
+        permanent: true, // 301 redirect (permanent) is better for SEO
+      },
+      // You can add more legacy URL redirects here if needed
+    ]
   }
 }
 
