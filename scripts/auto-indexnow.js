@@ -19,9 +19,24 @@ const config = {
   // Path to store the list of previously submitted URLs
   lastSubmittedUrlsFile: path.join(__dirname, 'last-submitted-urls.json'),
   
-  // Maximum number of URLs to submit in a single request (IndexNow limit)
-  maxUrlsPerBatch: 10000
+  // Maximum number of URLs to submit in a single request (reduced from 10000 to 50)
+  maxUrlsPerBatch: 50,
+  
+  // Delay between batch submissions in milliseconds (3 minutes)
+  delayBetweenBatches: 180000,
+  
+  // Set to true to test without actually submitting URLs to search engines
+  dryRun: false
 };
+
+/**
+ * Helper function to introduce a delay between actions
+ * @param {number} ms - Time to delay in milliseconds
+ * @returns {Promise} Promise that resolves after the delay
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Verify that the key file is accessible and valid
@@ -209,6 +224,16 @@ function saveSubmittedUrls(urls) {
  */
 function submitUrlBatch(urlList) {
   return new Promise((resolve, reject) => {
+    // In dry run mode, just log and don't actually submit
+    if (config.dryRun) {
+      console.log(`[DRY RUN] Would submit these URLs to IndexNow:`);
+      urlList.forEach(url => console.log(`[DRY RUN] - ${url}`));
+      console.log(`[DRY RUN] Successfully simulated submission of ${urlList.length} URLs`);
+      resolve();
+      return;
+    }
+    
+    // Regular submission code continues below
     // Prepare request data
     const data = JSON.stringify({
       host: config.host,
@@ -268,6 +293,19 @@ async function main() {
   try {
     console.log('Starting IndexNow URL submission process...');
     
+    if (config.dryRun) {
+      console.log(`
+=======================================================
+RUNNING IN DRY RUN MODE
+-------------------------------------------------------
+URLs will be processed but NOT actually submitted to search engines.
+This is perfect for testing. Set config.dryRun = false for real submissions.
+=======================================================
+`);
+    }
+    
+    console.log(`Using streaming approach with batch size of ${config.maxUrlsPerBatch} URLs and ${config.delayBetweenBatches/1000} second delays`);
+    
     // First verify the key file is accessible
     const isKeyValid = await verifyKeyFile();
     if (!isKeyValid) {
@@ -317,12 +355,27 @@ Until this is fixed, search engines won't accept your IndexNow submissions.
       console.log(`TESTING MODE: Limiting initial submission to ${batchSize} URLs for testing`);
     }
     
+    // Calculate total number of batches
+    const totalBatches = Math.ceil(
+      (isInitialTest ? batchSize : newUrls.length) / batchSize
+    );
+    console.log(`URLs will be submitted in ${totalBatches} batch(es)`);
+    
+    // Track successfully submitted URLs
+    const submittedUrls = [];
+    
     // Submit URLs in batches to avoid hitting IndexNow limits
     for (let i = 0; i < (isInitialTest ? batchSize : newUrls.length); i += batchSize) {
       const batch = newUrls.slice(i, i + batchSize);
-      console.log(`Submitting batch ${Math.floor(i/batchSize) + 1} (${batch.length} URLs)...`);
+      const batchNumber = Math.floor(i/batchSize) + 1;
+      
+      console.log(`Submitting batch ${batchNumber} of ${totalBatches} (${batch.length} URLs)...`);
+      
       try {
         await submitUrlBatch(batch);
+        
+        // Add batch URLs to the submitted list
+        submittedUrls.push(...batch);
         
         // If we're in test mode and the first batch succeeds, save just these URLs
         if (isInitialTest) {
@@ -338,6 +391,12 @@ Each run will submit more URLs until all are processed.
 `);
           return;
         }
+        
+        // Add delay between batches (except for the last one)
+        if (i + batchSize < (isInitialTest ? batchSize : newUrls.length)) {
+          console.log(`Waiting ${config.delayBetweenBatches/1000} seconds before next batch...`);
+          await delay(config.delayBetweenBatches);
+        }
       } catch (error) {
         console.error(`Error submitting batch: ${error.message}`);
         if (i === 0) {
@@ -346,14 +405,16 @@ Each run will submit more URLs until all are processed.
         } else {
           // If a later batch fails, save what we've submitted so far
           console.log('Saving successfully submitted URLs up to this point');
-          saveSubmittedUrls(newUrls.slice(0, i));
+          if (submittedUrls.length > 0) {
+            saveSubmittedUrls([...previousUrls, ...submittedUrls]);
+          }
           return;
         }
       }
     }
     
     // Save the current URLs as "previously submitted"
-    saveSubmittedUrls(currentUrls);
+    saveSubmittedUrls([...previousUrls, ...submittedUrls]);
     
     console.log('IndexNow submission completed successfully');
   } catch (error) {

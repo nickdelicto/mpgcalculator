@@ -5,13 +5,16 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/auto-indexnow.js",
+    "postbuild": "node scripts/start-indexnow.js",
     "start": "next start",
     "lint": "next lint",
     "create-table": "node scripts/create_table.js",
     "import-csv": "node scripts/import-csv.js",
     "add-normalized-model": "node scripts/add_normalized_model.js",
-    "create-tracking-table": "node scripts/create_tracking_table.js"
+    "create-tracking-table": "node scripts/create_tracking_table.js",
+    "indexnow": "node scripts/auto-indexnow.js",
+    "test-indexnow": "node scripts/test-indexnow.js",
+    "test-submission": "node scripts/test-indexnow-submission.js"
   },
   "dependencies": {
     "@prisma/client": "^6.3.0",
