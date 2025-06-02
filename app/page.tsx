@@ -2,6 +2,8 @@ import React from 'react'
 import MPGCalculator from './components/MPGCalculator'
 import MPGCalculatorSchema from './components/MPGCalculatorSchema'
 import { Metadata } from 'next'
+import { Footer } from './components/Footer'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'MPG Calculator | Fuel Efficiency Calculator with Cost Analysis',

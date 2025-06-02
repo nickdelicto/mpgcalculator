@@ -47,6 +47,11 @@ export function Header() {
                 </Button>
               </li>
               <li>
+                <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00]">
+                  <Link href="/road-trip-cost-calculator">Road Trip Cost Calculator</Link>
+                </Button>
+              </li>
+              <li>
                 <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] font-nunito">
                   <Link href="/feedback">Send Feedback</Link>
                 </Button>
@@ -72,6 +77,11 @@ export function Header() {
               <li>
                 <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
                   <Link href="/fuel-savings-calculator">Fuel Savings Calculator</Link>
+                </Button>
+              </li>
+              <li>
+                <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
+                  <Link href="/road-trip-calculator">Road Trip Cost Calculator</Link>
                 </Button>
               </li>
               <li>
