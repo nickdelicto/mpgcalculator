@@ -9,7 +9,12 @@ export async function POST(request: Request) {
     
     // Check for API key
     if (!ORS_API_KEY) {
-      console.error('Missing API key in environment variables');
+      console.error('CRITICAL ERROR: Missing API key in environment variables for directions API');
+      console.error('Environment check:', {
+        nodeEnv: process.env.NODE_ENV,
+        hasKey: !!process.env.NEXT_PUBLIC_ORS_API_KEY,
+        keyLength: (process.env.NEXT_PUBLIC_ORS_API_KEY || '').length
+      });
       return NextResponse.json(
         { error: 'API key not configured' },
         { status: 500 }
