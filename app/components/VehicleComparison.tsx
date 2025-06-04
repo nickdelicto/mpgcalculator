@@ -8,6 +8,7 @@ import { Vehicle } from '../types/vehicle'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Share2, X } from 'lucide-react'
+import VehicleComparisonRoadTripCTA from './VehicleComparisonRoadTripCTA'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -289,6 +290,9 @@ export default function VehicleComparison({ searchParams }: VehicleComparisonPro
               </Card>
             ))}
           </div>
+          
+          {/* Road Trip Calculator CTA */}
+          <VehicleComparisonRoadTripCTA />
         </div>
       )}
 

@@ -45,6 +45,25 @@ export const metadata: Metadata = {
   title: 'Road Trip Cost Calculator | Estimate Travel Fuel Expenses',
   description: 'Plan your next journey with our road trip cost calculator. Estimate fuel costs, tolls, and total expenses for your car trip with our free interactive tool.',
   keywords: 'road trip cost calculator, car trip cost calculator, travel fuel cost calculator, fuel expense calculator, trip planner, gas cost calculator',
+  openGraph: {
+    title: 'Road Trip Cost Calculator | Estimate Travel Expenses',
+    description: 'Plan your next journey with our interactive road trip cost calculator. Estimate fuel costs, tolls, and total expenses for your car trip with our free tool.',
+    url: 'https://mpgcalculator.net/road-trip-cost-calculator',
+    siteName: 'MPGCalculator.net',
+    locale: 'en_US',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://mpgcalculator.net/road-trip-cost-calculator',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 }
 
 export default function RoadTripCalculatorPage() {

@@ -15,14 +15,16 @@ export function Footer() {
               <li><Link href="/terms" className="hover:text-[#E77C00]">Terms of Use</Link></li>
               <li><Link href="/privacy" className="hover:text-[#E77C00]">Privacy Policy</Link></li>
               <li><Link href="/disclaimer" className="hover:text-[#E77C00]">Disclaimer</Link></li>
+              <li><Link href="/feedback" className="hover:text-[#E77C00]">Contact Us</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-heading font-semibold mb-4">Navigation</h3>
+            <h3 className="text-lg font-heading font-semibold mb-4">Useful Tools</h3>
             <ul className="space-y-2">
-              <li><Link href="/" className="hover:text-[#E77C00]">Home</Link></li>
+              <li><Link href="/road-trip-cost-calculator" className="hover:text-[#E77C00]">Road Trip Cost Calculator</Link></li>
               <li><Link href="/fuel-savings-calculator" className="hover:text-[#E77C00]">Fuel Savings Calculator</Link></li>
-              <li><Link href="/feedback" className="hover:text-[#E77C00]">Contact Us</Link></li>
+              <li><Link href="/vehicle-mpg-checker" className="hover:text-[#E77C00]">Vehicle MPG Checker</Link></li>
+              <li><Link href="/fuel-economy-compare" className="hover:text-[#E77C00]">Compare Fuel Economy</Link></li>
             </ul>
           </div>
           <div>

@@ -94,20 +94,20 @@ const RoadTripDirections: React.FC<DirectionsProps> = ({ steps, unitSystem }) =>
             ) : isLastStep ? (
               <div className="mr-3 mt-1 flex-shrink-0 h-8 w-7" dangerouslySetInnerHTML={{ __html: END_MARKER_SVG }} />
             ) : (
-              <div className="mr-3 mt-1 bg-blue-500 rounded-full p-1 flex-shrink-0">
-                {getInstructionIcon(step.type)}
-              </div>
+          <div className="mr-3 mt-1 bg-blue-500 rounded-full p-1 flex-shrink-0">
+            {getInstructionIcon(step.type)}
+          </div>
             )}
             
-            <div className="flex-1">
+          <div className="flex-1">
               <p className="text-white font-medium">
                 {isFirstStep ? 'Start' : isLastStep ? 'Arrive at destination' : step.instruction}
               </p>
-              <p className="text-xs text-gray-300">
-                {formatDistance(step.distance, unitSystem)} • {formatDuration(step.duration)}
-              </p>
-            </div>
+            <p className="text-xs text-gray-300">
+              {formatDistance(step.distance, unitSystem)} • {formatDuration(step.duration)}
+            </p>
           </div>
+        </div>
         );
       })}
     </div>
