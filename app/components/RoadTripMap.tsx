@@ -277,13 +277,13 @@ const RoadTripMap: React.FC<MapProps> = ({
               if (pointsToShow >= totalPoints) {
                 clearInterval(animation);
                 setMapStatus('Route complete');
-                
+          
                 // Force map refresh after animation completes
-                setTimeout(() => {
-                  if (mapRef.current) {
-                    mapRef.current.invalidateSize();
-                  }
-                }, 100);
+          setTimeout(() => {
+            if (mapRef.current) {
+              mapRef.current.invalidateSize();
+            }
+          }, 100);
               }
             }, 50); // Update every 50ms
           };

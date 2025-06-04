@@ -81,7 +81,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
-                  <Link href="/road-trip-calculator">Road Trip Cost Calculator</Link>
+                  <Link href="/road-trip-cost-calculator">Road Trip Cost Calculator</Link>
                 </Button>
               </li>
               <li>
