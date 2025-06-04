@@ -6,10 +6,12 @@ import { decodePolyline } from './polyline';
 // Get a free API key from https://openrouteservice.org/dev/#/signup
 const ORS_API_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY || '';
 
-// Debug logs
-console.log('OpenRouteService config:', { 
+// Enhanced debug logs
+console.log('OpenRouteService config DETAILED:', { 
   hasApiKey: !!ORS_API_KEY, 
-  keyLength: ORS_API_KEY?.length || 0 
+  keyLength: ORS_API_KEY?.length || 0,
+  environment: process.env.NODE_ENV,
+  keyStartsWith: ORS_API_KEY ? ORS_API_KEY.substring(0, 3) + '...' : 'none'
 });
 
 // Define types for our geocoding and routing functions
@@ -109,7 +111,11 @@ export async function calculateRoute(start: Coordinates, end: Coordinates): Prom
   try {
     // Check if we have an API key
     if (!ORS_API_KEY) {
-      console.warn('No OpenRouteService API key provided. Using fallback routing.');
+      console.warn('*** CRITICAL ERROR: No OpenRouteService API key provided. Using fallback routing. ***');
+      console.warn('Environment check:', {
+        nodeEnv: process.env.NODE_ENV,
+        hasKey: !!process.env.NEXT_PUBLIC_ORS_API_KEY
+      });
       return fallbackRouteCalculation(start, end);
     }
 
