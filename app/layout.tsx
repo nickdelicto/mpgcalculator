@@ -55,7 +55,12 @@ export default async function RootLayout({
     return (
       <html lang="en">
         <head>
-          <link rel="icon" href="/favicon.png" sizes="any" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta name="theme-color" content="#3b82f6" />
+          <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="icon" href="/favicon.png" type="image/png" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <link rel="manifest" href="/site.webmanifest" />
           <MetaPixel />
           {/* Google AdSense - Standard script tag for better compatibility */}
           <script 
@@ -80,7 +85,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.png" sizes="any" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#3b82f6" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <MetaPixel />
         {/* Google AdSense - Standard script tag for better compatibility */}
         <script 
           async 
@@ -138,7 +149,6 @@ export default async function RootLayout({
             </Script>
           </>
         )}
-        <MetaPixel />
       </head>
       <body className={`${openSans.variable} ${nunito.variable} font-sans text-gray-900 bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen flex flex-col`}>
         <Header />
