@@ -22,6 +22,9 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main content area - Adjusted width for large screens */}
           <main className="w-full lg:w-2/3">
+            {/* Main page heading - Added for SEO */}
+            <h1 className="text-3xl font-bold mb-6 text-blue-900 font-heading">MPG Calculator: Estimate Your Vehicle's Fuel Economy</h1>
+            
             {/* Calculator component */}
             <MPGCalculator />
             
