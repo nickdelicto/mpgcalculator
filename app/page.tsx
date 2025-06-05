@@ -5,6 +5,7 @@ import { Metadata } from 'next'
 import { Footer } from './components/Footer'
 import Image from 'next/image'
 import FloatingRoadTripPromo from './components/FloatingRoadTripPromo'
+import ToolsPromoSidebar from './components/ToolsPromoSidebar'
 
 export const metadata: Metadata = {
   title: 'MPG Calculator | Fuel Efficiency Calculator with Cost Analysis',
@@ -19,7 +20,8 @@ export default function Home() {
       <FloatingRoadTripPromo />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          <main className="w-full">
+          {/* Main content area - Adjusted width for large screens */}
+          <main className="w-full lg:w-2/3">
             {/* Calculator component */}
             <MPGCalculator />
             
@@ -98,6 +100,9 @@ export default function Home() {
               </p>
             </div>
           </main>
+          
+          {/* Tools promo sidebar - using the new component */}
+          <ToolsPromoSidebar width="lg:w-1/3" className="hidden lg:block" />
         </div>
       </div>
     </>
