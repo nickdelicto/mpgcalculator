@@ -10,6 +10,7 @@ import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 import Script from 'next/script'
 import FuelSavingsCalculator from '../../components/FuelSavingsCalculator'
 import VehiclePageProducts from '../../components/VehiclePageProducts'
+import ToolsPromoSidebar from '../../components/ToolsPromoSidebar'
 import type { AmazonProduct } from '../../components/VehiclePageProducts'
 
 // Helper function to determine if fuel type uses MPGe
@@ -408,7 +409,7 @@ async function VehicleContent({ params }: Props) {
       <div className="container mx-auto px-4 py-8 font-heading">
         {/* Wrap content in flex layout */}
         <div className="flex flex-col lg:flex-row gap-8">
-          <main className="lg:w-3/4 2xl:w-4/5">
+          <main className="lg:w-2/3 2xl:w-3/4">
         {/* Enhanced Hero Section */}
             <div className="relative mb-8 bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-6 overflow-hidden">
               {/* Decorative car silhouette */}
@@ -1140,12 +1141,8 @@ async function VehicleContent({ params }: Props) {
             </div>
           </main>
           
-          {/* Sidebar */}
-          <aside className="lg:w-1/4 2xl:w-1/5 hidden lg:block">
-            <div className="sticky top-8">
-              {/* This will be handled by auto ads */}
-            </div>
-          </aside>
+          {/* Tools promo sidebar */}
+          <ToolsPromoSidebar width="lg:w-1/3 2xl:w-1/4" className="hidden lg:block" />
         </div>
       </div>
     </>
