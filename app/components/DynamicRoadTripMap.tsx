@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import { Coordinates } from '../utils/routingService'
+import { POI } from '../utils/overpassService'
 
 // Define prop types for the map component
 interface MapProps {
@@ -9,6 +10,9 @@ interface MapProps {
   isFallbackRoute?: boolean;
   startLocation?: string;
   endLocation?: string;
+  activePOILayers?: string[];
+  onLayerChange?: (layers: string[]) => void;
+  onSelectPOI?: (poi: POI) => void;
 }
 
 // Use dynamic import with ssr: false to prevent server-side rendering of the map component
