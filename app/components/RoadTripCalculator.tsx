@@ -12,6 +12,11 @@ import AddressAutocomplete from './AddressAutocomplete'
 import RoadTripDirections from './RoadTripDirections'
 import { Coordinates, RouteData, geocodeAddress, calculateRoute } from '../utils/routingService'
 import { RoadTripTollsInput } from './RoadTripTollsInput'
+import POIControlsBar from './POIControlsBar'
+import POIDetailPanel from './POIDetailPanel'
+import { POI } from '../utils/overpassService'
+import { initPOIControlSync, cleanupPOIControlSync } from '../utils/poiControlSync'
+import { fetchPOIDetails } from '../utils/tomtomService'
 
 export default function RoadTripCalculator() {
   // State for form inputs
@@ -62,6 +67,51 @@ export default function RoadTripCalculator() {
   
   // State for directions toggle
   const [showDirections, setShowDirections] = useState(false)
+  
+  // State for active POI layers - Fix hydration mismatch
+  const [activePOILayers, setActivePOILayers] = useState<string[]>(['hotels']);
+  
+  // State for selected POI for detailed view
+  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+  
+  // Add loading state for POI details
+  const [poiLoading, setPOILoading] = useState(false);
+  
+  // Use useEffect for localStorage operations to avoid hydration issues
+  useEffect(() => {
+    // This only runs on the client after hydration is complete
+    try {
+      const savedLayers = localStorage.getItem('activePOILayers');
+      if (savedLayers) {
+        const parsedLayers = JSON.parse(savedLayers);
+        if (Array.isArray(parsedLayers) && parsedLayers.length > 0) {
+          setActivePOILayers(parsedLayers);
+          console.log('Loaded POI layers from localStorage:', parsedLayers);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved POI layers:', error);
+    }
+  }, []);
+  
+  // Add logging for debugging
+  useEffect(() => {
+    console.log('RoadTripCalculator activePOILayers:', activePOILayers);
+  }, [activePOILayers]);
+  
+  // Initialize POI control synchronization after initial render and when layers change
+  useEffect(() => {
+    // We use setTimeout to ensure the DOM has been updated
+    const initTimer = setTimeout(() => {
+      initPOIControlSync();
+    }, 500);
+    
+    // Cleanup function
+    return () => {
+      clearTimeout(initTimer);
+      cleanupPOIControlSync();
+    };
+  }, [activePOILayers]);
   
   // Function to calculate costs based on route and vehicle data
   const calculateCosts = useCallback((routeData: RouteData, vehicleData: any, tolls: number) => {
@@ -266,6 +316,96 @@ export default function RoadTripCalculator() {
     }
   }
   
+  // Handle POI layer changes
+  const handlePOILayerChange = (layers: string[]) => {
+    console.log('Updating POI layers to:', layers);
+    setActivePOILayers(layers);
+    
+    // Persist to localStorage
+    try {
+      localStorage.setItem('activePOILayers', JSON.stringify(layers));
+    } catch (error) {
+      console.error('Error saving POI layers:', error);
+    }
+  };
+  
+  // Handler for POI selection
+  const handlePOISelect = (poi: POI) => {
+    // Immediately show the POI with basic information
+    setSelectedPOI(poi);
+    console.log('Selected POI for detailed view:', poi.name);
+    
+    // If the POI has a TomTom ID, fetch detailed information
+    if (poi.tomtomId) {
+      setPOILoading(true);
+      
+      fetchPOIDetails(poi.tomtomId)
+        .then(detailsData => {
+          // If we have details data, enhance the POI
+          if (detailsData && detailsData.results && detailsData.results.length > 0) {
+            const poiDetails = detailsData.results[0];
+            
+            // Extract and format detailed information
+            let detailedHours = '';
+            if (poiDetails.poi?.openingHours?.timeRanges) {
+              try {
+                const timeRanges = poiDetails.poi.openingHours.timeRanges;
+                const formattedRanges = timeRanges.slice(0, 3).map((range: any) => {
+                  return `${range.startTime.date.substring(5)} ${range.startTime.hour}:${String(range.startTime.minute).padStart(2, '0')}-${range.endTime.hour}:${String(range.endTime.minute).padStart(2, '0')}`;
+                });
+                
+                detailedHours = formattedRanges.join(', ') + (timeRanges.length > 3 ? '...' : '');
+              } catch (e) {
+                console.warn('Error formatting detailed opening hours:', e);
+              }
+            }
+            
+            // Create enhanced POI with detailed information
+            const enhancedPOI: POI = {
+              ...poi,
+              tags: {
+                ...poi.tags,
+                // Override with more detailed information if available
+                phone: poiDetails.poi?.phone || poi.tags.phone,
+                website: poiDetails.poi?.url || poi.tags.website,
+                opening_hours: detailedHours || poi.tags.opening_hours,
+                address: poiDetails.address?.freeformAddress || poi.tags.address,
+                // Additional information that might be available
+                description: poiDetails.poi?.descriptions?.[0]?.text || ''
+              }
+            };
+            
+            // Update the selected POI with enhanced information
+            setSelectedPOI(enhancedPOI);
+            console.log('Enhanced POI with TomTom details');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching detailed POI information:', error);
+          // The basic POI is already displayed, so we don't need to do anything
+        })
+        .finally(() => {
+          setPOILoading(false);
+        });
+    }
+  };
+  
+  // Handler to close POI detail panel
+  const handleClosePOIPanel = () => {
+    setSelectedPOI(null);
+  };
+  
+  // Handler to set POI as new destination
+  const handleSetPOIAsDestination = (poi: POI) => {
+    if (poi.tags.address) {
+      setEndLocation(poi.name + ', ' + poi.tags.address);
+      setSelectedPOI(null);
+      
+      // Scroll to top to see the destination field
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       {/* Left column - inputs */}
@@ -316,9 +456,28 @@ export default function RoadTripCalculator() {
                   </div>
                 )}
               </div>
+              
+              {/* POI Controls */}
+              <POIControlsBar 
+                activeLayers={activePOILayers}
+                onChange={handlePOILayerChange}
+                data-testid="route-poi-controls"
+              />
             </div>
           </CardContent>
         </Card>
+        
+        {/* POI Detail Panel - conditionally rendered */}
+        {selectedPOI && (
+          <div className="mt-4 mb-4 poi-detail-panel">
+            <POIDetailPanel 
+              poi={selectedPOI} 
+              onClose={handleClosePOIPanel}
+              onSetAsDestination={handleSetPOIAsDestination}
+              isLoading={poiLoading}
+            />
+          </div>
+        )}
         
         {/* Vehicle & Fuel */}
         <Card className="bg-gray-800 border-gray-700">
@@ -414,6 +573,9 @@ export default function RoadTripCalculator() {
             isFallbackRoute={status.usingFallback}
             startLocation={startLocation}
             endLocation={endLocation}
+            activePOILayers={activePOILayers}
+            onLayerChange={handlePOILayerChange}
+            onSelectPOI={handlePOISelect}
           />
         </div>
         

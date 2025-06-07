@@ -1,5 +1,6 @@
 import React from 'react'
 import './globals.css'
+import './styles/poi-controls.css'
 import { Open_Sans, Nunito } from 'next/font/google'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'

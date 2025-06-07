@@ -150,3 +150,237 @@
   content: 'Advertisement';
 }
 
+/* Map Controls Portal Styles */
+#map-controls-portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+#map-controls-portal .map-controls-portal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  pointer-events: auto;
+}
+
+/* Update the POI markers styles for better visibility */
+
+/* POI Markers and Controls Styles */
+.custom-poi-icon {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-poi-icon:hover {
+  transform: scale(1.5);
+  z-index: 1000 !important;
+}
+
+/* Subtle pulsing animation for POI markers to draw attention */
+@keyframes poi-pulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.leaflet-marker-icon.custom-poi-icon {
+  animation: poi-pulse 2s infinite;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Improve POI control button visibility */
+.poi-control-button {
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.poi-control-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.poi-control-active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  animation: button-pulse 2s infinite;
+}
+
+@keyframes button-pulse {
+  0% {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Add a subtle transition when showing/hiding POI markers */
+.leaflet-marker-icon {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* POI marker styles to ensure visibility */
+.poi-marker {
+  stroke-width: 3px !important;
+  stroke: white !important;
+  stroke-opacity: 1 !important;
+  fill-opacity: 0.9 !important;
+  transition: all 0.2s ease !important;
+  z-index: 1000 !important;
+  transform: translate3d(0,0,0) !important;
+}
+
+.poi-marker:hover {
+  stroke-width: 4px !important;
+  stroke: #ffcc00 !important;
+  fill-opacity: 1 !important;
+  r: 15 !important;
+  cursor: pointer !important;
+}
+
+/* Pulse animation for POI markers */
+.poi-pulse-icon {
+  pointer-events: none;
+  z-index: 400 !important;
+}
+
+.poi-pulse-icon span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0.6);
+  animation: pulse 2s infinite;
+  opacity: 0.8;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    transform: scale(0.5);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+/* Make sure the POI pane is always on top */
+.leaflet-pane.leaflet-poi-pane {
+  z-index: 650 !important;
+}
+
+/* Make sure map pane elements don't obscure our POIs */
+.leaflet-map-pane svg,
+.leaflet-tile-pane {
+  z-index: auto !important;
+}
+
+/* POI Detail Panel Animations */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.2s ease-in forwards;
+}
+
+/* POI Detail Panel Styles */
+.poi-detail-panel {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+/* Style the button groups in the POI detail panel */
+.poi-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* POI Tooltip Styles */
+.poi-tooltip {
+  background-color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.poi-tooltip .leaflet-tooltip-content {
+  padding: 0;
+}
+
+.poi-tooltip-content {
+  padding: 8px 12px;
+  max-width: 220px;
+}
+
+.poi-tooltip-content strong {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.poi-tooltip-content div {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.poi-tooltip-content .address {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.poi-tooltip-content .tooltip-hint {
+  font-size: 11px;
+  color: #007AFF;
+  margin-top: 5px;
+  font-style: italic;
+}
+

@@ -1,0 +1,137 @@
+/* POI Controls Styling */
+
+/* Base styling for POI control buttons */
+.poi-control-button {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Active state styling */
+.poi-control-active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Pulse animation for active buttons */
+@keyframes poi-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Apply pulse animation to active POI buttons */
+.poi-control-button[data-active="true"] {
+  animation: poi-pulse 2s infinite;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Ensure MapPOIControls buttons have consistent sizing */
+[data-testid="map-poi-controls"] .poi-control-button {
+  width: 32px;
+  height: 32px;
+}
+
+/* POI Marker Styling */
+.poi-marker-icon {
+  background: transparent;
+  border: none;
+}
+
+.poi-svg-icon {
+  filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.3));
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for POI markers */
+.poi-marker-icon:hover .poi-svg-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.4));
+}
+
+/* Pulse effect for POI markers */
+.poi-pulse-container {
+  background: transparent;
+  border: none;
+}
+
+.poi-pulse-effect {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+}
+
+/* Pulse animation for the marker's pulse effect */
+.poi-pulse-effect:after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0;
+  animation: poi-marker-pulse 2s infinite ease-out;
+}
+
+@keyframes poi-marker-pulse {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* POI Detail Panel Animations */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.2s ease-in forwards;
+}
+
+/* POI Detail Panel Styles */
+.poi-detail-panel {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+} 

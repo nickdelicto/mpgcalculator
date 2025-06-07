@@ -1,9 +1,12 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Coordinates } from '../utils/routingService'
+import ServiceMarkers from './ServiceMarkers'
+import { POI } from '../utils/overpassService'
+import MapPOIControls from './MapPOIControls'
 
 // Define prop types for the map component
 interface MapProps {
@@ -13,6 +16,9 @@ interface MapProps {
   isFallbackRoute?: boolean; // New prop to indicate if this is a fallback route
   startLocation?: string;
   endLocation?: string;
+  activePOILayers?: string[]; // Add this prop
+  onLayerChange?: (layers: string[]) => void; // Add callback to update parent state
+  onSelectPOI?: (poi: POI) => void; // Add callback for POI selection
 }
 
 const RoadTripMap: React.FC<MapProps> = ({ 
@@ -20,8 +26,11 @@ const RoadTripMap: React.FC<MapProps> = ({
   endCoords, 
   routeGeometry, 
   isFallbackRoute = false,
-  startLocation = '',
-  endLocation = ''
+  startLocation = 'Starting Point',
+  endLocation = 'Destination',
+  activePOILayers = [],
+  onLayerChange,
+  onSelectPOI
 }) => {
   // Refs for the map container and map instance
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -35,6 +44,22 @@ const RoadTripMap: React.FC<MapProps> = ({
   const [isLeafletFixed, setIsLeafletFixed] = useState(false)
   const [mapStatus, setMapStatus] = useState<string>('Initializing map...')
   const [isMapInitialized, setIsMapInitialized] = useState(false)
+  
+  // State for POI layers and selected POI
+  const [activeLayers, setActiveLayers] = useState<string[]>(activePOILayers || []);
+  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null)
+  
+  // Add a state to track when the map is fully ready for user interaction
+  const [mapFullyReady, setMapFullyReady] = useState(false)
+  const [poiCount, setPoiCount] = useState(0)
+  
+  // Load saved layers from localStorage after mount (client-side only)
+  useEffect(() => {
+    if (activePOILayers && activePOILayers.length > 0) {
+      setActiveLayers(activePOILayers);
+      console.log('Updated map activeLayers from parent:', activePOILayers);
+    }
+  }, [activePOILayers]);
   
   // Fix Leaflet marker icon issue in Next.js
   useEffect(() => {
@@ -74,6 +99,11 @@ const RoadTripMap: React.FC<MapProps> = ({
         setMapStatus('Map ready');
         console.log('Map initialized successfully');
         setIsMapInitialized(true)
+        
+        // Mark map as fully ready after a short delay to ensure all operations complete
+        setTimeout(() => {
+          setMapFullyReady(true);
+        }, 1000);
       } catch (error) {
         console.error('Error initializing map:', error);
         setMapStatus('Error initializing map');
@@ -230,7 +260,7 @@ const RoadTripMap: React.FC<MapProps> = ({
           // Create a white outline first (thicker line behind)
           const routeOutline = L.polyline([], {
             color: '#FFFFFF',
-            weight: 9,
+            weight: 5,
             opacity: 0.7,
             lineJoin: 'round',
             lineCap: 'round',
@@ -240,7 +270,7 @@ const RoadTripMap: React.FC<MapProps> = ({
           // Create the main route line
           const routeLine = L.polyline([], {
             color: routeColor,
-            weight: 6,
+            weight: 3,
             opacity: 1,
             lineJoin: 'round',
             lineCap: 'round',
@@ -279,11 +309,28 @@ const RoadTripMap: React.FC<MapProps> = ({
                 setMapStatus('Route complete');
           
                 // Force map refresh after animation completes
-          setTimeout(() => {
-            if (mapRef.current) {
-              mapRef.current.invalidateSize();
-            }
-          }, 100);
+                setTimeout(() => {
+                  if (mapRef.current) {
+                    mapRef.current.invalidateSize();
+                    
+                    // Zoom in to destination after animation completes
+                    if (endCoords) {
+                      // First show the entire route
+                      setTimeout(() => {
+                        // Then smoothly zoom in to destination
+                        mapRef.current?.flyTo(
+                          [endCoords.lat, endCoords.lng],
+                          14, // Zoom level for destination
+                          {
+                            duration: 2, // Animation duration in seconds
+                            easeLinearity: 0.5
+                          }
+                        );
+                        setMapStatus('Destination reached');
+                      }, 1000); // Wait 1 second after route completes
+                    }
+                  }
+                }, 100);
               }
             }, 50); // Update every 50ms
           };
@@ -347,17 +394,285 @@ const RoadTripMap: React.FC<MapProps> = ({
     }
   }, [startCoords, endCoords, routeGeometry, isMapInitialized, isFallbackRoute, startLocation, endLocation])
   
+  // Use callback for POI clicks to prevent re-renders
+  const handlePOIClick = useCallback((poi: POI) => {
+    console.log('POI clicked:', poi);
+    setSelectedPOI(poi);
+  }, []);
+  
+  // Handler for POI layer changes in MapPOIControls
+  const handleLayerChange = useCallback((newLayers: string[]) => {
+    setActiveLayers(newLayers);
+    // Propagate changes up to parent component if callback exists
+    if (onLayerChange) {
+      console.log('Propagating layer change to parent:', newLayers);
+      onLayerChange(newLayers);
+    }
+  }, [onLayerChange]);
+  
+  // Close POI details panel
+  const closePOIDetails = () => {
+    setSelectedPOI(null);
+  };
+  
+  // Format POI details based on type
+  const renderPOIDetails = (poi: POI) => {
+    let details = [];
+    
+    switch (poi.type) {
+      case 'gasStations':
+        if (poi.tags.brand) details.push(`Brand: ${poi.tags.brand}`);
+        if (poi.tags.opening_hours) details.push(`Hours: ${poi.tags.opening_hours}`);
+        if (poi.tags.amenity) details.push(`Type: ${poi.tags.amenity}`);
+        break;
+      case 'hotels':
+        if (poi.tags.stars) details.push(`${poi.tags.stars} Stars`);
+        if (poi.tags.rooms) details.push(`${poi.tags.rooms} Rooms`);
+        if (poi.tags.website) details.push(`<a href="${poi.tags.website}" target="_blank" class="text-blue-400 hover:underline">Website</a>`);
+        break;
+      case 'restaurants':
+        if (poi.tags.cuisine) details.push(`Cuisine: ${poi.tags.cuisine}`);
+        if (poi.tags.opening_hours) details.push(`Hours: ${poi.tags.opening_hours}`);
+        break;
+      case 'evCharging':
+        if (poi.tags.capacity) details.push(`Capacity: ${poi.tags.capacity}`);
+        if (poi.tags.operator) details.push(`Operator: ${poi.tags.operator}`);
+        break;
+      default:
+        // Generic details for other POI types
+        if (poi.tags.description) details.push(poi.tags.description);
+    }
+    
+    return details.length > 0 
+      ? details.map((detail, i) => <div key={i} dangerouslySetInnerHTML={{__html: detail}} />) 
+      : <div>No additional details available</div>;
+  };
+  
+  // Add a function to update POI count
+  const updatePOICount = useCallback((count: number) => {
+    setPoiCount(count);
+  }, []);
+  
+  // Instead, add a one-time setup to ensure the map properly renders on events
+  useEffect(() => {
+    if (!mapRef.current || !isMapInitialized) return;
+    
+    const map = mapRef.current;
+    
+    // The key issue with Leaflet in React is handling redraw events properly
+    map.on('layeradd', () => {
+      // Give the browser a moment to render
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 10);
+    });
+    
+    return () => {
+      map.off('layeradd');
+    };
+  }, [isMapInitialized]);
+  
+  // Add a critical fix to maintain layer visibility during map interactions
+  useEffect(() => {
+    if (!mapRef.current || !isMapInitialized) return;
+    
+    const map = mapRef.current;
+    
+    // These event handlers ensure layers remain visible during map interactions
+    const handleZoomStart = () => {
+      console.log("Zoom started - preserving layer visibility");
+      
+      // Disable CSS transitions during zoom to prevent flickering
+      const mapPane = map.getPane('mapPane');
+      if (mapPane) {
+        mapPane.style.transition = 'none';
+      }
+    };
+    
+    const handleZoomEnd = () => {
+      console.log("Zoom ended - restoring normal behavior");
+      
+      // Re-enable transitions after zoom
+      const mapPane = map.getPane('mapPane');
+      if (mapPane) {
+        mapPane.style.transition = '';
+      }
+      
+      // Force a redraw of the map to ensure all layers are visible
+      map.invalidateSize();
+    };
+    
+    map.on('zoomstart', handleZoomStart);
+    map.on('zoomend', handleZoomEnd);
+    
+    return () => {
+      map.off('zoomstart', handleZoomStart);
+      map.off('zoomend', handleZoomEnd);
+    };
+  }, [isMapInitialized]);
+  
+  // Add CSS to prevent marker flicker during zoom/pan
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    // Add custom CSS to the document to fix marker visibility
+    const styleId = 'map-marker-fix-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.innerHTML = `
+        .leaflet-marker-pane, .leaflet-overlay-pane, .leaflet-shadow-pane {
+          transition: none !important;
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    return () => {
+      const style = document.getElementById(styleId);
+      if (style) style.remove();
+    };
+  }, []);
+  
+  // Add event handlers to ensure POI markers stay on top after map interactions
+  useEffect(() => {
+    if (!mapRef.current || !isMapInitialized) return;
+    
+    const map = mapRef.current;
+    
+    // Function to ensure POI markers are on top
+    const ensureMarkersOnTop = () => {
+      console.log('Ensuring POI markers are on top');
+      const poiPane = map.getPane('poi');
+      if (poiPane) {
+        // Force the POI pane to have the highest z-index
+        poiPane.style.zIndex = '650';
+        
+        // Bring all POI markers to front
+        document.querySelectorAll('.poi-marker').forEach((marker) => {
+          // This will force a DOM reflow of the marker elements
+          if (marker.parentNode) {
+            const parent = marker.parentNode;
+            const detached = parent.removeChild(marker);
+            parent.appendChild(detached);
+          }
+        });
+      }
+    };
+    
+    // Add event listeners for map interactions
+    map.on('zoomend', ensureMarkersOnTop);
+    map.on('moveend', ensureMarkersOnTop);
+    map.on('layeradd', ensureMarkersOnTop);
+    
+    // Also force markers to top after a short delay (helps with initial loading)
+    const initialTimer = setTimeout(ensureMarkersOnTop, 1000);
+    
+    // Clean up event listeners
+    return () => {
+      map.off('zoomend', ensureMarkersOnTop);
+      map.off('moveend', ensureMarkersOnTop);
+      map.off('layeradd', ensureMarkersOnTop);
+      clearTimeout(initialTimer);
+    };
+  }, [isMapInitialized]);
+  
+  // Update POI count display and ensure it's accurate after layer changes
+  useEffect(() => {
+    // When activeLayers changes, update the POI count display in the debugging indicator
+    const activeLayerCount = activeLayers.length;
+    
+    // Force update the displayed layer count
+    setPoiCount(prevCount => {
+      console.log(`Updating layer count display: ${activeLayerCount} active layers`);
+      return prevCount; // Just trigger a re-render without changing the count
+    });
+    
+  }, [activeLayers]);
+  
+  // Fix the POI counter display
+  const debugInfo = `Map Ready: ${mapFullyReady ? 'Yes' : 'No'} | Layers: ${activeLayers.length} | POIs: ${poiCount}`;
+  
   return (
-    <div className="relative h-full w-full">
-      <div ref={mapContainerRef} className="h-full w-full" />
-      {mapStatus && (
-        <div className="absolute bottom-2 left-2 right-2 bg-gray-800 bg-opacity-70 text-white text-xs p-1 rounded">
-          {mapStatus}
-          {isFallbackRoute && (
-            <span className="ml-2 px-1 py-0.5 bg-amber-600 text-white rounded text-xs">Fallback Route</span>
-          )}
-        </div>
+    <div className="flex flex-col h-full w-full">
+      {/* POI Controls positioned OUTSIDE the map */}
+      {mapFullyReady && (
+        <MapPOIControls 
+          activeLayers={activeLayers}
+          onChange={handleLayerChange}
+        />
       )}
+      
+      {/* Map container */}
+      <div className="relative flex-grow">
+        <div ref={mapContainerRef} className="h-full w-full" />
+        
+        {/* Service Markers (POIs) - Only add when map is fully ready */}
+        {mapFullyReady && mapRef.current && routeGeometry && startCoords && endCoords && (
+          <ServiceMarkers
+            map={mapRef.current}
+            routeGeometry={routeGeometry}
+            startCoords={startCoords}
+            endCoords={endCoords}
+            activeLayers={activeLayers}
+            onPOIClick={handlePOIClick}
+            onCountUpdate={updatePOICount}
+            onSelectPOI={onSelectPOI}
+          />
+        )}
+        
+        {/* Map Status Indicator */}
+        {mapStatus && (
+          <div className="absolute bottom-2 left-2 right-2 bg-gray-800 bg-opacity-70 text-white text-xs p-1 rounded">
+            {mapStatus}
+            {isFallbackRoute && (
+              <span className="ml-2 px-1 py-0.5 bg-amber-600 text-white rounded text-xs">Fallback Route</span>
+            )}
+          </div>
+        )}
+        
+        {/* POI Details Panel */}
+        {selectedPOI && (
+          <div className="fixed bottom-10 left-2 max-w-sm bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-lg text-white z-40">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">{selectedPOI.name}</h3>
+              <button 
+                onClick={closePOIDetails}
+                className="text-gray-400 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="text-sm text-gray-300 space-y-1">
+              {renderPOIDetails(selectedPOI)}
+            </div>
+            
+            {/* Show on map link - centers the map on this POI */}
+            <button
+              className="mt-3 text-xs bg-blue-700 hover:bg-blue-600 text-white py-1 px-2 rounded"
+              onClick={() => {
+                if (mapRef.current && selectedPOI) {
+                  mapRef.current.setView(
+                    [selectedPOI.location.lat, selectedPOI.location.lng],
+                    16
+                  );
+                }
+              }}
+            >
+              Center on map
+            </button>
+          </div>
+        )}
+        
+        {/* Debugging indicator */}
+        <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">
+          {debugInfo}
+        </div>
+      </div>
     </div>
   )
 }
