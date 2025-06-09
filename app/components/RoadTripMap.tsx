@@ -309,9 +309,9 @@ const RoadTripMap: React.FC<MapProps> = ({
                 setMapStatus('Route complete');
           
                 // Force map refresh after animation completes
-                setTimeout(() => {
-                  if (mapRef.current) {
-                    mapRef.current.invalidateSize();
+          setTimeout(() => {
+            if (mapRef.current) {
+              mapRef.current.invalidateSize();
                     
                     // Zoom in to destination after animation completes
                     if (endCoords) {
@@ -329,8 +329,8 @@ const RoadTripMap: React.FC<MapProps> = ({
                         setMapStatus('Destination reached');
                       }, 1000); // Wait 1 second after route completes
                     }
-                  }
-                }, 100);
+            }
+          }, 100);
               }
             }, 50); // Update every 50ms
           };
@@ -410,44 +410,6 @@ const RoadTripMap: React.FC<MapProps> = ({
     }
   }, [onLayerChange]);
   
-  // Close POI details panel
-  const closePOIDetails = () => {
-    setSelectedPOI(null);
-  };
-  
-  // Format POI details based on type
-  const renderPOIDetails = (poi: POI) => {
-    let details = [];
-    
-    switch (poi.type) {
-      case 'gasStations':
-        if (poi.tags.brand) details.push(`Brand: ${poi.tags.brand}`);
-        if (poi.tags.opening_hours) details.push(`Hours: ${poi.tags.opening_hours}`);
-        if (poi.tags.amenity) details.push(`Type: ${poi.tags.amenity}`);
-        break;
-      case 'hotels':
-        if (poi.tags.stars) details.push(`${poi.tags.stars} Stars`);
-        if (poi.tags.rooms) details.push(`${poi.tags.rooms} Rooms`);
-        if (poi.tags.website) details.push(`<a href="${poi.tags.website}" target="_blank" class="text-blue-400 hover:underline">Website</a>`);
-        break;
-      case 'restaurants':
-        if (poi.tags.cuisine) details.push(`Cuisine: ${poi.tags.cuisine}`);
-        if (poi.tags.opening_hours) details.push(`Hours: ${poi.tags.opening_hours}`);
-        break;
-      case 'evCharging':
-        if (poi.tags.capacity) details.push(`Capacity: ${poi.tags.capacity}`);
-        if (poi.tags.operator) details.push(`Operator: ${poi.tags.operator}`);
-        break;
-      default:
-        // Generic details for other POI types
-        if (poi.tags.description) details.push(poi.tags.description);
-    }
-    
-    return details.length > 0 
-      ? details.map((detail, i) => <div key={i} dangerouslySetInnerHTML={{__html: detail}} />) 
-      : <div>No additional details available</div>;
-  };
-  
   // Add a function to update POI count
   const updatePOICount = useCallback((count: number) => {
     setPoiCount(count);
@@ -526,6 +488,43 @@ const RoadTripMap: React.FC<MapProps> = ({
           will-change: transform;
           transform: translate3d(0, 0, 0);
           backface-visibility: hidden;
+        }
+        
+        /* Custom tooltip styling */
+        .poi-tooltip {
+          min-width: 150px;
+          max-width: 220px;
+          padding: 8px;
+          white-space: normal;
+          word-wrap: break-word;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .poi-tooltip .poi-name {
+          margin-bottom: 6px;
+          display: block;
+          font-size: 14px;
+          line-height: 1.3;
+          font-weight: 600;
+        }
+        
+        .poi-tooltip .address {
+          margin-top: 4px;
+          font-size: 12px;
+          color: #ccc;
+          line-height: 1.3;
+        }
+        
+        .poi-tooltip .tooltip-hint {
+          margin-top: 8px;
+          padding-top: 6px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: 11px;
+          color: #999;
+          font-style: italic;
+          text-align: center;
         }
       `;
       document.head.appendChild(style);
@@ -608,7 +607,7 @@ const RoadTripMap: React.FC<MapProps> = ({
       
       {/* Map container */}
       <div className="relative flex-grow">
-        <div ref={mapContainerRef} className="h-full w-full" />
+      <div ref={mapContainerRef} className="h-full w-full" />
         
         {/* Service Markers (POIs) - Only add when map is fully ready */}
         {mapFullyReady && mapRef.current && routeGeometry && startCoords && endCoords && (
@@ -625,48 +624,14 @@ const RoadTripMap: React.FC<MapProps> = ({
         )}
         
         {/* Map Status Indicator */}
-        {mapStatus && (
-          <div className="absolute bottom-2 left-2 right-2 bg-gray-800 bg-opacity-70 text-white text-xs p-1 rounded">
-            {mapStatus}
-            {isFallbackRoute && (
-              <span className="ml-2 px-1 py-0.5 bg-amber-600 text-white rounded text-xs">Fallback Route</span>
-            )}
-          </div>
-        )}
-        
-        {/* POI Details Panel */}
-        {selectedPOI && (
-          <div className="fixed bottom-10 left-2 max-w-sm bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-lg text-white z-40">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold">{selectedPOI.name}</h3>
-              <button 
-                onClick={closePOIDetails}
-                className="text-gray-400 hover:text-white"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="text-sm text-gray-300 space-y-1">
-              {renderPOIDetails(selectedPOI)}
-            </div>
-            
-            {/* Show on map link - centers the map on this POI */}
-            <button
-              className="mt-3 text-xs bg-blue-700 hover:bg-blue-600 text-white py-1 px-2 rounded"
-              onClick={() => {
-                if (mapRef.current && selectedPOI) {
-                  mapRef.current.setView(
-                    [selectedPOI.location.lat, selectedPOI.location.lng],
-                    16
-                  );
-                }
-              }}
-            >
-              Center on map
-            </button>
-          </div>
-        )}
+      {mapStatus && (
+        <div className="absolute bottom-2 left-2 right-2 bg-gray-800 bg-opacity-70 text-white text-xs p-1 rounded">
+          {mapStatus}
+          {isFallbackRoute && (
+            <span className="ml-2 px-1 py-0.5 bg-amber-600 text-white rounded text-xs">Fallback Route</span>
+          )}
+        </div>
+      )}
         
         {/* Debugging indicator */}
         <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">

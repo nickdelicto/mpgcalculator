@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import { Alert, AlertDescription } from '../../components/ui/alert'
@@ -17,6 +17,9 @@ import POIDetailPanel from './POIDetailPanel'
 import { POI } from '../utils/overpassService'
 import { initPOIControlSync, cleanupPOIControlSync } from '../utils/poiControlSync'
 import { fetchPOIDetails } from '../utils/tomtomService'
+import TabsContainer from './TabsContainer'
+import HotelsList from './HotelsList'
+import AttractionsList from './AttractionsList'
 
 export default function RoadTripCalculator() {
   // State for form inputs
@@ -77,6 +80,18 @@ export default function RoadTripCalculator() {
   // Add loading state for POI details
   const [poiLoading, setPOILoading] = useState(false);
   
+  // Add a ref for the small screen POI panel
+  const smallScreenPOIRef = useRef<HTMLDivElement>(null);
+  
+  // State for active tab
+  const [activeTab, setActiveTab] = useState(0)
+  
+  // State for hotels from POIs
+  const [hotels, setHotels] = useState<POI[]>([])
+  
+  // State for attractions from Viator
+  const [attractions, setAttractions] = useState<POI[]>([])
+  
   // Use useEffect for localStorage operations to avoid hydration issues
   useEffect(() => {
     // This only runs on the client after hydration is complete
@@ -112,6 +127,32 @@ export default function RoadTripCalculator() {
       cleanupPOIControlSync();
     };
   }, [activePOILayers]);
+  
+  // Track POI changes and extract hotels
+  useEffect(() => {
+    // This will be populated by ServiceMarkers when it renders POIs
+    const poiDataListener = (event: CustomEvent) => {
+      if (event.detail && Array.isArray(event.detail.pois)) {
+        // Filter to get hotels
+        const hotelPOIs = event.detail.pois.filter((poi: POI) => poi.type === 'hotels');
+        setHotels(hotelPOIs);
+        console.log(`Found ${hotelPOIs.length} hotels`);
+        
+        // Filter to get attractions
+        const attractionPOIs = event.detail.pois.filter((poi: POI) => poi.type === 'attractions');
+        setAttractions(attractionPOIs);
+        console.log(`Found ${attractionPOIs.length} attractions`);
+      }
+    };
+    
+    // Listen for the custom event
+    window.addEventListener('poiDataUpdated', poiDataListener as EventListener);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('poiDataUpdated', poiDataListener as EventListener);
+    };
+  }, []);
   
   // Function to calculate costs based on route and vehicle data
   const calculateCosts = useCallback((routeData: RouteData, vehicleData: any, tolls: number) => {
@@ -254,6 +295,23 @@ export default function RoadTripCalculator() {
       return
     }
     
+    // After validation passes, switch to an appropriate tab based on available content
+    if (activePOILayers.includes('hotels')) {
+      setActiveTab(0); // Hotels tab
+    } else if (activePOILayers.includes('attractions')) {
+      setActiveTab(0); // Attractions tab (when no hotels)
+    } else if (route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0) {
+      setActiveTab(activePOILayers.includes('hotels') || activePOILayers.includes('attractions') ? 
+        (activePOILayers.includes('hotels') && activePOILayers.includes('attractions') ? 2 : 1) : 0); // Directions tab
+    } else {
+      // Calculate the summary tab index based on what's available
+      let tabIndex = 0;
+      if (activePOILayers.includes('hotels')) tabIndex++;
+      if (activePOILayers.includes('attractions')) tabIndex++;
+      if (activePOILayers.includes('directions')) tabIndex++;
+      setActiveTab(tabIndex);
+    }
+    
     // Start loading
     console.log('Validation passed, starting calculation')
     setStatus({
@@ -335,6 +393,16 @@ export default function RoadTripCalculator() {
     setSelectedPOI(poi);
     console.log('Selected POI for detailed view:', poi.name);
     
+    // Scroll the small screen POI panel into view after a short delay
+    setTimeout(() => {
+      if (window.innerWidth < 1280 && smallScreenPOIRef.current) { // 1280px is the xl breakpoint
+        smallScreenPOIRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 100);
+    
     // If the POI has a TomTom ID, fetch detailed information
     if (poi.tomtomId) {
       setPOILoading(true);
@@ -406,12 +474,34 @@ export default function RoadTripCalculator() {
     }
   };
   
+  // Handle hotel selection from the hotel list
+  const handleHotelSelect = (hotel: POI) => {
+    handlePOISelect(hotel);
+  }
+  
+  // Handle attraction selection from the attractions list
+  const handleAttractionSelect = (attraction: POI) => {
+    handlePOISelect(attraction);
+  }
+  
+  // Check if we have directions to show
+  const hasDirections = Boolean(route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0);
+  
+  // Check if we have hotels layer active
+  const hasHotels = activePOILayers.includes('hotels') && hotels.length > 0;
+  
+  // Check if we have attractions layer active
+  const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
+  
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      {/* Left column - inputs */}
-      <div className="space-y-6 xl:col-span-1">
+    <div className="flex flex-col xl:flex-row h-screen">
+      {/* Form inputs - before calculation */}
+      {!route && (
+        <div className="w-full xl:w-1/3 bg-gray-900 p-6 overflow-y-auto">
+          <h2 className="text-2xl font-bold text-white mb-6">Road Trip Calculator</h2>
+          
         {/* Route Information */}
-        <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 mb-6">
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
               <MapPin className="h-6 w-6 text-blue-400 mt-1" />
@@ -456,31 +546,19 @@ export default function RoadTripCalculator() {
                   </div>
                 )}
               </div>
-              
-              {/* POI Controls */}
-              <POIControlsBar 
-                activeLayers={activePOILayers}
-                onChange={handlePOILayerChange}
-                data-testid="route-poi-controls"
-              />
+                
+                {/* POI Controls */}
+                <POIControlsBar 
+                  activeLayers={activePOILayers}
+                  onChange={handlePOILayerChange}
+                  data-testid="route-poi-controls"
+                />
             </div>
           </CardContent>
         </Card>
         
-        {/* POI Detail Panel - conditionally rendered */}
-        {selectedPOI && (
-          <div className="mt-4 mb-4 poi-detail-panel">
-            <POIDetailPanel 
-              poi={selectedPOI} 
-              onClose={handleClosePOIPanel}
-              onSetAsDestination={handleSetPOIAsDestination}
-              isLoading={poiLoading}
-            />
-          </div>
-        )}
-        
         {/* Vehicle & Fuel */}
-        <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 mb-6">
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
               <Car className="h-6 w-6 text-blue-400 mt-1" />
@@ -502,7 +580,7 @@ export default function RoadTripCalculator() {
         </Card>
         
         {/* Additional Costs */}
-        <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 mb-6">
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
               <DollarSign className="h-6 w-6 text-blue-400 mt-1" />
@@ -524,7 +602,7 @@ export default function RoadTripCalculator() {
         
         {/* Error message - Make it more noticeable */}
         {status.error && (
-          <div className="sticky bottom-4 z-50">
+            <div className="sticky bottom-4 z-50 mt-4">
             <Alert variant="destructive" className="bg-red-900 border-red-800 text-white animate-pulse shadow-lg border-2">
               <AlertDescription className="text-white font-medium flex items-center text-lg py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -535,9 +613,70 @@ export default function RoadTripCalculator() {
             </Alert>
           </div>
         )}
-        
-        {/* Status message */}
-        {status.message && (
+        </div>
+      )}
+      
+      {/* Tabbed container after calculation */}
+      {route && (
+        <div className="w-full xl:w-1/3 bg-gray-900 h-full overflow-hidden flex flex-col">
+          {/* Show POI detail panel when a POI is selected */}
+          {selectedPOI && (
+            <div className="px-4 pt-4">
+              <div className="flex items-center gap-2 mb-2 text-white">
+                <MapPin className="h-5 w-5 text-blue-400" />
+                <h3 className="text-lg font-medium">Selected Point Details</h3>
+              </div>
+              <POIDetailPanel 
+                poi={selectedPOI} 
+                onClose={handleClosePOIPanel}
+                onSetAsDestination={handleSetPOIAsDestination}
+                isLoading={poiLoading}
+                className="mb-4"
+              />
+            </div>
+          )}
+          
+          {/* Tabbed navigation container */}
+          <div className="flex-grow overflow-hidden">
+            <TabsContainer
+              hotelsList={<HotelsList hotels={hotels} onHotelSelect={handleHotelSelect} />}
+              attractionsList={<AttractionsList attractions={attractions} onAttractionSelect={handleAttractionSelect} />}
+              directions={
+                route && route.segments && route.segments[0]?.steps ? (
+                  <RoadTripDirections 
+                    steps={route.segments[0].steps}
+                    unitSystem={vehicleEfficiency?.unitSystem || 'imperial'} 
+                  />
+                ) : (
+                  <div className="text-center p-6 text-gray-400">
+                    <p>No detailed directions available for this route.</p>
+                  </div>
+                )
+              }
+              tripSummary={
+                costs ? (
+                  <RoadTripCosts 
+                    costs={costs}
+                    vehicleType={vehicleEfficiency?.type || 'gasoline'}
+                    unitSystem={vehicleEfficiency?.unitSystem || 'imperial'}
+                  />
+                ) : (
+                  <div className="text-center p-6 text-gray-400">
+                    <p>Cost information not available.</p>
+                  </div>
+                )
+              }
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              hasHotels={hasHotels}
+              hasAttractions={hasAttractions}
+              hasDirections={hasDirections}
+            />
+          </div>
+          
+          {/* Status message - Removed to save space */}
+          {/* {status.message && (
+            <div className="p-4">
           <Alert className={status.usingFallback ? "bg-amber-900 border-amber-800" : "bg-blue-900 border-blue-800"}>
             <AlertDescription className="text-white flex items-center">
               {status.usingFallback ? (
@@ -546,26 +685,45 @@ export default function RoadTripCalculator() {
               {status.message}
             </AlertDescription>
           </Alert>
-        )}
+            </div>
+          )} */}
         
-        {/* Debug information - only shown if debug mode is enabled */}
-        {showDebug && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-xs text-gray-300 font-mono overflow-auto">
-            <h4 className="font-semibold mb-2 text-blue-400">Debug Information</h4>
-            <div>
-              <div><span className="text-gray-500">Start:</span> {JSON.stringify(startCoords)}</div>
-              <div><span className="text-gray-500">End:</span> {JSON.stringify(endCoords)}</div>
-              <div><span className="text-gray-500">Using Fallback:</span> {status.usingFallback ? 'Yes' : 'No'}</div>
-              <div><span className="text-gray-500">Route Points:</span> {route?.routeGeometry.coordinates.length || 0}</div>
+          {/* Only show critical fallback warning */}
+          {status.usingFallback && (
+            <div className="p-4">
+              <Alert className="bg-amber-900 border-amber-800">
+                <AlertDescription className="text-white flex items-center">
+                  <Info className="h-4 w-4 mr-2" />
+                  Using estimated route. Distance and time are approximate.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          
+          {/* Back to Edit button */}
+          <div className="p-4 border-t border-gray-800">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setRoute(null);
+                setCosts(null);
+                setStatus({
+                  loading: false,
+                  error: null,
+                  message: null,
+                  usingFallback: false
+                });
+              }}
+            >
+              Edit Trip Details
+            </Button>
             </div>
           </div>
         )}
-      </div>
       
-      {/* Right column - Map and Results */}
-      <div className="space-y-6 xl:col-span-2">
-        {/* Map */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-1 h-[400px] xl:h-[600px]">
+      {/* Map container */}
+      <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[400px] xl:h-screen`}>
           <DynamicRoadTripMap 
             startCoords={startCoords || undefined} 
             endCoords={endCoords || undefined} 
@@ -573,70 +731,10 @@ export default function RoadTripCalculator() {
             isFallbackRoute={status.usingFallback}
             startLocation={startLocation}
             endLocation={endLocation}
-            activePOILayers={activePOILayers}
-            onLayerChange={handlePOILayerChange}
-            onSelectPOI={handlePOISelect}
-          />
-        </div>
-        
-        {/* Turn-by-Turn Directions - only show when route with steps is available */}
-        {route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0 && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-            {/* Toggle button */}
-            <button 
-              onClick={() => setShowDirections(!showDirections)} 
-              className="w-full flex items-center justify-between p-4 text-white hover:bg-gray-700 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Navigation className="h-5 w-5 text-blue-400" />
-                <span className="font-semibold">Turn-by-Turn Directions</span>
-              </div>
-              <div className="flex items-center text-gray-400 text-sm">
-                {showDirections ? 'Hide' : 'Show'} directions
-                <svg 
-                  className={`ml-2 h-5 w-5 transition-transform ${showDirections ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-            
-            {/* Directions content */}
-            {showDirections && (
-              <div className="p-4">
-                <RoadTripDirections 
-                  steps={route.segments[0].steps}
-                  unitSystem={vehicleEfficiency?.unitSystem || 'imperial'} 
-                />
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Trip Summary */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-2 mb-4">
-              <Route className="h-6 w-6 text-blue-400 mt-1" />
-              <h3 className="text-xl font-semibold text-white">Trip Summary</h3>
-            </div>
-            
-            {costs ? (
-              <RoadTripCosts 
-                costs={costs} 
-                vehicleType={vehicleEfficiency?.type || 'gasoline'}
-                unitSystem={vehicleEfficiency?.unitSystem || 'imperial'}
-              />
-            ) : (
-              <div className="text-gray-400 text-center py-4">
-                Enter your trip details and click calculate to see your estimated costs.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          activePOILayers={activePOILayers}
+          onLayerChange={handlePOILayerChange}
+          onSelectPOI={handlePOISelect}
+        />
       </div>
     </div>
   )

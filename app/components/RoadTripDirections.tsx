@@ -77,7 +77,7 @@ const END_MARKER_SVG = `
 
 const RoadTripDirections: React.FC<DirectionsProps> = ({ steps, unitSystem }) => {
   return (
-    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+    <div className="space-y-2 pr-2">
       {steps && steps.map((step, index) => {
         // Determine if this is first step (departure) or last step (arrival)
         const isFirstStep = index === 0;
