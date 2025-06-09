@@ -111,8 +111,7 @@ export default async function RootLayout({
           <>
             {/* Internal traffic detection script - runs before GA loads */}
             <Script id="internal-traffic-detection" strategy="beforeInteractive">
-              {`
-                (function() {
+              {`                (function() {
                   // Check various conditions that might indicate localhost/internal traffic
                   var isInternal = false;
                   
@@ -167,6 +166,7 @@ export default async function RootLayout({
     </html>
   )
 }
+
 
 
 
