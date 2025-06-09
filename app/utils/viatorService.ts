@@ -172,7 +172,7 @@ export const searchAttractionsNearLocation = async (
     
     // Transform the Viator data to our POI format - pass the destination name for address context
     // and user's destination for approximate locations
-    const pois = transformViatorToPOIs(data.products || [], nearestDestination.name, location, destinationDistance);
+    const pois = transformViatorToPOIs(data.products || [], nearestDestination.name, location, destinationDistance, nearestDestination.destinationId);
     console.log(`[Viator] Transformed ${pois.length} products to POIs`);
     return pois;
   } catch (error) {
@@ -315,7 +315,7 @@ const deduplicateAttractions = (attractions: POI[]): POI[] => {
 /**
  * Transform Viator product data to our POI format
  */
-const transformViatorToPOIs = (products: any[], destinationName?: string, userDestination?: Coordinates, destinationDistance?: number): POI[] => {
+const transformViatorToPOIs = (products: any[], destinationName?: string, userDestination?: Coordinates, destinationDistance?: number, destinationId?: number): POI[] => {
   return products.map(product => {
     // Extract price info
     let priceFormatted = product.price?.fromPriceFormatted || '';
@@ -436,6 +436,14 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
     // Create a unique ID
     const id = `viator-${product.productCode || product.code || Math.random().toString(36).substring(2, 10)}`;
     
+    // Extract the Viator product code for deep linking
+    const viatorId = product.productCode || product.code;
+    if (!viatorId) {
+      console.warn(`[Viator] No product code found for attraction "${product.title}"`);
+    } else {
+      console.log(`[Viator] Extracted product code for "${product.title}": ${viatorId}`);
+    }
+    
     // Handle duration which might be an object or string
     let durationStr = '';
     if (typeof product.duration === 'string') {
@@ -490,7 +498,8 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
       hasCoordinates: hasValidLocation,
       destinationInfo: {
         name: destinationName,
-        distance: destinationDistance
+        distance: destinationDistance,
+        id: destinationId
       }
     });
     
@@ -500,7 +509,7 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
       name: product.title || product.name || 'Unnamed Attraction',
       type: 'attractions',
       location,
-      viatorId: product.productCode || product.code,
+      viatorId: viatorId,
       approximateLocation: !hasValidLocation,
       tags: {
         price: priceFormatted,
@@ -511,7 +520,9 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
         description: product.shortDescription || product.description || '',
         thumbnailURL: thumbnailURL,
         thumbnailHiResURL: thumbnailHiResURL,
-        distance: distanceInfo
+        distance: distanceInfo,
+        // Add destination ID to be used for URL construction
+        locationId: destinationId ? `d${destinationId}` : ''
       },
       icon: 'attractions'
     };
@@ -571,21 +582,86 @@ export const getAttractionDetails = async (productCode: string): Promise<any> =>
 
 /**
  * Generate a Viator deep link for a product
+ * Uses Viator's official URL format for reliable product linking
  */
-export const generateViatorDeepLink = (productCode: string, affiliateId: string, campaignValue: string = ''): string => {
-  // Base URL for Viator product pages
-  const baseUrl = 'https://www.viator.com/tours/';
+export const generateViatorDeepLink = (
+  productCode: string, 
+  affiliateId: string, 
+  campaignValue: string = '',
+  productTitle?: string,
+  destinationName?: string,
+  destinationId?: string,
+  mcid: string = '42383' // Default MCID parameter for attribution
+): string => {
+  if (!productCode) {
+    console.error('[Viator] Cannot generate deep link: missing product code');
+    return 'https://www.viator.com';
+  }
   
-  // Construct the query parameters
-  let queryParams = `pid=${affiliateId}&medium=api`;
+  if (!affiliateId) {
+    console.warn('[Viator] Generating deep link without affiliate ID - commission will not be tracked');
+  }
+  
+  // Clean the product code (remove any spaces or unwanted characters)
+  const cleanProductCode = productCode.trim();
+  
+  // Helper function to create URL-friendly slugs
+  const slugify = (text: string): string => {
+    if (!text) return '';
+    
+    return text
+      .toString()
+      .normalize('NFKD') // Split accented characters
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9 ]/g, '') // Remove non-alphanumeric characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-'); // Remove consecutive hyphens
+  };
+  
+  // Construct the URL based on available information
+  let baseUrl = '';
+  
+  // If we have all the components for a full SEO URL, use that format
+  if (productTitle && destinationName && destinationId) {
+    const destinationSlug = slugify(destinationName);
+    const productTitleSlug = slugify(productTitle);
+    
+    // Format: /tours/[destination-slug]/[product-title-slug]/d[destinationId]-[productCode]
+    baseUrl = `https://www.viator.com/tours/${destinationSlug}/${productTitleSlug}/d${destinationId}-${cleanProductCode}`;
+    
+    console.log(`[Viator] Constructed full SEO URL with destination and product title`);
+  } else {
+    // Fallback to the simpler format if we don't have all components
+    baseUrl = `https://www.viator.com/tours/${cleanProductCode}`;
+    console.log(`[Viator] Using simplified URL format (missing destination info or product title)`);
+  }
+  
+  // Create URLSearchParams for proper parameter encoding
+  const params = new URLSearchParams();
+  
+  // Add affiliate ID (required parameter)
+  if (affiliateId) {
+    params.append('pid', affiliateId);
+  }
+  
+  // Add MCID parameter (required for proper attribution)
+  params.append('mcid', mcid);
+  
+  // Add medium parameter (required for tracking the source)
+  params.append('medium', 'api');
   
   // Add campaign tracking if provided
   if (campaignValue) {
-    // URL encode the campaign value in case it contains special characters
-    const encodedCampaign = encodeURIComponent(campaignValue);
-    queryParams += `&campaign=${encodedCampaign}`;
+    params.append('campaign', campaignValue);
   }
   
-  // Construct the full deeplink with affiliate ID and optional campaign
-  return `${baseUrl}${productCode}?${queryParams}`;
+  // Combine URL and parameters
+  const deepLink = `${baseUrl}?${params.toString()}`;
+  
+  // Log the deep link for debugging
+  console.log(`[Viator] Generated product deep link: ${deepLink}`);
+  
+  return deepLink;
 }; 

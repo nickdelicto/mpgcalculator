@@ -78,13 +78,128 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
     
     // Generate deep link with affiliate ID
     let deepLink = '';
+    let searchFallbackLink = '';
+    
     if (attraction.viatorId) {
-      deepLink = generateViatorDeepLink(attraction.viatorId, VIATOR_AFFILIATE_ID);
+      console.log(`[AttractionCard] Creating Viator deep link for product: ${attraction.viatorId}`);
+      
+      // Campaign value can be added to track specific placements
+      const campaignValue = 'road-trip-cost-calculator'; 
+      
+      // Extract destination information
+      // For destination name, we'll use the first part of the address if available
+      const addressParts = (attraction.tags.address || '').split(',');
+      const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
+      
+      // Extract destination ID if present in the approximateLocation field
+      // Format: if we have something like "d12345" in tags.locationId or similar
+      const destinationIdMatch = attraction.tags.locationId?.match(/d(\d+)/) || 
+                                attraction.id.match(/d(\d+)/);
+      const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
+      
+      // Log what we're using to build the URL
+      console.log(`[AttractionCard] Building deep link with:`, {
+        productCode: attraction.viatorId,
+        productTitle: attraction.name,
+        destinationName,
+        destinationId: destinationId || 'UNKNOWN'
+      });
+      
+      // Generate the primary deep link with all available information
+      deepLink = generateViatorDeepLink(
+        attraction.viatorId, 
+        VIATOR_AFFILIATE_ID, 
+        campaignValue,
+        attraction.name,          // Product title
+        destinationName,          // Destination name
+        destinationId             // Destination ID
+      );
+      
+      // Generate a destination-based fallback link - this is more reliable than search
+      // Format is https://www.viator.com/[Destination]/d[DestinationID]-ttd
+      
+      // Slugify the destination name
+      const slugify = (text: string): string => {
+        if (!text) return '';
+        return text
+          .toString()
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9 ]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+      };
+      
+      const destinationSlug = slugify(destinationName);
+      
+      // Create either a destination-based fallback or a search fallback
+      if (destinationSlug && destinationId) {
+        // Create a reliable destination page URL with the canonical format we observed
+        searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
+      } else {
+        // Fall back to general search if we don't have destination info
+        const searchParams = new URLSearchParams({
+          q: attraction.name,
+          pid: VIATOR_AFFILIATE_ID,
+          mcid: '42383',
+          medium: 'api',
+          campaign: campaignValue
+        });
+        searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
+      }
     } else {
       // Fallback to a search on Viator
-      deepLink = `https://www.viator.com/search?pid=${VIATOR_AFFILIATE_ID}&q=${encodeURIComponent(attraction.name)}`;
+      console.log(`[AttractionCard] No viatorId found for "${attraction.name}", using search fallback`);
+      
+      // Get location part if available
+      const locationPart = attraction.tags.address ? getLocationPart(attraction.tags.address) : '';
+      
+      // Create search URL with proper attribution parameters per Viator docs
+      const searchParams = new URLSearchParams({
+        pid: VIATOR_AFFILIATE_ID,
+        mcid: '42383', // Add MCID parameter for proper attribution
+        medium: 'api',
+        campaign: 'road-trip-cost-calculator',
+        q: attraction.name + (locationPart ? ` ${locationPart}` : '')
+      });
+      
+      deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
+      searchFallbackLink = deepLink; // Same as primary link in this case
     }
     
+    console.log(`[AttractionCard] Generated link: ${deepLink}`);
+    
+    // If Shift key is pressed, just log the link without opening it (for testing)
+    if (e.shiftKey) {
+      console.log(`%c[DEBUG] Link not opened - TEST MODE`, 'background: #ffeb3b; color: #000; font-weight: bold; padding: 3px;');
+      console.log(`%cPrimary link (copy to test): ${deepLink}`, 'background: #e3f2fd; color: #0d47a1; padding: 5px; border-radius: 3px; font-family: monospace;');
+      
+      // Also log the search fallback link
+      if (searchFallbackLink !== deepLink) {
+        console.log(`%cSearch fallback link (if primary fails): ${searchFallbackLink}`, 'background: #e8f5e9; color: #2e7d32; padding: 5px; border-radius: 3px; font-family: monospace;');
+      }
+      
+      // If Alt key is also pressed, test the search fallback link instead
+      if (e.altKey) {
+        console.log(`%c[DEBUG] Using search fallback link instead for testing`, 'background: #ff9800; color: #000; font-weight: bold; padding: 3px;');
+        deepLink = searchFallbackLink;
+      }
+      
+      // Add more detailed debug info
+      console.log(`%c[DEBUG] Attraction Details:`, 'background: #2196f3; color: white; padding: 3px;');
+      console.log({
+        name: attraction.name,
+        viatorId: attraction.viatorId || 'MISSING',
+        address: attraction.tags.address || 'MISSING',
+        locationPart: attraction.tags.address ? getLocationPart(attraction.tags.address) : 'MISSING'
+      });
+      
+      return; // Don't open the URL
+    }
+    
+    // Normal mode - open the URL
     window.open(deepLink, '_blank');
   };
   
