@@ -1,40 +1,77 @@
-import React from 'react';
-import { X, Clock, Phone, Globe, MapPin, Navigation, Star, DollarSign, Fuel, Zap, Coffee, Camera, Info, Loader2 } from 'lucide-react';
+'use client'
+
+import React, { useState, useEffect } from 'react';
+import { X, Clock, Phone, Globe, MapPin, Navigation, Star, DollarSign, Fuel, Zap, Coffee, Camera, Info, Loader2, Hotel } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { POI } from '../utils/overpassService';
+import { generateViatorDeepLink } from '../utils/viatorService';
 
 interface POIDetailPanelProps {
   poi: POI | null;
   onClose: () => void;
   onSetAsDestination?: (poi: POI) => void;
-  isLoading?: boolean; // Add loading state prop
+  isLoading?: boolean;
+  className?: string; // Add optional className prop
 }
+
+// Your Viator affiliate ID
+const VIATOR_AFFILIATE_ID = 'P00255194'; // Replace with your actual ID
 
 const POIDetailPanel: React.FC<POIDetailPanelProps> = ({ 
   poi, 
   onClose, 
   onSetAsDestination,
-  isLoading = false 
+  isLoading = false,
+  className = '' // Initialize with empty string
 }) => {
   if (!poi) return null;
 
-  // Get placeholder image based on POI type
-  const getPlaceholderImage = (poiType: string) => {
-    const images = {
-      gasStations: '/images/placeholder-gas-station.jpg',
-      evCharging: '/images/placeholder-ev-charging.jpg',
-      hotels: '/images/placeholder-hotel.jpg',
-      restaurants: '/images/placeholder-restaurant.jpg',
-      attractions: '/images/placeholder-attraction.jpg'
-    };
+  // Helper function to generate a vibrant, deterministic color based on POI name
+  const getPoiColor = (poiName: string) => {
+    // Simple hash function to generate a number from the POI name
+    const hash = Array.from(poiName).reduce(
+      (acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0
+    );
     
-    // Fallback to a generic image if type not found
-    return images[poiType as keyof typeof images] || '/images/placeholder-poi.jpg';
+    // Use the hash to generate a hue value (0-360)
+    const hue = Math.abs(hash % 360);
+    
+    // Return a vibrant color with fixed saturation and lightness
+    return `hsl(${hue}, 85%, 45%)`;
   };
-  
-  // Placeholder image URL - in real implementation, would come from API
-  const imageUrl = getPlaceholderImage(poi.type);
+
+  // Get POI initial or first letter of name
+  const getPoiInitial = () => {
+    if (poi.tags.brand && poi.tags.brand.length > 0) {
+      return poi.tags.brand.charAt(0).toUpperCase();
+    }
+    return poi.name.charAt(0).toUpperCase();
+  };
+
+  // Get appropriate icon based on POI type
+  const renderPoiTypeIcon = () => {
+    const size = "h-16 w-16";
+    const opacity = "opacity-25";
+    
+    switch (poi.type) {
+      case 'hotels':
+        return <Hotel className={`${size} text-white ${opacity} absolute`} />;
+      case 'restaurants':
+        return <Coffee className={`${size} text-white ${opacity} absolute`} />;
+      case 'gasStations':
+        return <Fuel className={`${size} text-white ${opacity} absolute`} />;
+      case 'evCharging':
+        return <Zap className={`${size} text-white ${opacity} absolute`} />;
+      case 'attractions':
+        return <Camera className={`${size} text-white ${opacity} absolute`} />;
+      default:
+        return <MapPin className={`${size} text-white ${opacity} absolute`} />;
+    }
+  };
+
+  // Get background color for POI
+  const bgColor = getPoiColor(poi.name);
   
   // Handle navigation to this POI
   const handleNavigateToPOI = () => {
@@ -128,14 +165,21 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
       case 'hotels':
         return (
           <div className="flex flex-wrap gap-2 mt-4">
-            {buttonsWithWebsite}
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={handleNavigateToPOI}
+            >
+              <Navigation className="h-4 w-4" />
+              <span>Navigate Here</span>
+            </Button>
             <Button 
               variant="default" 
               className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900"
-              onClick={() => window.open(`https://www.booking.com/search.html?ss=${encodeURIComponent(poi.name + ' ' + (poi.tags.address || ''))}`, '_blank')}
+              onClick={() => window.open(`https://www.tripadvisor.com/Search?q=${encodeURIComponent(poi.name + ' ' + (poi.tags.address || ''))}`, '_blank')}
             >
               <DollarSign className="h-4 w-4" />
-              <span>Book a Room</span>
+              <span>Check Availability</span>
             </Button>
           </div>
         );
@@ -143,14 +187,23 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
       case 'attractions':
         return (
           <div className="flex flex-wrap gap-2 mt-4">
-            {buttonsWithWebsite}
             <Button 
               variant="default" 
               className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-              onClick={() => window.open(`https://www.viator.com/search/${encodeURIComponent(poi.tags.address?.split(',')[1]?.trim() || '')}?pid=P00088888&mcid=42383&medium=link&activities_sort=REVIEW_COUNT_D&query=${encodeURIComponent(poi.name)}`, '_blank')}
+              onClick={() => {
+                // Generate Viator deep link if we have a product code
+                let url = '';
+                if (poi.viatorId) {
+                  url = generateViatorDeepLink(poi.viatorId, VIATOR_AFFILIATE_ID);
+                } else {
+                  // Fallback to search
+                  url = `https://www.viator.com/search?pid=${VIATOR_AFFILIATE_ID}&q=${encodeURIComponent(poi.name)}`;
+                }
+                window.open(url, '_blank');
+              }}
             >
-              <Camera className="h-4 w-4" />
-              <span>Find Tickets & Tours</span>
+              <DollarSign className="h-4 w-4" />
+              <span>Book Now</span>
             </Button>
           </div>
         );
@@ -161,24 +214,6 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
             {buttonsWithWebsite}
           </div>
         );
-    }
-  };
-  
-  // Get POI type icon
-  const renderTypeIcon = () => {
-    switch (poi.type) {
-      case 'gasStations':
-        return <Fuel className="h-5 w-5 text-red-500" />;
-      case 'evCharging':
-        return <Zap className="h-5 w-5 text-green-500" />;
-      case 'hotels':
-        return <DollarSign className="h-5 w-5 text-blue-500" />;
-      case 'restaurants':
-        return <Coffee className="h-5 w-5 text-orange-500" />;
-      case 'attractions':
-        return <Camera className="h-5 w-5 text-purple-500" />;
-      default:
-        return <Info className="h-5 w-5 text-gray-500" />;
     }
   };
   
@@ -196,13 +231,42 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
     );
   };
   
+  // Add this useEffect hook to handle the styling
+  useEffect(() => {
+    // This code only runs in the browser, after component mounts
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .highlight-animation {
+        animation: panelFadeIn 0.4s ease-out, panelHighlight 1.5s ease-out;
+      }
+      
+      @keyframes panelFadeIn {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes panelHighlight {
+        0% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0); }
+        20% { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.8); }
+        100% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0); }
+      }
+    `;
+    
+    document.head.appendChild(style);
+    
+    // Cleanup function to remove the style when component unmounts
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []); // Empty dependency array means this only runs once when component mounts
+
   return (
-    <Card className="bg-gray-800 border-gray-700 p-4 animate-slideDown overflow-hidden relative">
+    <Card className={`bg-gray-800 border-gray-700 p-4 overflow-hidden relative shadow-lg highlight-animation ${className}`}>
       {renderLoadingOverlay()}
       
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
-          {renderTypeIcon()}
+          {renderPoiTypeIcon()}
           <h3 className="text-xl font-semibold text-white">{poi.name}</h3>
         </div>
         <Button 
@@ -216,22 +280,44 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
       </div>
       
       {/* Main content with image and details */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Image section */}
-        <div className="md:col-span-1 h-[150px] md:h-[200px] rounded-md overflow-hidden bg-gray-700 relative">
+        <div className="sm:col-span-1 h-[150px] sm:h-[180px] rounded-md overflow-hidden bg-gray-700 relative">
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
-          <img 
-            src={imageUrl} 
-            alt={poi.name} 
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/images/placeholder-poi.jpg';
-            }}
-          />
+          
+          {/* For attractions, try to use the actual thumbnail */}
+          {poi.type === 'attractions' && (poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL) ? (
+            <img 
+              src={poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL}
+              alt={poi.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to the icon if image fails to load
+                e.currentTarget.style.display = 'none';
+                const fallbackElement = document.getElementById(`fallback-icon-${poi.id}`);
+                if (fallbackElement) {
+                  fallbackElement.style.display = 'flex';
+                }
+              }}
+            />
+          ) : (
+            <div 
+              id={`fallback-icon-${poi.id}`}
+              className="absolute inset-0 flex flex-col items-center justify-center"
+              style={{ backgroundColor: bgColor }}
+            >
+              <div className="flex items-center justify-center">
+                {renderPoiTypeIcon()}
+                <div className="relative flex items-center justify-center w-24 h-24 bg-white bg-opacity-20 rounded-full">
+                  <span className="text-white text-3xl font-bold">{getPoiInitial()}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Details section */}
-        <div className="md:col-span-2 text-gray-300 space-y-3">
+        <div className="sm:col-span-2 text-gray-300 space-y-3">
           {/* Address */}
           <div className="flex items-start gap-2">
             <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
@@ -239,7 +325,7 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           </div>
           
           {/* Phone if available */}
-          {poi.tags.phone && (
+          {poi.tags.phone && poi.type !== 'hotels' && (
             <div className="flex items-start gap-2">
               <Phone className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
               <span>{formatPhone(poi.tags.phone)}</span>
@@ -247,7 +333,7 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           )}
           
           {/* Opening hours if available */}
-          {poi.tags.opening_hours && (
+          {poi.tags.opening_hours && poi.type !== 'hotels' && (
             <div className="flex items-start gap-2">
               <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
               <span>{poi.tags.opening_hours}</span>
@@ -255,7 +341,7 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           )}
           
           {/* Website if available */}
-          {poi.tags.website && (
+          {poi.tags.website && poi.type !== 'hotels' && (
             <div className="flex items-start gap-2">
               <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
               <a 
@@ -306,18 +392,44 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           
           {poi.type === 'hotels' && (
             <>
-              {poi.tags.stars && (
-                <div className="flex items-start gap-2">
-                  <Star className="h-4 w-4 mt-1 flex-shrink-0 text-yellow-400" />
-                  <span><strong>Rating:</strong> {poi.tags.stars} Stars</span>
+              {/* Enhanced hotel display - more creative use of space */}
+              <div className="bg-gray-900 bg-opacity-50 p-3 rounded-md mt-1 mb-2">
+                {/* Star rating with visual stars - only if we actually have stars data */}
+                {poi.tags.stars && (
+                  <div className="flex items-center mb-2 pb-2 border-b border-gray-700">
+                    <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-1" />
+                    <div className="flex items-center">
+                      {[...Array(Math.floor(Number(poi.tags.stars)))].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                      {Number(poi.tags.stars) % 1 !== 0 && (
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
+                      )}
+                      <span className="ml-2 text-gray-300">
+                        {poi.tags.stars} Star {Number(poi.tags.stars) === 1 ? 'Rating' : 'Rating'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Hotel brand/chain info with more emphasis - only if we have brand data */}
+                {poi.tags.brand && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <Hotel className="h-4 w-4 text-blue-400" />
+                    <span className="text-white">
+                      Part of <span className="font-semibold text-blue-300">{poi.tags.brand}</span> Hotels
+                    </span>
+                  </div>
+                )}
+                
+                {/* Replace manufactured distance info with hotel type */}
+                <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
+                  <Hotel className="h-4 w-4" />
+                  <span>Accommodation for your journey</span>
                 </div>
-              )}
-              {poi.tags.brand && (
-                <div className="flex items-start gap-2">
-                  <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Chain:</strong> {poi.tags.brand}</span>
-                </div>
-              )}
+              </div>
+              
+              {/* Remove completely fabricated amenities section */}
             </>
           )}
           
@@ -340,10 +452,67 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           
           {poi.type === 'attractions' && (
             <>
-              {poi.tags.description && (
+              {/* Duration */}
+              {poi.tags.duration && (
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Description:</strong> {poi.tags.description}</span>
+                  <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>Duration:</strong> {poi.tags.duration}</span>
+                </div>
+              )}
+              
+              {/* Price */}
+              {poi.tags.price && (
+                <div className="flex items-start gap-2">
+                  <DollarSign className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>From:</strong> {poi.tags.price}</span>
+                </div>
+              )}
+              
+              {/* Rating */}
+              {poi.tags.rating && (
+                <div className="flex items-start gap-2">
+                  <Star className="h-4 w-4 mt-1 flex-shrink-0 text-yellow-400" />
+                  <span>
+                    <strong>Rating:</strong> {poi.tags.rating}
+                    {poi.tags.reviews && ` (${poi.tags.reviews} reviews)`}
+                  </span>
+                </div>
+              )}
+              
+              {/* Distance information */}
+              {poi.tags.distance && (
+                <div className="flex items-start gap-2">
+                  <Navigation className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span>{poi.tags.distance}</span>
+                </div>
+              )}
+              
+              {/* Approximate location warning */}
+              {poi.approximateLocation && (
+                <div className="mt-2 text-sm text-amber-400 bg-amber-900 bg-opacity-30 p-2 rounded flex items-start gap-2">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>The map location shown is approximate. Please check the exact location before traveling.</span>
+                </div>
+              )}
+              
+              {/* Book button for Viator */}
+              {poi.viatorId && (
+                <div className="mt-4">
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      const bookingUrl = generateViatorDeepLink(poi.viatorId || '', VIATOR_AFFILIATE_ID);
+                      if (bookingUrl) window.open(bookingUrl, '_blank');
+                    }}
+                  >
+                    Book This Activity
+                  </Button>
+                </div>
+              )}
+              
+              {poi.tags.description && (
+                <div className="mt-2 text-sm text-gray-300 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
+                  {poi.tags.description}
                 </div>
               )}
             </>

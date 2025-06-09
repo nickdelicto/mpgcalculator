@@ -43,7 +43,7 @@ const convertTomTomPOI = (result: any, category: string): POI => {
   
   // Opening hours in a more readable format
   let formattedHours = '';
-  if (poi.openingHours) {
+  if (poi.openingHours && category !== 'hotels') {
     try {
       // Combine all time ranges into a readable format
       const timeRanges = poi.openingHours.timeRanges || [];
@@ -106,6 +106,8 @@ const convertTomTomPOI = (result: any, category: string): POI => {
       cuisine: poi.classifications?.find((c: any) => c.code === 'CUISINE')?.names?.[0] || '',
       // Add any address info
       address: address?.freeformAddress || '',
+      // Add website only for non-hotel POIs
+      ...(category !== 'hotels' && poi.url ? { website: poi.url } : {}),
       // Add additional extracted information
       ...poiExtras
     },
@@ -116,10 +118,6 @@ const convertTomTomPOI = (result: any, category: string): POI => {
 
 /**
  * Search for POIs along a route using TomTom API
- * 
- * @param routeGeometry GeoJSON LineString of the route
- * @param poiType Type of POI to search for
- * @returns Array of POIs
  */
 export const searchPOIsAlongRoute = async (
   routeGeometry: any,
@@ -144,25 +142,42 @@ export const searchPOIsAlongRoute = async (
       throw new Error(`Unknown POI type: ${poiType}`);
     }
     
-    // For longer routes, sample points along the route to search around
-    // Choose a reasonable number of sample points
-    const MAX_SAMPLE_POINTS = 5;
-    const samplePoints = sampleRoutePoints(coordinates, MAX_SAMPLE_POINTS);
-    
-    // Search for POIs around each sample point
-    const poisPromises = samplePoints.map(point => 
-      searchPOIsAroundPoint(point, categoryId)
-    );
-    
-    // Wait for all searches to complete
-    const poisArrays = await Promise.all(poisPromises);
-    
-    // Flatten and deduplicate POIs by ID
-    const uniquePOIs = deduplicatePOIs(
-      poisArrays.flat().map(poi => convertTomTomPOI(poi, poiType))
-    );
-    
-    return uniquePOIs;
+    // For attractions, only use the destination point
+    if (poiType === 'attractions') {
+      const lastCoord = coordinates[coordinates.length - 1];
+      const destination = { lng: lastCoord[0], lat: lastCoord[1] };
+      
+      console.log(`[TomTom] Searching for attractions only at destination: lat=${destination.lat}, lng=${destination.lng}`);
+      
+      // Search for attractions at the destination only with a larger radius
+      const pois = await searchPOIsAroundPoint(destination, categoryId, 15000); // 15km radius
+      
+      // Convert to our internal format
+      const convertedPOIs = pois.map(poi => convertTomTomPOI(poi, poiType));
+      console.log(`[TomTom] Found ${convertedPOIs.length} attractions at destination`);
+      
+      return convertedPOIs;
+    } else {
+      // For other POI types, use the original sampling approach
+      // For longer routes, sample points along the route to search around
+      const MAX_SAMPLE_POINTS = 5;
+      const samplePoints = sampleRoutePoints(coordinates, MAX_SAMPLE_POINTS);
+      
+      // Search for POIs around each sample point
+      const poisPromises = samplePoints.map(point => 
+        searchPOIsAroundPoint(point, categoryId)
+      );
+      
+      // Wait for all searches to complete
+      const poisArrays = await Promise.all(poisPromises);
+      
+      // Flatten and deduplicate POIs by ID
+      const uniquePOIs = deduplicatePOIs(
+        poisArrays.flat().map(poi => convertTomTomPOI(poi, poiType))
+      );
+      
+      return uniquePOIs;
+    }
   } catch (error) {
     console.error('Error searching for POIs with TomTom API:', error);
     throw error;
@@ -210,10 +225,10 @@ const sampleRoutePoints = (
  */
 const searchPOIsAroundPoint = async (
   point: Coordinates,
-  categoryId: string
+  categoryId: string,
+  radius: number = 5000 // Default 5km radius
 ): Promise<any[]> => {
   // TomTom API parameters
-  const radius = 5000; // 5km radius
   const limit = 10; // Maximum 10 results per point
   
   const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_API_KEY}&lat=${point.lat}&lon=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
@@ -251,31 +266,33 @@ const deduplicatePOIs = (pois: POI[]): POI[] => {
  */
 const metersToMiles = (meters: number): number => {
   return meters * 0.000621371;
-}
+};
 
 /**
  * Convert miles to meters
  */
 const milesToMeters = (miles: number): number => {
   return miles * 1609.34;
-}
-
-/**
- * Get appropriate search radius in meters based on POI type
- * Different POI types have different optimal search distances
- */
-const getSearchRadiusForPOI = (poiType: string): number => {
-  // Use 10 miles for all POI types
-  return milesToMeters(10);
 };
 
 /**
- * Search for POIs near destination using TomTom Batch Search API
- * This is more efficient than making multiple API calls for each POI type
- * 
- * @param destination Coordinates of the destination
- * @param poiTypes Array of POI types to search for
- * @returns Array of POIs grouped by type
+ * Get appropriate search radius for POI type
+ */
+const getSearchRadiusForPOI = (poiType: string): number => {
+  // Different POI types have different reasonable search radii
+  const radii: Record<string, number> = {
+    gasStations: 5000,    // 5km for gas stations
+    evCharging: 10000,    // 10km for EV charging
+    hotels: 5000,         // 5km for hotels
+    restaurants: 3000,    // 3km for restaurants
+    attractions: 10000    // 10km for attractions
+  };
+  
+  return radii[poiType] || 5000; // Default to 5km
+};
+
+/**
+ * Search for POIs near a destination
  */
 export const searchPOIsNearDestination = async (
   destination: Coordinates,
@@ -286,157 +303,123 @@ export const searchPOIsNearDestination = async (
     throw new Error('TomTom API key not configured');
   }
   
-  if (!destination || !poiTypes || poiTypes.length === 0) {
-    return {};
-  }
-  
   try {
-    // Filter out any POI types that don't have a category mapping
-    const validPoiTypes = poiTypes.filter(type => 
-      CATEGORY_MAPPING[type as keyof typeof CATEGORY_MAPPING]
-    );
+    // Create an object to store POIs by type
+    const result: {[key: string]: POI[]} = {};
     
-    if (validPoiTypes.length === 0) {
-      return {};
-    }
-    
-    console.log(`Searching for ${validPoiTypes.length} POI types near destination`);
-    
-    // If we only have one POI type, use a regular search
-    if (validPoiTypes.length === 1) {
-      const poiType = validPoiTypes[0];
+    // Perform searches for each POI type
+    const searchPromises = poiTypes.map(async (poiType) => {
+      // Get TomTom category ID
       const categoryId = CATEGORY_MAPPING[poiType as keyof typeof CATEGORY_MAPPING];
+      if (!categoryId) {
+        console.warn(`Unknown POI type: ${poiType}`);
+        return;
+      }
+      
+      // Determine appropriate search radius for this POI type
       const radius = getSearchRadiusForPOI(poiType);
       
-      console.log(`Using single search for ${poiType} with radius ${metersToMiles(radius).toFixed(1)} miles`);
+      // Search for POIs
+      const pois = await searchPOIsWithRadius(destination, categoryId, radius);
       
-      const results = await searchPOIsWithRadius(destination, categoryId, radius);
-      
-      const pois = results.map(result => convertTomTomPOI(result, poiType));
-      
-      return {
-        [poiType]: pois
-      };
-    }
+      // Convert to our internal format
+      result[poiType] = pois.map(poi => convertTomTomPOI(poi, poiType));
+    });
     
-    // Otherwise, use batch search for efficiency
-    const batchResults = await batchSearchPOIsNearDestination(destination, validPoiTypes);
-    return batchResults;
+    // Wait for all searches to complete
+    await Promise.all(searchPromises);
+    
+    return result;
   } catch (error) {
-    console.error('Error searching for POIs near destination:', error);
-    throw error;
+    console.error('Error searching for POIs with TomTom API:', error);
+    return {};
   }
 };
 
 /**
- * Use TomTom Batch Search API to search for multiple POI types in a single request
- * This reduces the number of API calls and helps avoid rate limiting
- * 
- * @param destination Coordinates of the destination
- * @param poiTypes Array of POI types to search for
- * @returns Object with POI arrays by type
+ * Batch search for POIs near a destination
  */
 const batchSearchPOIsNearDestination = async (
   destination: Coordinates,
   poiTypes: string[]
 ): Promise<{[key: string]: POI[]}> => {
+  if (!TOMTOM_API_KEY) {
+    console.error('TomTom API key not found');
+    throw new Error('TomTom API key not configured');
+  }
+  
   try {
-    // Prepare batch items for each POI type
-    const batchItems = poiTypes.map(poiType => {
+    // Create batch request URL
+    const batchRequests = poiTypes.map(poiType => {
+      // Get TomTom category ID
       const categoryId = CATEGORY_MAPPING[poiType as keyof typeof CATEGORY_MAPPING];
+      if (!categoryId) {
+        console.warn(`Unknown POI type: ${poiType}`);
+        return null;
+      }
+      
+      // Determine appropriate search radius for this POI type
       const radius = getSearchRadiusForPOI(poiType);
       
-      // Format the query for this POI type
+      // Create batch request
       return {
-        query: `/search/2/nearbySearch/.json?lat=${destination.lat}&lon=${destination.lng}&radius=${radius}&limit=15&categorySet=${categoryId}&openingHours=nextSevenDays`
+        query: `nearby/${destination.lat},${destination.lng}.json?key=${TOMTOM_API_KEY}&radius=${radius}&limit=20&categorySet=${categoryId}`,
+        poiType
       };
-    });
+    }).filter(Boolean);
     
-    console.log(`Created batch with ${batchItems.length} items for destination POI search`);
+    if (batchRequests.length === 0) {
+      throw new Error('No valid POI types to search for');
+    }
     
-    // Call the TomTom Batch Search API
-    const url = `https://api.tomtom.com/search/2/batch/sync.json?key=${TOMTOM_API_KEY}`;
+    // Construct batch request
+    const batchUrl = 'https://api.tomtom.com/search/2/batch.json';
+    const batchData = {
+      batchItems: batchRequests.map(req => ({
+        query: `/search/2/${req?.query}`
+      }))
+    };
     
-    const response = await fetch(url, {
+    // Make batch request
+    const response = await fetch(batchUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        batchItems
-      })
+      body: JSON.stringify(batchData)
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`TomTom Batch API error: ${response.status} ${response.statusText}`, errorText);
-      
-      // If rate limited, implement exponential backoff
-      if (response.status === 429) {
-        throw new Error('TomTom API rate limit exceeded');
-      }
-      
-      throw new Error(`TomTom Batch API error: ${response.status} ${response.statusText}`);
+      throw new Error(`TomTom API error: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
     
-    // Process batch responses
+    // Process batch response
     const result: {[key: string]: POI[]} = {};
     
     if (data.batchItems && Array.isArray(data.batchItems)) {
       data.batchItems.forEach((item: any, index: number) => {
-        const poiType = poiTypes[index];
-        
         if (item.statusCode === 200 && item.response && item.response.results) {
-          // Convert the TomTom POIs to our internal format
-          const pois = item.response.results.map((poi: any) => 
-            convertTomTomPOI(poi, poiType)
-          );
-          
-          result[poiType] = pois;
-          console.log(`Found ${pois.length} POIs for ${poiType}`);
-        } else {
-          console.warn(`No results or error for ${poiType}:`, item.statusCode, item.errorText);
-          result[poiType] = [];
+          const poiType = batchRequests[index]?.poiType;
+          if (poiType) {
+            result[poiType] = item.response.results.map((poi: any) => 
+              convertTomTomPOI(poi, poiType)
+            );
+          }
         }
       });
     }
     
     return result;
   } catch (error) {
-    console.error('Error in batch search:', error);
-    
-    // Fallback to individual searches if batch fails
-    console.log('Falling back to individual searches for each POI type');
-    
-    const result: {[key: string]: POI[]} = {};
-    
-    // Process each POI type individually as a fallback
-    for (const poiType of poiTypes) {
-      try {
-        const categoryId = CATEGORY_MAPPING[poiType as keyof typeof CATEGORY_MAPPING];
-        const radius = getSearchRadiusForPOI(poiType);
-        
-        const poiResults = await searchPOIsWithRadius(
-          destination, 
-          categoryId,
-          radius
-        );
-        
-        result[poiType] = poiResults.map(poi => convertTomTomPOI(poi, poiType));
-      } catch (poiError) {
-        console.error(`Error searching for ${poiType}:`, poiError);
-        result[poiType] = [];
-      }
-    }
-    
-    return result;
+    console.error('Error performing batch search with TomTom API:', error);
+    return {};
   }
 };
 
 /**
- * Enhanced version of searchPOIsAroundPoint with customizable radius
+ * Search for POIs within a specified radius
  */
 const searchPOIsWithRadius = async (
   point: Coordinates,
@@ -444,9 +427,9 @@ const searchPOIsWithRadius = async (
   radius: number = 5000 // Default 5km radius
 ): Promise<any[]> => {
   // TomTom API parameters
-  const limit = 15; // Maximum 15 results per point
+  const limit = 20; // Maximum 20 results
   
-  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_API_KEY}&lat=${point.lat}&lon=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}&openingHours=nextSevenDays`;
+  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_API_KEY}&lat=${point.lat}&lon=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
   
   try {
     const response = await fetch(url);
@@ -464,22 +447,24 @@ const searchPOIsWithRadius = async (
 };
 
 /**
- * Fetch detailed POI information from TomTom's Place API
- * This provides rich information including photos, website, complete opening hours, etc.
- * 
- * @param poiId The ID of the POI from the initial search results
- * @returns Enhanced POI data with detailed information
+ * Fetch detailed information about a POI by its TomTom ID
  */
 export const fetchPOIDetails = async (poiId: string): Promise<any> => {
+  if (!poiId) {
+    console.error('POI ID is required to fetch details');
+    return null;
+  }
+  
   if (!TOMTOM_API_KEY) {
     console.error('TomTom API key not found');
-    throw new Error('TomTom API key not configured');
+    return null;
   }
   
   try {
-    // Use the Place API endpoint with useful parameters
-    const url = `https://api.tomtom.com/search/2/place.json?entityId=${poiId}&key=${TOMTOM_API_KEY}&openingHours=nextSevenDays&timeZone=iana&relatedPois=all`;
+    // Use the Place API endpoint
+    const url = `https://api.tomtom.com/search/2/place.json?key=${TOMTOM_API_KEY}&entityId=${poiId}`;
     
+    console.log(`Fetching POI details for ID: ${poiId}`);
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -489,65 +474,67 @@ export const fetchPOIDetails = async (poiId: string): Promise<any> => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching POI details from TomTom API:', error);
+    console.error('Error fetching POI details:', error);
     throw error;
   }
 };
 
 /**
  * Enhanced version of the convertTomTomPOI function that can handle detailed POI information
- * 
- * @param result The POI data from TomTom
- * @param category The POI category
- * @param detailsData Optional detailed data from the Place API
- * @returns A POI object with enhanced details
  */
 export const convertTomTomPOIWithDetails = (
   result: any, 
   category: string,
   detailsData?: any
 ): POI => {
-  // Start with the basic POI conversion
-  const basePOI = convertTomTomPOI(result, category);
+  // Start with basic POI conversion
+  const poi = convertTomTomPOI(result, category);
   
   // If we have detailed data, enhance the POI
   if (detailsData && detailsData.results && detailsData.results.length > 0) {
-    const poiDetails = detailsData.results[0];
+    const details = detailsData.results[0];
     
-    // Format detailed opening hours if available
-    let detailedHours = '';
-    if (poiDetails.poi?.openingHours?.timeRanges) {
-      try {
-        // This gives a more accurate representation of opening hours
-        const timeRanges = poiDetails.poi.openingHours.timeRanges;
-        const formattedRanges = timeRanges.slice(0, 3).map((range: any) => {
-          return `${range.startTime.date.substring(5)} ${range.startTime.hour}:${String(range.startTime.minute).padStart(2, '0')}-${range.endTime.hour}:${String(range.endTime.minute).padStart(2, '0')}`;
-        });
-        
-        detailedHours = formattedRanges.join(', ') + (timeRanges.length > 3 ? '...' : '');
-      } catch (e) {
-        console.warn('Error formatting detailed opening hours:', e);
+    // Enhanced POI tags
+    if (details.poi) {
+      // Website URL
+      if (details.poi.url) {
+        poi.tags.website = details.poi.url;
+      }
+      
+      // Enhanced description
+      if (details.poi.descriptions && details.poi.descriptions.length > 0) {
+        poi.tags.description = details.poi.descriptions[0].text;
+      }
+      
+      // Enhanced opening hours
+      if (details.poi.openingHours && details.poi.openingHours.timeRanges) {
+        // This would be handled by the base convertTomTomPOI function
       }
     }
     
-    // Enhance the POI with detailed information
-    return {
-      ...basePOI,
-      tags: {
-        ...basePOI.tags,
-        // Override with more detailed information if available
-        phone: poiDetails.poi?.phone || basePOI.tags.phone,
-        website: poiDetails.poi?.url || basePOI.tags.website,
-        opening_hours: detailedHours || basePOI.tags.opening_hours,
-        address: poiDetails.address?.freeformAddress || basePOI.tags.address,
-        // Additional information that might be available
-        description: poiDetails.poi?.descriptions?.[0]?.text || '',
-        timeZone: poiDetails.poi?.timeZone?.ianaId || ''
+    // Enhanced address information
+    if (details.address) {
+      poi.tags.address = details.address.freeformAddress;
+      
+      if (details.address.streetNumber) {
+        poi.tags.street_number = details.address.streetNumber;
       }
-    };
+      
+      if (details.address.streetName) {
+        poi.tags.street = details.address.streetName;
+      }
+      
+      if (details.address.municipality) {
+        poi.tags.city = details.address.municipality;
+      }
+      
+      if (details.address.postalCode) {
+        poi.tags.postcode = details.address.postalCode;
+      }
+    }
   }
   
-  return basePOI;
+  return poi;
 };
 
 /**
@@ -557,25 +544,42 @@ export const getFallbackPOIs = async (
   routeGeometry: any,
   poiType: string
 ): Promise<POI[]> => {
-  // Import and use the existing mock data generation
-  const { generateMockPOIs } = await import('./overpassService');
+  // Simplified fallback
+  const startCoord = routeGeometry.coordinates[0];
+  const endCoord = routeGeometry.coordinates[routeGeometry.coordinates.length - 1];
   
-  // Extract start and end coordinates
-  const coordinates = routeGeometry.coordinates;
-  if (!coordinates || coordinates.length < 2) {
-    return [];
-  }
+  // Create a few fallback POIs near the start and end of route
+  const fallbackPOIs: POI[] = [];
   
-  const startCoord = {
-    lat: coordinates[0][1],
-    lng: coordinates[0][0]
-  };
+  // Add POIs near start
+  fallbackPOIs.push({
+    id: `fallback-${poiType}-start-1`,
+    name: `${poiType.charAt(0).toUpperCase() + poiType.slice(1)} Near Start`,
+    type: poiType,
+    location: {
+      lat: startCoord[1] + 0.01,
+      lng: startCoord[0] + 0.01
+    },
+    icon: poiType,
+    tags: {
+      address: 'Near Starting Point'
+    }
+  });
   
-  const endCoord = {
-    lat: coordinates[coordinates.length - 1][1],
-    lng: coordinates[coordinates.length - 1][0]
-  };
+  // Add POIs near end
+  fallbackPOIs.push({
+    id: `fallback-${poiType}-end-1`,
+    name: `${poiType.charAt(0).toUpperCase() + poiType.slice(1)} Near Destination`,
+    type: poiType,
+    location: {
+      lat: endCoord[1] - 0.01,
+      lng: endCoord[0] - 0.01
+    },
+    icon: poiType,
+    tags: {
+      address: 'Near Destination'
+    }
+  });
   
-  // Call generateMockPOIs with the correct parameter order (category, start, end, count)
-  return generateMockPOIs(poiType, startCoord, endCoord);
+  return fallbackPOIs;
 }; 

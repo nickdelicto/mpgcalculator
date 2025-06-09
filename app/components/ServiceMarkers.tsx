@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import L from 'leaflet'
 import { POI_CATEGORIES, POI } from '../utils/overpassService'
 import { searchPOIsAlongRoute, searchPOIsNearDestination, getFallbackPOIs } from '../utils/tomtomService'
+import { searchAttractionsAlongRoute, searchAttractionsNearLocation } from '../utils/viatorService'
 import { Coordinates } from '../utils/routingService'
 
 interface ServiceMarkersProps {
@@ -202,36 +203,130 @@ export default function ServiceMarkers({
           // Use batch search for destination POIs - more efficient than multiple API calls
           console.log(`Fetching POIs for ${layersToLoad.length} categories near destination`);
           
-          const poisByType = await searchPOIsNearDestination(endCoords, layersToLoad);
+          // Split the layers into attractions and non-attractions
+          const attractionsLayer = layersToLoad.includes('attractions') ? ['attractions'] : [];
+          const otherLayers = layersToLoad.filter(layer => layer !== 'attractions');
           
-          // Process each POI type's results
-          Object.entries(poisByType).forEach(([layerId, pois]) => {
-            console.log(`Found ${pois.length} POIs for ${layerId} near destination`);
+          // Track all POIs to emit in event
+          let allPOIs: POI[] = [];
+          
+          // Process non-attraction layers with TomTom
+          if (otherLayers.length > 0) {
+            console.log(`[ServiceMarkers] Fetching ${otherLayers.length} non-attraction categories with TomTom`);
+            const poisByType = await searchPOIsNearDestination(endCoords, otherLayers);
             
-            // Get the layer group for this category
-            const layerGroup = markerGroupsRef.current[layerId];
-            if (!layerGroup) return;
-            
-            // Clear any existing markers
-            layerGroup.clearLayers();
-            
-            // Create markers for each POI
-            pois.forEach(poi => {
-              addPOIToMap(poi, layerId, layerGroup);
+            // Process each POI type's results
+            Object.entries(poisByType).forEach(([layerId, pois]) => {
+              console.log(`Found ${pois.length} POIs for ${layerId} near destination`);
+              
+              // Add to allPOIs collection for event
+              allPOIs = [...allPOIs, ...pois];
+              
+              // Get the layer group for this category
+              const layerGroup = markerGroupsRef.current[layerId];
+              if (!layerGroup) return;
+              
+              // Clear any existing markers
+              layerGroup.clearLayers();
+              
+              // Create markers for each POI
+              pois.forEach(poi => {
+                addPOIToMap(poi, layerId, layerGroup);
+              });
+              
+              // Mark this layer as loaded
+              loadingLayersRef.current.delete(layerId);
+              setLoadedLayers(prev => {
+                const next = new Set(prev);
+                next.add(layerId);
+                return next;
+              });
+              
+              // Update total POI count
+              totalPOICountRef.current += pois.length;
+              if (onCountUpdate) onCountUpdate(totalPOICountRef.current);
             });
-            
-            // Mark this layer as loaded
-            loadingLayersRef.current.delete(layerId);
-            setLoadedLayers(prev => {
-              const next = new Set(prev);
-              next.add(layerId);
-              return next;
+          }
+          
+          // Process attractions with Viator
+          if (attractionsLayer.length > 0 && routeGeometry) {
+            console.log('[ServiceMarkers] Fetching attractions with Viator service');
+            try {
+              // Use Viator service for attractions
+              const attractions = await searchAttractionsAlongRoute(routeGeometry);
+              console.log(`[ServiceMarkers] Viator returned ${attractions.length} attractions`);
+              
+              // Add to allPOIs collection
+              allPOIs = [...allPOIs, ...attractions];
+              
+              // Get the layer group for attractions
+              const layerGroup = markerGroupsRef.current['attractions'];
+              if (layerGroup) {
+                // Clear any existing markers
+                layerGroup.clearLayers();
+                
+                // Create markers for each attraction
+                attractions.forEach(poi => {
+                  addPOIToMap(poi, 'attractions', layerGroup);
+                });
+              }
+              
+              // Mark attractions as loaded
+              loadingLayersRef.current.delete('attractions');
+              setLoadedLayers(prev => {
+                const next = new Set(prev);
+                next.add('attractions');
+                return next;
+              });
+              
+              // Update total POI count
+              totalPOICountRef.current += attractions.length;
+              if (onCountUpdate) onCountUpdate(totalPOICountRef.current);
+            } catch (error) {
+              console.error('[ServiceMarkers] Error fetching attractions from Viator:', error);
+              console.log('[ServiceMarkers] Falling back to TomTom for attractions');
+              
+              // Fallback to TomTom for attractions
+              const poisByType = await searchPOIsNearDestination(endCoords, ['attractions']);
+              
+              if (poisByType.attractions) {
+                const attractions = poisByType.attractions;
+                console.log(`[ServiceMarkers] TomTom fallback returned ${attractions.length} attractions`);
+                
+                // Add to allPOIs collection
+                allPOIs = [...allPOIs, ...attractions];
+                
+                // Get the layer group for attractions
+                const layerGroup = markerGroupsRef.current['attractions'];
+                if (layerGroup) {
+                  // Clear any existing markers
+                  layerGroup.clearLayers();
+                  
+                  // Create markers for each attraction
+                  attractions.forEach(poi => {
+                    addPOIToMap(poi, 'attractions', layerGroup);
+                  });
+                }
+              }
+              
+              // Mark attractions as loaded
+              loadingLayersRef.current.delete('attractions');
+              setLoadedLayers(prev => {
+                const next = new Set(prev);
+                next.add('attractions');
+                return next;
+              });
+            }
+          }
+          
+          // Dispatch custom event with all POIs
+          if (typeof window !== 'undefined') {
+            const poiEvent = new CustomEvent('poiDataUpdated', {
+              detail: { pois: allPOIs }
             });
-            
-            // Update total POI count
-            totalPOICountRef.current += pois.length;
-            if (onCountUpdate) onCountUpdate(totalPOICountRef.current);
-          });
+            window.dispatchEvent(poiEvent);
+            console.log('Dispatched poiDataUpdated event with', allPOIs.length, 'POIs');
+          }
           
           // Success status
           if (onStatusUpdate) onStatusUpdate(`Found POIs near ${endCoords ? 'destination' : 'route'}`);
@@ -268,23 +363,51 @@ export default function ServiceMarkers({
           // Update status
           if (onStatusUpdate) onStatusUpdate(`Loading ${layerId}...`);
           
-          // Fetch POIs using TomTom API
+          // Fetch POIs
           let pois: POI[] = [];
           
           if (routeGeometry) {
-            console.log(`Fetching POIs for ${layerId} using TomTom API`);
-            try {
-              // Try TomTom API first
-              pois = await searchPOIsAlongRoute(routeGeometry, layerId);
-              console.log(`Found ${pois.length} POIs from TomTom API for ${layerId}`);
-            } catch (apiError) {
-              console.error(`TomTom API error for ${layerId}:`, apiError);
-              
-              // Fall back to mock data if API fails
-              console.log(`Falling back to mock data for ${layerId}`);
-              if (onStatusUpdate) onStatusUpdate(`Using fallback data for ${layerId}`);
-              
-              pois = await getFallbackPOIs(routeGeometry, layerId);
+            // For attractions, use Viator at destination only
+            if (layerId === 'attractions') {
+              console.log('[ServiceMarkers] Fallback: Using Viator for attractions at destination only');
+              try {
+                // If we have end coordinates, use them directly
+                if (endCoords) {
+                  console.log('[ServiceMarkers] Using end coordinates for attractions search');
+                  pois = await searchAttractionsNearLocation(endCoords, 15); // 15km radius
+                } else {
+                  // Otherwise extract destination from route
+                  pois = await searchAttractionsAlongRoute(routeGeometry);
+                }
+                console.log(`[ServiceMarkers] Viator returned ${pois.length} attractions`);
+              } catch (viatorError) {
+                console.error('[ServiceMarkers] Error with Viator, falling back to TomTom:', viatorError);
+                // If Viator fails, try TomTom
+                if (endCoords) {
+                  // If we have end coordinates, search near destination only
+                  const poisByType = await searchPOIsNearDestination(endCoords, ['attractions']);
+                  pois = poisByType.attractions || [];
+                } else {
+                  // Otherwise use route-based search which will only use destination for attractions
+                  pois = await searchPOIsAlongRoute(routeGeometry, layerId);
+                }
+              }
+            } else {
+              // For other POI types, use TomTom
+              console.log(`Fetching POIs for ${layerId} using TomTom API`);
+              try {
+                // Try TomTom API first
+                pois = await searchPOIsAlongRoute(routeGeometry, layerId);
+                console.log(`Found ${pois.length} POIs from TomTom API for ${layerId}`);
+              } catch (apiError) {
+                console.error(`TomTom API error for ${layerId}:`, apiError);
+                
+                // Fall back to mock data if API fails
+                console.log(`Falling back to mock data for ${layerId}`);
+                if (onStatusUpdate) onStatusUpdate(`Using fallback data for ${layerId}`);
+                
+                pois = await getFallbackPOIs(routeGeometry, layerId);
+              }
             }
           } else {
             console.error('Missing route geometry for POI generation');
@@ -347,7 +470,7 @@ export default function ServiceMarkers({
     .bindTooltip(createTooltipContent(poi), {
       direction: 'top',
       offset: L.point(0, -36),
-      className: 'poi-tooltip',
+      className: poi.approximateLocation ? 'poi-tooltip approximate-tooltip' : 'poi-tooltip',
       opacity: 0.9
     })
     // Handle click to show detailed panel
@@ -358,6 +481,17 @@ export default function ServiceMarkers({
       if (onSelectPOI) onSelectPOI(poi);
     });
     
+    // Add classes for approximate locations via DOM element after marker is created
+    if (poi.approximateLocation) {
+      // Access the DOM element via the Leaflet icon element
+      setTimeout(() => {
+        const markerElement = marker.getElement();
+        if (markerElement) {
+          markerElement.classList.add('approximate-location-marker');
+        }
+      }, 0);
+    }
+    
     // Add to layer group
     layerGroup.addLayer(marker);
   };
@@ -366,7 +500,7 @@ export default function ServiceMarkers({
   const createTooltipContent = (poi: POI): string => {
     // Create a simplified tooltip for hover
     let content = `<div class="poi-tooltip-content">
-      <strong>${poi.name}</strong>`;
+      <strong class="poi-name" style="display:block; max-width:200px; word-wrap:break-word;">${poi.name}</strong>`;
     
     // Add minimal details based on POI type
     switch (poi.type) {
@@ -383,19 +517,32 @@ export default function ServiceMarkers({
         content += `<div>EV Charging</div>`;
         break;
       case 'attractions':
-        content += `<div>Attraction</div>`;
+        if (poi.tags.duration) content += `<div>${poi.tags.duration}</div>`;
         break;
     }
     
     if (poi.tags.address) {
-      // Truncate address if too long
-      const address = poi.tags.address.length > 30 
-        ? poi.tags.address.substring(0, 30) + '...' 
-        : poi.tags.address;
-      content += `<div class="address">${address}</div>`;
+      // Allow address to wrap naturally instead of truncating
+      content += `<div class="address" style="max-width:200px; word-wrap:break-word;">${poi.tags.address}</div>`;
     }
     
-    content += `<div class="tooltip-hint">Click for details</div>`;
+    // Add distance information if available
+    if (poi.tags.distance) {
+      content += `<div class="distance" style="font-style:italic;">${poi.tags.distance}</div>`;
+    }
+    
+    // Indicate if location is approximate
+    if (poi.approximateLocation) {
+      content += `<div class="approximate-note" style="font-size:0.8em; color:#FF9500;">Approximate location</div>`;
+    }
+    
+    // Enhance the tooltip hint based on whether we have a TomTom ID for photos
+    if (poi.tomtomId) {
+      content += `<div class="tooltip-hint">Click for details and photos</div>`;
+    } else {
+      content += `<div class="tooltip-hint">Click for details</div>`;
+    }
+    
     content += `</div>`;
     
     return content;

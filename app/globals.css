@@ -264,17 +264,61 @@
   left: 5px;
 }
 
-@keyframes pulse {
+/* Approximate location markers styles */
+.approximate-location-marker {
+  opacity: 0.8 !important;
+}
+
+.approximate-location-marker .poi-svg-icon {
+  filter: saturate(70%) brightness(110%);
+  animation: pulse 2s infinite;
+}
+
+.approximate-location-marker::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 12px;
+  width: 8px;
+  height: 8px;
+  background-color: #FF9500;
+  border-radius: 50%;
+  z-index: 1000;
+  animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+@keyframes pulse-dot {
   0% {
-    transform: scale(0.5);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    transform: scale(0.8);
+    opacity: 0.7;
   }
-  70% {
+  50% {
     transform: scale(1.2);
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    opacity: 1;
   }
   100% {
-    transform: scale(0.5);
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+}
+
+.approximate-tooltip {
+  border-left: 3px solid #FF9500 !important;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
   }
 }
@@ -382,5 +426,24 @@
   color: #007AFF;
   margin-top: 5px;
   font-style: italic;
+}
+
+/* Custom scrollbar for POI descriptions */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.5);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.7);
 }
 

@@ -7,6 +7,7 @@
  */
 
 import { Coordinates } from './routingService';
+import { searchAttractionsAlongRoute } from './viatorService';
 
 // Define POI category types
 export type POICategory = {
@@ -26,6 +27,8 @@ export type POI = {
   tags: Record<string, string>;
   icon: string;
   tomtomId?: string; // Optional TomTom entity ID for fetching detailed information
+  viatorId?: string; // Optional Viator product code for attractions
+  approximateLocation?: boolean; // Flag to indicate if the location is approximate
 }
 
 // Define POI categories we want to support
@@ -60,26 +63,26 @@ export const POI_CATEGORIES: POICategory[] = [
   },
   {
     id: 'attractions',
-    name: 'Attractions',
+    name: 'Attractions & Tours',
     icon: 'attraction',
-    query: 'tourism=attraction,museum,viewpoint',
+    query: 'viator=attraction,tour,activity',  // Updated to indicate Viator source
     color: '#AF52DE'  // Purple
   }
 ];
 
 /**
  * Fetch POIs along a route
- * Note: Overpass API integration was removed. This now returns mock data only.
+ * Note: For attractions, we use the Viator API. For other categories, we use mock data.
  * 
  * @param routeGeometry - The route geometry object with coordinates
  * @param category - The POI category ID to fetch
- * @param bufferDistance - Buffer distance in meters around route points (unused in mock mode)
- * @returns Array of POIs (mock data)
+ * @param bufferDistance - Buffer distance in meters around route points
+ * @returns Array of POIs
  */
 export async function fetchPOIsAlongRoute(
   routeGeometry: any, 
   category: string,
-  bufferDistance: number = 2000 // Buffer in meters (unused in mock mode)
+  bufferDistance: number = 2000
 ): Promise<POI[]> {
   // Validate inputs
   if (!routeGeometry || !routeGeometry.coordinates || routeGeometry.coordinates.length === 0) {
@@ -94,6 +97,25 @@ export async function fetchPOIsAlongRoute(
     return [];
   }
 
+  console.log(`[POI Service] Fetching POIs for category: ${category}`);
+
+  // For attractions, use the Viator service
+  if (category === 'attractions') {
+    console.log('[POI Service] Attractions category detected - SHOULD use Viator service');
+    try {
+      console.log('[POI Service] Calling searchAttractionsAlongRoute...');
+      const attractions = await searchAttractionsAlongRoute(routeGeometry);
+      console.log(`[POI Service] Viator returned ${attractions.length} attractions`);
+      return attractions;
+    } catch (error) {
+      console.error('[POI Service] Error calling Viator service:', error);
+      console.log('[POI Service] Falling back to mock data for attractions');
+    }
+  } else {
+    console.log(`[POI Service] Using mock data for category: ${category}`);
+  }
+
+  // For other categories, use mock data
   // Extract start and end coordinates for mock data generation
   let startCoords: Coordinates | null = null;
   let endCoords: Coordinates | null = null;
