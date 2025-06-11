@@ -322,7 +322,7 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
     const style = document.createElement('style');
     style.innerHTML = `
       .highlight-animation {
-        animation: panelFadeIn 0.4s ease-out, panelHighlight 1.5s ease-out;
+        animation: panelFadeIn 0.3s ease-out, panelHighlight 1.5s ease-out;
       }
       
       @keyframes panelFadeIn {
@@ -335,6 +335,26 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
         20% { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.8); }
         100% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0); }
       }
+      
+      /* Hide scrollbar but keep functionality */
+      .hidden-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
+      }
+      
+      .hidden-scrollbar::-webkit-scrollbar {
+        display: none;             /* Chrome, Safari, Opera */
+      }
+      
+      /* Panel entrance animation */
+      .panel-enter {
+        animation: panelEnter 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+      }
+      
+      @keyframes panelEnter {
+        0% { opacity: 0; transform: scale(0.96); }
+        100% { opacity: 1; transform: scale(1); }
+      }
     `;
     
     document.head.appendChild(style);
@@ -346,45 +366,29 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
   }, []); // Empty dependency array means this only runs once when component mounts
 
   return (
-    <Card className={`bg-gray-800 border-gray-700 p-4 overflow-hidden relative shadow-lg highlight-animation ${className}`}>
+    <Card className={`border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden relative shadow-lg highlight-animation panel-enter ${className}`}>
       {renderLoadingOverlay()}
       
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-2">
-          {renderPoiTypeIcon()}
-          <h3 className="text-xl font-semibold text-white">{poi.name}</h3>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 rounded-full" 
-          onClick={onClose}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      
-      {/* Main content with image and details */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Image section */}
-        <div className="sm:col-span-1 h-[150px] sm:h-[180px] rounded-md overflow-hidden bg-gray-700 relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
-          
-          {/* For attractions, try to use the actual thumbnail */}
-          {poi.type === 'attractions' && (poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL) ? (
-            <img 
-              src={poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL}
-              alt={poi.name}
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback to the icon if image fails to load
-                e.currentTarget.style.display = 'none';
-                const fallbackElement = document.getElementById(`fallback-icon-${poi.id}`);
-                if (fallbackElement) {
-                  fallbackElement.style.display = 'flex';
-                }
-              }}
-            />
+      {/* Only for attractions - Show a large, prominent image at the top */}
+      {poi.type === 'attractions' && (
+        <div className="relative w-full h-48 sm:h-64 overflow-hidden">
+          {/* Image or colored background with icon */}
+          {(poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL) ? (
+            <>
+              <img 
+                src={poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL}
+                alt={poi.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallbackElement = document.getElementById(`fallback-icon-${poi.id}`);
+                  if (fallbackElement) {
+                    fallbackElement.style.display = 'flex';
+                  }
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70"></div>
+            </>
           ) : (
             <div 
               id={`fallback-icon-${poi.id}`}
@@ -399,306 +403,355 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
               </div>
             </div>
           )}
-        </div>
-        
-        {/* Details section */}
-        <div className="sm:col-span-2 text-gray-300 space-y-3">
-          {/* Address */}
-          <div className="flex items-start gap-2">
-            <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-            <span>{poi.tags.address || 'Address not available'}</span>
+          
+          {/* Title overlay at the bottom of the image */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 to-transparent">
+            <h3 className="text-xl font-bold text-white">{poi.name}</h3>
+            {poi.tags.address && (
+              <div className="flex items-center gap-1 text-white text-sm mt-1">
+                <MapPin className="h-3 w-3 text-white" />
+                <span>{poi.tags.address.split(',')[0]}</span>
+              </div>
+            )}
           </div>
           
-          {/* Phone if available */}
-          {poi.tags.phone && poi.type !== 'hotels' && (
-            <div className="flex items-start gap-2">
-              <Phone className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-              <span>{formatPhone(poi.tags.phone)}</span>
-            </div>
-          )}
-          
-          {/* Opening hours if available */}
-          {poi.tags.opening_hours && poi.type !== 'hotels' && (
-            <div className="flex items-start gap-2">
-              <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-              <span>{poi.tags.opening_hours}</span>
-            </div>
-          )}
-          
-          {/* Website if available */}
-          {poi.tags.website && poi.type !== 'hotels' && (
-            <div className="flex items-start gap-2">
-              <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-              <a 
-                href={poi.tags.website} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-400 hover:underline truncate max-w-full"
-              >
-                {poi.tags.website.replace(/^https?:\/\//, '')}
-              </a>
-            </div>
-          )}
-          
-          {/* Category-specific details */}
-          {poi.type === 'gasStations' && (
-            <>
-              {poi.tags.brand && (
+          {/* Add a more visible close button at the top right */}
+          <div className="absolute top-3 right-3 z-10">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full bg-white hover:bg-gray-200 text-gray-800 shadow-md" 
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* For non-attraction POIs - Use the original header */}
+      {poi.type !== 'attractions' && (
+        <div className="flex justify-between items-start p-4 mb-2">
+          <div className="flex items-center gap-2">
+            {renderPoiTypeIcon()}
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{poi.name}</h3>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 rounded-full" 
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+      
+      {/* Main content section with new layout for attractions */}
+      <div className={`p-4 ${poi.type === 'attractions' ? 'pt-2' : ''}`}>
+        {/* For attractions - New modern card layout */}
+        {poi.type === 'attractions' ? (
+          <>
+            {/* Scrollable content area for attractions on desktop */}
+            <div className="space-y-4 xl:max-h-[calc(60vh-200px)] xl:overflow-y-auto xl:overflow-x-hidden xl:pr-2 xl:pb-16 xl:custom-scrollbar hidden-scrollbar">
+              {/* Address - Only show detailed address, not the city name which is now in the title */}
+              {poi.tags.address && poi.tags.address.includes(',') && (
                 <div className="flex items-start gap-2">
-                  <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Brand:</strong> {poi.tags.brand}</span>
+                  <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-blue-500" />
+                  <span className="text-gray-700 dark:text-gray-300">{poi.tags.address.split(',').slice(1).join(',').trim()}</span>
                 </div>
               )}
-              {poi.tags.fuel_type && (
-                <div className="flex items-start gap-2">
-                  <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Fuel Types:</strong> {poi.tags.fuel_type}</span>
+              
+              {/* Info items in a responsive grid - More compact design */}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {/* Duration - More compact */}
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2">
+                  <div className="flex items-start gap-1">
+                    <Clock className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-800 dark:text-gray-200 text-sm break-words">
+                      <strong>Duration:</strong> {poi.tags.duration || 'Varies'}
+                    </span>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-          
-          {poi.type === 'evCharging' && (
-            <>
-              {poi.tags.brand && (
-                <div className="flex items-start gap-2">
-                  <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Operator:</strong> {poi.tags.brand}</span>
-                </div>
-              )}
-              {poi.tags.capacity && (
-                <div className="flex items-start gap-2">
-                  <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Charging Points:</strong> {poi.tags.capacity}</span>
-                </div>
-              )}
-            </>
-          )}
-          
-          {poi.type === 'hotels' && (
-            <>
-              {/* Enhanced hotel display - more creative use of space */}
-              <div className="bg-gray-900 bg-opacity-50 p-3 rounded-md mt-1 mb-2">
-                {/* Star rating with visual stars - only if we actually have stars data */}
-                {poi.tags.stars && (
-                  <div className="flex items-center mb-2 pb-2 border-b border-gray-700">
-                    <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-1" />
-                    <div className="flex items-center">
-                      {[...Array(Math.floor(Number(poi.tags.stars)))].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      {Number(poi.tags.stars) % 1 !== 0 && (
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
-                      )}
-                      <span className="ml-2 text-gray-300">
-                        {poi.tags.stars} Star {Number(poi.tags.stars) === 1 ? 'Rating' : 'Rating'}
+                
+                {/* Price - More compact */}
+                {poi.tags.price && (
+                  <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-2">
+                    <div className="flex items-start gap-1">
+                      <DollarSign className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-800 dark:text-gray-200 text-sm break-words">
+                        <strong>From:</strong> {poi.tags.price}
                       </span>
                     </div>
                   </div>
                 )}
                 
-                {/* Hotel brand/chain info with more emphasis - only if we have brand data */}
-                {poi.tags.brand && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <Hotel className="h-4 w-4 text-blue-400" />
-                    <span className="text-white">
-                      Part of <span className="font-semibold text-blue-300">{poi.tags.brand}</span> Hotels
-                    </span>
+                {/* Rating - Using actual stars */}
+                {poi.tags.rating && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-2">
+                    <div className="flex items-start flex-wrap gap-1">
+                      <div className="flex items-center flex-wrap">
+                        {/* Generate actual stars based on rating */}
+                        {Array.from({ length: 5 }).map((_, i) => {
+                          const rating = parseFloat(poi.tags.rating);
+                          // Full star
+                          if (i < Math.floor(rating)) {
+                            return <Star key={i} className="h-3 w-3 text-yellow-500 fill-yellow-400" />;
+                          }
+                          // Half star
+                          else if (i === Math.floor(rating) && rating % 1 >= 0.5) {
+                            return <Star key={i} className="h-3 w-3 text-yellow-500 fill-yellow-400 opacity-60" />;
+                          }
+                          // Empty star
+                          else {
+                            return <Star key={i} className="h-3 w-3 text-gray-300" />;
+                          }
+                        })}
+                        <span className="ml-1 text-gray-800 dark:text-gray-200 text-sm">
+                          {poi.tags.rating}
+                          {poi.tags.reviews && <span className="text-xs text-gray-500 ml-1">({poi.tags.reviews})</span>}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
-                {/* Replace manufactured distance info with hotel type */}
-                <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
-                  <Hotel className="h-4 w-4" />
-                  <span>Accommodation for your journey</span>
-                </div>
+                {/* Distance information - More compact with tooltip */}
+                {poi.tags.distance && (
+                  <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-2 inline-block group relative">
+                    <div className="flex items-center gap-1">
+                      <Navigation className="h-4 w-4 text-indigo-500 flex-shrink-0" />
+                      <span className="text-gray-800 dark:text-gray-200 text-sm truncate">{poi.tags.distance}</span>
+                    </div>
+                    {/* Tooltip for approximate distance */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                      Miles shown are approximate, not exact!
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              {/* Remove completely fabricated amenities section */}
-            </>
-          )}
-          
-          {poi.type === 'restaurants' && (
-            <>
-              {poi.tags.cuisine && (
-                <div className="flex items-start gap-2">
-                  <Coffee className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Cuisine:</strong> {poi.tags.cuisine}</span>
+              {/* Description with scrollable area - Preserve existing scroll */}
+              {poi.tags.description && (
+                <div className="mt-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2">
+                  <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-1">About this attraction</h4>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    {poi.tags.description}
+                  </div>
                 </div>
               )}
-              {poi.tags.brand && (
+            </div>
+            
+            {/* Book button for Viator - Enhanced style with sticky positioning on desktop */}
+            {poi.viatorId && (
+              <div className="mt-4 xl:sticky xl:bottom-0 xl:left-0 xl:right-0 xl:bg-white xl:dark:bg-gray-900 xl:pt-2 xl:pb-1 xl:z-10">
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-2 h-auto"
+                  onClick={() => {
+                    // The existing button click logic remains unchanged
+                    // Generate deep link with affiliate ID
+                    let deepLink = '';
+                    let searchFallbackLink = '';
+                    
+                    if (poi.viatorId) {
+                      console.log(`[POIDetailPanel] Creating Viator deep link for product: ${poi.viatorId}`);
+                      
+                      // Campaign value can be added to track specific placements
+                      const campaignValue = 'road-trip-calculator'; 
+                      
+                      // Extract destination information
+                      // For destination name, we'll use the first part of the address if available
+                      const addressParts = (poi.tags.address || '').split(',');
+                      const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
+                      
+                      // Extract destination ID if present in the locationId field
+                      const destinationIdMatch = poi.tags.locationId?.match(/d(\d+)/) || 
+                                                poi.id.match(/d(\d+)/);
+                      const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
+                      
+                      // Log what we're using to build the URL
+                      console.log(`[POIDetailPanel] Building deep link with:`, {
+                        productCode: poi.viatorId,
+                        productTitle: poi.name,
+                        destinationName,
+                        destinationId: destinationId || 'UNKNOWN'
+                      });
+                      
+                      // Generate the primary deep link with all available information
+                      deepLink = generateViatorDeepLink(
+                        poi.viatorId, 
+                        VIATOR_AFFILIATE_ID, 
+                        campaignValue,
+                        poi.name,          // Product title
+                        destinationName,   // Destination name
+                        destinationId      // Destination ID
+                      );
+                      
+                      // Slugify the destination name for fallback
+                      const slugify = (text: string): string => {
+                        if (!text) return '';
+                        return text
+                          .toString()
+                          .normalize('NFKD')
+                          .replace(/[\u0300-\u036f]/g, '')
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9 ]/g, '')
+                          .replace(/\s+/g, '-')
+                          .replace(/-+/g, '-');
+                      };
+                      
+                      const destinationSlug = slugify(destinationName);
+                      
+                      // Create either a destination-based fallback or a search fallback
+                      if (destinationSlug && destinationId) {
+                        // Create a reliable destination page URL with the canonical format
+                        searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
+                      } else {
+                        // Fall back to general search if we don't have destination info
+                        const searchParams = new URLSearchParams({
+                          q: poi.name,
+                          pid: VIATOR_AFFILIATE_ID,
+                          mcid: '42383',
+                          medium: 'api',
+                          campaign: campaignValue
+                        });
+                        searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
+                      }
+                    } else {
+                      // Fallback to a search on Viator
+                      console.log(`[POIDetailPanel] No viatorId found for "${poi.name}", using search fallback`);
+                      
+                      // Get location part if available
+                      const locationPart = poi.tags.address ? poi.tags.address.split(',')[0].trim() : '';
+                      
+                      // Create search URL with proper attribution parameters per Viator docs
+                      const searchParams = new URLSearchParams({
+                        pid: VIATOR_AFFILIATE_ID,
+                        mcid: '42383', // Add MCID parameter for proper attribution
+                        medium: 'api',
+                        campaign: 'road-trip-cost-calculator',
+                        q: poi.name + (locationPart ? ` ${locationPart}` : '')
+                      });
+                      
+                      deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
+                      searchFallbackLink = deepLink; // Same as primary link in this case
+                    }
+                    
+                    console.log(`[POIDetailPanel] Generated link: ${deepLink}`);
+                    console.log(`[POIDetailPanel] Fallback link if needed: ${searchFallbackLink}`);
+                    
+                    // Open the URL
+                    window.open(deepLink, '_blank');
+                  }}
+                >
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  Book This Activity
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          // For non-attraction POIs - Use the original grid layout
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Image section */}
+            <div className="sm:col-span-1 h-[150px] sm:h-[180px] rounded-md overflow-hidden bg-gray-700 relative">
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
+              
+              <div 
+                className="absolute inset-0 flex flex-col items-center justify-center"
+                style={{ backgroundColor: bgColor }}
+              >
+                <div className="flex items-center justify-center">
+                  {renderPoiTypeIcon()}
+                  <div className="relative flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full">
+                    <span className="text-white text-2xl font-bold">{getPoiInitial()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Details section */}
+            <div className="sm:col-span-2 text-gray-300 space-y-3">
+              {/* Address */}
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                <span>{poi.tags.address || 'Address not available'}</span>
+              </div>
+              
+              {/* Phone if available */}
+              {poi.tags.phone && poi.type !== 'hotels' && (
                 <div className="flex items-start gap-2">
-                  <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Chain:</strong> {poi.tags.brand}</span>
+                  <Phone className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span>{formatPhone(poi.tags.phone)}</span>
                 </div>
               )}
-            </>
-          )}
-          
-          {poi.type === 'attractions' && (
-            <>
-              {/* Duration */}
-              {poi.tags.duration && (
+              
+              {/* Opening hours if available */}
+              {poi.tags.opening_hours && poi.type !== 'hotels' && (
                 <div className="flex items-start gap-2">
                   <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>Duration:</strong> {poi.tags.duration}</span>
+                  <span>{poi.tags.opening_hours}</span>
                 </div>
               )}
               
-              {/* Price */}
-              {poi.tags.price && (
+              {/* Website if available */}
+              {poi.tags.website && poi.type !== 'hotels' && (
                 <div className="flex items-start gap-2">
-                  <DollarSign className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span><strong>From:</strong> {poi.tags.price}</span>
-                </div>
-              )}
-              
-              {/* Rating */}
-              {poi.tags.rating && (
-                <div className="flex items-start gap-2">
-                  <Star className="h-4 w-4 mt-1 flex-shrink-0 text-yellow-400" />
-                  <span>
-                    <strong>Rating:</strong> {poi.tags.rating}
-                    {poi.tags.reviews && ` (${poi.tags.reviews} reviews)`}
-                  </span>
-                </div>
-              )}
-              
-              {/* Distance information */}
-              {poi.tags.distance && (
-                <div className="flex items-start gap-2">
-                  <Navigation className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span>{poi.tags.distance}</span>
-                </div>
-              )}
-              
-              {/* Approximate location warning */}
-              {poi.approximateLocation && (
-                <div className="mt-2 text-sm text-amber-400 bg-amber-900 bg-opacity-30 p-2 rounded flex items-start gap-2">
-                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>The map location shown is approximate. Please check the exact location before traveling.</span>
-                </div>
-              )}
-              
-              {/* Book button for Viator */}
-              {poi.viatorId && (
-                <div className="mt-4">
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => {
-                      // Generate deep link with affiliate ID
-                      let deepLink = '';
-                      let searchFallbackLink = '';
-                      
-                      if (poi.viatorId) {
-                        console.log(`[POIDetailPanel] Creating Viator deep link for product: ${poi.viatorId}`);
-                        
-                        // Campaign value can be added to track specific placements
-                        const campaignValue = 'road-trip-calculator'; 
-                        
-                        // Extract destination information
-                        // For destination name, we'll use the first part of the address if available
-                        const addressParts = (poi.tags.address || '').split(',');
-                        const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
-                        
-                        // Extract destination ID if present in the locationId field
-                        const destinationIdMatch = poi.tags.locationId?.match(/d(\d+)/) || 
-                                                  poi.id.match(/d(\d+)/);
-                        const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
-                        
-                        // Log what we're using to build the URL
-                        console.log(`[POIDetailPanel] Building deep link with:`, {
-                          productCode: poi.viatorId,
-                          productTitle: poi.name,
-                          destinationName,
-                          destinationId: destinationId || 'UNKNOWN'
-                        });
-                        
-                        // Generate the primary deep link with all available information
-                        deepLink = generateViatorDeepLink(
-                          poi.viatorId, 
-                          VIATOR_AFFILIATE_ID, 
-                          campaignValue,
-                          poi.name,          // Product title
-                          destinationName,   // Destination name
-                          destinationId      // Destination ID
-                        );
-                        
-                        // Slugify the destination name for fallback
-                        const slugify = (text: string): string => {
-                          if (!text) return '';
-                          return text
-                            .toString()
-                            .normalize('NFKD')
-                            .replace(/[\u0300-\u036f]/g, '')
-                            .toLowerCase()
-                            .trim()
-                            .replace(/[^a-z0-9 ]/g, '')
-                            .replace(/\s+/g, '-')
-                            .replace(/-+/g, '-');
-                        };
-                        
-                        const destinationSlug = slugify(destinationName);
-                        
-                        // Create either a destination-based fallback or a search fallback
-                        if (destinationSlug && destinationId) {
-                          // Create a reliable destination page URL with the canonical format
-                          searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
-                        } else {
-                          // Fall back to general search if we don't have destination info
-                          const searchParams = new URLSearchParams({
-                            q: poi.name,
-                            pid: VIATOR_AFFILIATE_ID,
-                            mcid: '42383',
-                            medium: 'api',
-                            campaign: campaignValue
-                          });
-                          searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                        }
-                      } else {
-                        // Fallback to a search on Viator
-                        console.log(`[POIDetailPanel] No viatorId found for "${poi.name}", using search fallback`);
-                        
-                        // Get location part if available
-                        const locationPart = poi.tags.address ? poi.tags.address.split(',')[0].trim() : '';
-                        
-                        // Create search URL with proper attribution parameters per Viator docs
-                        const searchParams = new URLSearchParams({
-                          pid: VIATOR_AFFILIATE_ID,
-                          mcid: '42383', // Add MCID parameter for proper attribution
-                          medium: 'api',
-                          campaign: 'road-trip-cost-calculator',
-                          q: poi.name + (locationPart ? ` ${locationPart}` : '')
-                        });
-                        
-                        deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                        searchFallbackLink = deepLink; // Same as primary link in this case
-                      }
-                      
-                      console.log(`[POIDetailPanel] Generated link: ${deepLink}`);
-                      console.log(`[POIDetailPanel] Fallback link if needed: ${searchFallbackLink}`);
-                      
-                      // Open the URL
-                      window.open(deepLink, '_blank');
-                    }}
+                  <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <a 
+                    href={poi.tags.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-400 hover:underline truncate max-w-full"
                   >
-                    Book This Activity
-                  </Button>
+                    {poi.tags.website.replace(/^https?:\/\//, '')}
+                  </a>
                 </div>
               )}
               
-              {poi.tags.description && (
-                <div className="mt-2 text-sm text-gray-300 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
-                  {poi.tags.description}
-                </div>
+              {/* Category-specific details */}
+              {poi.type === 'gasStations' && (
+                <>
+                  {poi.tags.brand && (
+                    <div className="flex items-start gap-2">
+                      <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <span><strong>Brand:</strong> {poi.tags.brand}</span>
+                    </div>
+                  )}
+                  {poi.tags.fuel_type && (
+                    <div className="flex items-start gap-2">
+                      <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <span><strong>Fuel Types:</strong> {poi.tags.fuel_type}</span>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </div>
+              
+              {poi.type === 'evCharging' && (
+                <>
+                  {poi.tags.brand && (
+                    <div className="flex items-start gap-2">
+                      <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <span><strong>Operator:</strong> {poi.tags.brand}</span>
+                    </div>
+                  )}
+                  {poi.tags.capacity && (
+                    <div className="flex items-start gap-2">
+                      <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <span><strong>Charging Points:</strong> {poi.tags.capacity}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Only render action buttons for non-attraction POIs since we handle them separately for attractions */}
+        {poi.type !== 'attractions' && renderActionButtons()}
       </div>
-      
-      {/* Action buttons */}
-      {renderActionButtons()}
     </Card>
   );
 };

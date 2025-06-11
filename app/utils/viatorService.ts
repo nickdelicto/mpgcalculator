@@ -484,7 +484,7 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
     // Add distance information if available
     let distanceInfo = '';
     if (destinationDistance) {
-      distanceInfo = `~${Math.round(destinationDistance)} miles from destination`;
+      distanceInfo = `~Within ${Math.round(destinationDistance)} miles`;
     }
     
     // Log the important fields to debug image and price issues

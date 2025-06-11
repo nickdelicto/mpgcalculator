@@ -53,13 +53,14 @@ export function RoadTripTollsInput({ value, onChange }: RoadTripTollsInputProps)
           id="has-tolls"
           checked={hasTolls}
           onCheckedChange={handleTollToggle}
+          className="data-[state=checked]:bg-green-600"
         />
-        <Label htmlFor="has-tolls" className="text-gray-200">Route includes tolls</Label>
+        <Label htmlFor="has-tolls" className="text-gray-700 font-medium">Route includes tolls</Label>
       </div>
       
       {hasTolls && (
-        <div className="space-y-2">
-          <Label htmlFor="toll-amount" className="text-gray-200">Total Toll Amount ($)</Label>
+        <div className="space-y-2 bg-green-50 p-3 rounded-lg border border-green-100 animate-in fade-in">
+          <Label htmlFor="toll-amount" className="text-gray-700 font-medium">Total Toll Amount ($)</Label>
           <Input
             id="toll-amount"
             type="number"
@@ -68,7 +69,7 @@ export function RoadTripTollsInput({ value, onChange }: RoadTripTollsInputProps)
             value={tollAmount}
             onChange={handleTollAmountChange}
             placeholder="0.00"
-            className="bg-gray-700 border-gray-600 w-32"
+            className="bg-white border-gray-200 w-32 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
           />
         </div>
       )}

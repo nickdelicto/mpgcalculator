@@ -71,12 +71,15 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
   
   return (
     <Card 
-      className="bg-gray-800 hover:bg-gray-750 border-gray-700 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:border-blue-500"
+      className="bg-white dark:bg-gray-100 border-gray-200 dark:border-gray-300 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       onClick={() => onClick(hotel)}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${hotel.name}`}
     >
       {/* Stylish Hotel Icon Display */}
       <div className="relative h-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-800/70 to-transparent z-10" />
         
         {/* Elegant branded background with hotel icon */}
         <div 
@@ -93,7 +96,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
         
         {/* Star rating badge */}
         {hotel.tags.stars && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-70 px-2 py-1 rounded-full z-20 flex items-center">
+          <div className="absolute top-2 right-2 bg-blue-600 bg-opacity-90 px-2 py-1 rounded-full z-20 flex items-center">
             {renderStars()}
           </div>
         )}
@@ -101,12 +104,12 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
       
       {/* Content section */}
       <div className="p-3">
-        <h3 className="font-medium text-white text-sm mb-2 line-clamp-2 h-10">
+        <h3 className="font-medium text-gray-800 text-sm mb-2 line-clamp-2 h-10">
           {hotel.name}
         </h3>
         
-        <div className="flex items-center text-gray-400 text-xs mb-2">
-          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+        <div className="flex items-center text-gray-600 text-xs mb-2">
+          <MapPin className="h-3 w-3 mr-1 flex-shrink-0 text-gray-500" />
           <span className="truncate">{getLocationPart(hotel.tags.address || '')}</span>
         </div>
         
@@ -116,20 +119,20 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
             <div className="flex">
               {renderStars()}
             </div>
-            <span className="text-xs text-gray-400 ml-1">Rating</span>
+            <span className="text-xs text-gray-600 ml-1">Rating</span>
           </div>
         )}
 
         {/* Display brand if available */}
         {hotel.tags.brand && (
-          <div className="flex items-center text-xs text-gray-400 mb-2">
-            <Hotel className="h-3 w-3 mr-1 flex-shrink-0" />
+          <div className="flex items-center text-xs text-gray-600 mb-2">
+            <Hotel className="h-3 w-3 mr-1 flex-shrink-0 text-gray-500" />
             <span className="truncate">{hotel.tags.brand}</span>
           </div>
         )}
         
         <Button 
-          className="w-full bg-blue-700 hover:bg-blue-600 text-xs h-8 mt-1"
+          className="w-full bg-blue-600 hover:bg-blue-500 text-xs h-8 mt-1"
           onClick={(e) => {
             e.stopPropagation(); // Prevent triggering the card's onClick
             window.open(`https://www.tripadvisor.com/Search?q=${encodeURIComponent(hotel.name + ' ' + (hotel.tags.address || ''))}`, '_blank');

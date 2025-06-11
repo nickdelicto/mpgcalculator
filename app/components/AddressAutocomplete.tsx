@@ -148,7 +148,7 @@ export default function AddressAutocomplete({
   
   return (
     <div className="space-y-2 relative">
-      <label htmlFor={id} className="block text-sm text-gray-200">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
         {label}
       </label>
       <div className="relative">
@@ -156,20 +156,24 @@ export default function AddressAutocomplete({
           id={id}
           ref={inputRef}
           placeholder={placeholder}
-          className={`pl-10 bg-gray-700 border-gray-600 ${className}`}
+          className={`pl-10 bg-white border-gray-200 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${className}`}
           value={value}
           onChange={handleInputChange}
           onFocus={() => value.length >= 3 && setShowSuggestions(true)}
         />
-        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+        <div className="absolute left-3 top-2.5 h-5 w-5 text-blue-500 opacity-70">
+          <MapPin className="h-5 w-5" />
+        </div>
         {isLoading && (
-          <Loader2 className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 animate-spin" />
+          <div className="absolute right-3 top-2.5 h-5 w-5 text-blue-500">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
         )}
       </div>
       
       {/* Error message */}
       {error && (
-        <div className="text-red-400 text-sm flex items-center mt-1">
+        <div className="text-red-500 text-sm flex items-center mt-1">
           <AlertCircle className="h-4 w-4 mr-1" />
           {error}
         </div>
@@ -179,10 +183,10 @@ export default function AddressAutocomplete({
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef}
-          className="absolute z-50 w-full bg-gray-700 border border-gray-600 rounded-md shadow-lg mt-1 max-h-60 overflow-auto"
+          className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-auto"
         >
           {isFallback && (
-            <div className="px-3 py-1 text-xs text-amber-400 bg-amber-900/30 border-b border-gray-600">
+            <div className="px-3 py-1 text-xs text-amber-700 bg-amber-50 border-b border-gray-200">
               Using standard search results (autocomplete unavailable)
             </div>
           )}
@@ -190,11 +194,13 @@ export default function AddressAutocomplete({
             {suggestions.map((suggestion, index) => (
               <li 
                 key={index}
-                className="px-3 py-2 hover:bg-gray-600 cursor-pointer text-gray-200 text-sm border-b border-gray-600 last:border-0"
+                className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-gray-700 text-sm border-b border-gray-200 last:border-0 transition-colors"
                 onClick={() => handleSelectSuggestion(suggestion)}
               >
                 <div className="flex items-start">
-                  <MapPin className="h-4 w-4 mr-2 mt-0.5 text-blue-400 flex-shrink-0" />
+                  <div className="flex-shrink-0 mr-2 mt-0.5 text-blue-500">
+                    <MapPin className="h-4 w-4" />
+                  </div>
                   <span>{suggestion.label}</span>
                 </div>
               </li>
