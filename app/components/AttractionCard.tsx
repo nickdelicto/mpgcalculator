@@ -210,6 +210,7 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
       thumbnailHiResURL: attraction.tags.thumbnailHiResURL || 'MISSING',
       thumbnailURL: attraction.tags.thumbnailURL || 'MISSING',
       price: attraction.tags.price || 'MISSING',
+      discount: attraction.tags.discountPercent ? `${attraction.tags.discountPercent}% off from ${attraction.tags.originalPrice}` : 'No discount',
       rating: attraction.tags.rating || 'MISSING',
       reviews: attraction.tags.reviews || 'MISSING',
       address: attraction.tags.address || 'MISSING'
@@ -271,8 +272,26 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
         {/* Price badge - make sure it's more visible */}
         {attraction.tags.price && (
           <div className="absolute top-2 right-2 bg-green-600 bg-opacity-90 px-2 py-1 rounded-full z-20 flex items-center">
-            <DollarSign className="h-3 w-3 text-white mr-1" />
-            <span className="text-white text-xs font-medium">{attraction.tags.price}</span>
+            {!attraction.tags.price.startsWith('From $') && (
+              <DollarSign className="h-3 w-3 text-white mr-1" />
+            )}
+            
+            {/* If there's a discount, show the original price with strikethrough */}
+            {attraction.tags.originalPrice && Number(attraction.tags.discountPercent) > 0 ? (
+              <div className="flex items-center">
+                <span className="text-white text-xs line-through opacity-70 mr-1">
+                  {attraction.tags.originalPrice}
+                </span>
+                <span className="text-white text-xs font-medium">
+                  {attraction.tags.price.replace('From ', '')}
+                </span>
+                <span className="ml-1 bg-yellow-400 text-green-900 text-[9px] font-bold px-1 rounded animate-pulse">
+                  {attraction.tags.discountPercent}% OFF
+                </span>
+              </div>
+            ) : (
+              <span className="text-white text-xs font-medium">{attraction.tags.price}</span>
+            )}
           </div>
         )}
       </div>
@@ -307,10 +326,12 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
           className="w-full bg-purple-600 hover:bg-purple-500 text-xs h-8 mt-1"
           onClick={handleBookNow}
         >
-          <DollarSign className="h-3 w-3 mr-1" />
-          {attraction.tags.price && attraction.tags.price !== 'Price varies' 
-            ? 'Book Now' 
-            : 'Check Pricing'}
+          <Camera className="h-3 w-3 mr-1" />
+          {attraction.tags.originalPrice && Number(attraction.tags.discountPercent) > 0 
+            ? `Book with ${attraction.tags.discountPercent}% OFF` 
+            : (attraction.tags.price && attraction.tags.price !== 'Price varies' 
+                ? 'Book Now' 
+                : 'Check Pricing')}
         </Button>
       </div>
     </Card>
