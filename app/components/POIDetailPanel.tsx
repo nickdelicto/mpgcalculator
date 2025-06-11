@@ -85,6 +85,107 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
     return phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
   };
   
+  // Function to handle booking action
+  const handleBookClick = () => {
+    // Skip if not an attraction
+    if (poi.type !== 'attractions') return;
+    
+    // Generate deep link with affiliate ID
+    let deepLink = '';
+    let searchFallbackLink = '';
+    
+    if (poi.viatorId) {
+      console.log(`[POIDetailPanel] Creating Viator deep link for product: ${poi.viatorId}`);
+      
+      // Campaign value can be added to track specific placements
+      const campaignValue = 'road-trip-calculator'; 
+      
+      // Extract destination information
+      // For destination name, we'll use the first part of the address if available
+      const addressParts = (poi.tags.address || '').split(',');
+      const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
+      
+      // Extract destination ID if present in the locationId field
+      const destinationIdMatch = poi.tags.locationId?.match(/d(\d+)/) || 
+                                poi.id.match(/d(\d+)/);
+      const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
+      
+      // Log what we're using to build the URL
+      console.log(`[POIDetailPanel] Building deep link with:`, {
+        productCode: poi.viatorId,
+        productTitle: poi.name,
+        destinationName,
+        destinationId: destinationId || 'UNKNOWN'
+      });
+      
+      // Generate the primary deep link with all available information
+      deepLink = generateViatorDeepLink(
+        poi.viatorId, 
+        VIATOR_AFFILIATE_ID, 
+        campaignValue,
+        poi.name,          // Product title
+        destinationName,   // Destination name
+        destinationId      // Destination ID
+      );
+      
+      // Slugify the destination name for fallback
+      const slugify = (text: string): string => {
+        if (!text) return '';
+        return text
+          .toString()
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9 ]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+      };
+      
+      const destinationSlug = slugify(destinationName);
+      
+      // Create either a destination-based fallback or a search fallback
+      if (destinationSlug && destinationId) {
+        // Create a reliable destination page URL with the canonical format
+        searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
+      } else {
+        // Fall back to general search if we don't have destination info
+        const searchParams = new URLSearchParams({
+          q: poi.name,
+          pid: VIATOR_AFFILIATE_ID,
+          mcid: '42383',
+          medium: 'api',
+          campaign: campaignValue
+        });
+        searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
+      }
+    } else {
+      // Fallback to a search on Viator
+      console.log(`[POIDetailPanel] No viatorId found for "${poi.name}", using search fallback`);
+      
+      // Get location part if available
+      const locationPart = poi.tags.address ? poi.tags.address.split(',')[0].trim() : '';
+      
+      // Create search URL with proper attribution parameters per Viator docs
+      const searchParams = new URLSearchParams({
+        pid: VIATOR_AFFILIATE_ID,
+        mcid: '42383', // Add MCID parameter for proper attribution
+        medium: 'api',
+        campaign: 'road-trip-cost-calculator',
+        q: poi.name + (locationPart ? ` ${locationPart}` : '')
+      });
+      
+      deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
+      searchFallbackLink = deepLink; // Same as primary link in this case
+    }
+    
+    console.log(`[POIDetailPanel] Generated link: ${deepLink}`);
+    console.log(`[POIDetailPanel] Fallback link if needed: ${searchFallbackLink}`);
+    
+    // Open the URL
+    window.open(deepLink, '_blank');
+  };
+
   // Determine what action buttons to show based on POI type
   const renderActionButtons = () => {
     const commonButtons = (
@@ -190,105 +291,10 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
             <Button 
               variant="default" 
               className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-              onClick={() => {
-                // Generate deep link with affiliate ID
-                let deepLink = '';
-                let searchFallbackLink = '';
-                
-                if (poi.viatorId) {
-                  console.log(`[POIDetailPanel] Creating Viator deep link for product: ${poi.viatorId}`);
-                  
-                  // Campaign value can be added to track specific placements
-                  const campaignValue = 'road-trip-calculator'; 
-                  
-                  // Extract destination information
-                  // For destination name, we'll use the first part of the address if available
-                  const addressParts = (poi.tags.address || '').split(',');
-                  const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
-                  
-                  // Extract destination ID if present in the locationId field
-                  const destinationIdMatch = poi.tags.locationId?.match(/d(\d+)/) || 
-                                            poi.id.match(/d(\d+)/);
-                  const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
-                  
-                  // Log what we're using to build the URL
-                  console.log(`[POIDetailPanel] Building deep link with:`, {
-                    productCode: poi.viatorId,
-                    productTitle: poi.name,
-                    destinationName,
-                    destinationId: destinationId || 'UNKNOWN'
-                  });
-                  
-                  // Generate the primary deep link with all available information
-                  deepLink = generateViatorDeepLink(
-                    poi.viatorId, 
-                    VIATOR_AFFILIATE_ID, 
-                    campaignValue,
-                    poi.name,          // Product title
-                    destinationName,   // Destination name
-                    destinationId      // Destination ID
-                  );
-                  
-                  // Slugify the destination name for fallback
-                  const slugify = (text: string): string => {
-                    if (!text) return '';
-                    return text
-                      .toString()
-                      .normalize('NFKD')
-                      .replace(/[\u0300-\u036f]/g, '')
-                      .toLowerCase()
-                      .trim()
-                      .replace(/[^a-z0-9 ]/g, '')
-                      .replace(/\s+/g, '-')
-                      .replace(/-+/g, '-');
-                  };
-                  
-                  const destinationSlug = slugify(destinationName);
-                  
-                  // Create either a destination-based fallback or a search fallback
-                  if (destinationSlug && destinationId) {
-                    // Create a reliable destination page URL with the canonical format
-                    searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
-                  } else {
-                    // Fall back to general search if we don't have destination info
-                    const searchParams = new URLSearchParams({
-                      q: poi.name,
-                      pid: VIATOR_AFFILIATE_ID,
-                      mcid: '42383',
-                      medium: 'api',
-                      campaign: campaignValue
-                    });
-                    searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                  }
-                } else {
-                  // Fallback to a search on Viator
-                  console.log(`[POIDetailPanel] No viatorId found for "${poi.name}", using search fallback`);
-                  
-                  // Get location part if available
-                  const locationPart = poi.tags.address ? poi.tags.address.split(',')[0].trim() : '';
-                  
-                  // Create search URL with proper attribution parameters per Viator docs
-                  const searchParams = new URLSearchParams({
-                    pid: VIATOR_AFFILIATE_ID,
-                    mcid: '42383', // Add MCID parameter for proper attribution
-                    medium: 'api',
-                    campaign: 'road-trip-cost-calculator',
-                    q: poi.name + (locationPart ? ` ${locationPart}` : '')
-                  });
-                  
-                  deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                  searchFallbackLink = deepLink; // Same as primary link in this case
-                }
-                
-                console.log(`[POIDetailPanel] Generated link: ${deepLink}`);
-                console.log(`[POIDetailPanel] Fallback link if needed: ${searchFallbackLink}`);
-                
-                // Open the URL
-                window.open(deepLink, '_blank');
-              }}
+              onClick={handleBookClick}
             >
-              <DollarSign className="h-4 w-4" />
-              <span>Book Now</span>
+              <Camera className="h-5 w-5 mr-2" />
+              Book This Activity
             </Button>
           </div>
         );
@@ -406,7 +412,15 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           
           {/* Title overlay at the bottom of the image */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 to-transparent">
-            <h3 className="text-xl font-bold text-white">{poi.name}</h3>
+            <h3 className="text-xl font-bold text-white group">
+              <span 
+                className="cursor-pointer hover:underline inline-flex items-center"
+                onClick={handleBookClick}
+              >
+                {poi.name}
+                <Camera className="h-3 w-3 ml-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              </span>
+            </h3>
             {poi.tags.address && (
               <div className="flex items-center gap-1 text-white text-sm mt-1">
                 <MapPin className="h-3 w-3 text-white" />
@@ -480,7 +494,7 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
                     <div className="flex items-start gap-1">
                       <DollarSign className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-800 dark:text-gray-200 text-sm break-words">
-                        <strong>From:</strong> {poi.tags.price}
+                        <strong>Price:</strong> {poi.tags.price}
                       </span>
                     </div>
                   </div>
@@ -548,105 +562,9 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
               <div className="mt-4 xl:sticky xl:bottom-0 xl:left-0 xl:right-0 xl:bg-white xl:dark:bg-gray-900 xl:pt-2 xl:pb-1 xl:z-10">
                 <Button 
                   className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-2 h-auto"
-                  onClick={() => {
-                    // The existing button click logic remains unchanged
-                    // Generate deep link with affiliate ID
-                    let deepLink = '';
-                    let searchFallbackLink = '';
-                    
-                    if (poi.viatorId) {
-                      console.log(`[POIDetailPanel] Creating Viator deep link for product: ${poi.viatorId}`);
-                      
-                      // Campaign value can be added to track specific placements
-                      const campaignValue = 'road-trip-calculator'; 
-                      
-                      // Extract destination information
-                      // For destination name, we'll use the first part of the address if available
-                      const addressParts = (poi.tags.address || '').split(',');
-                      const destinationName = addressParts.length > 0 ? addressParts[0].trim() : '';
-                      
-                      // Extract destination ID if present in the locationId field
-                      const destinationIdMatch = poi.tags.locationId?.match(/d(\d+)/) || 
-                                                poi.id.match(/d(\d+)/);
-                      const destinationId = destinationIdMatch ? destinationIdMatch[1] : undefined;
-                      
-                      // Log what we're using to build the URL
-                      console.log(`[POIDetailPanel] Building deep link with:`, {
-                        productCode: poi.viatorId,
-                        productTitle: poi.name,
-                        destinationName,
-                        destinationId: destinationId || 'UNKNOWN'
-                      });
-                      
-                      // Generate the primary deep link with all available information
-                      deepLink = generateViatorDeepLink(
-                        poi.viatorId, 
-                        VIATOR_AFFILIATE_ID, 
-                        campaignValue,
-                        poi.name,          // Product title
-                        destinationName,   // Destination name
-                        destinationId      // Destination ID
-                      );
-                      
-                      // Slugify the destination name for fallback
-                      const slugify = (text: string): string => {
-                        if (!text) return '';
-                        return text
-                          .toString()
-                          .normalize('NFKD')
-                          .replace(/[\u0300-\u036f]/g, '')
-                          .toLowerCase()
-                          .trim()
-                          .replace(/[^a-z0-9 ]/g, '')
-                          .replace(/\s+/g, '-')
-                          .replace(/-+/g, '-');
-                      };
-                      
-                      const destinationSlug = slugify(destinationName);
-                      
-                      // Create either a destination-based fallback or a search fallback
-                      if (destinationSlug && destinationId) {
-                        // Create a reliable destination page URL with the canonical format
-                        searchFallbackLink = `https://www.viator.com/${destinationSlug}/d${destinationId}-ttd?pid=${VIATOR_AFFILIATE_ID}&mcid=42383&medium=api&campaign=${campaignValue}`;
-                      } else {
-                        // Fall back to general search if we don't have destination info
-                        const searchParams = new URLSearchParams({
-                          q: poi.name,
-                          pid: VIATOR_AFFILIATE_ID,
-                          mcid: '42383',
-                          medium: 'api',
-                          campaign: campaignValue
-                        });
-                        searchFallbackLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                      }
-                    } else {
-                      // Fallback to a search on Viator
-                      console.log(`[POIDetailPanel] No viatorId found for "${poi.name}", using search fallback`);
-                      
-                      // Get location part if available
-                      const locationPart = poi.tags.address ? poi.tags.address.split(',')[0].trim() : '';
-                      
-                      // Create search URL with proper attribution parameters per Viator docs
-                      const searchParams = new URLSearchParams({
-                        pid: VIATOR_AFFILIATE_ID,
-                        mcid: '42383', // Add MCID parameter for proper attribution
-                        medium: 'api',
-                        campaign: 'road-trip-cost-calculator',
-                        q: poi.name + (locationPart ? ` ${locationPart}` : '')
-                      });
-                      
-                      deepLink = `https://www.viator.com/search?${searchParams.toString()}`;
-                      searchFallbackLink = deepLink; // Same as primary link in this case
-                    }
-                    
-                    console.log(`[POIDetailPanel] Generated link: ${deepLink}`);
-                    console.log(`[POIDetailPanel] Fallback link if needed: ${searchFallbackLink}`);
-                    
-                    // Open the URL
-                    window.open(deepLink, '_blank');
-                  }}
+                  onClick={handleBookClick}
                 >
-                  <DollarSign className="h-5 w-5 mr-2" />
+                  <Camera className="h-5 w-5 mr-2" />
                   Book This Activity
                 </Button>
               </div>

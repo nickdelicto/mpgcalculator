@@ -93,8 +93,12 @@ export const searchAttractionsNearLocation = async (
         title: firstProduct.title,
         hasImages: !!firstProduct.images?.length,
         imageCount: firstProduct.images?.length || 0,
-        hasPrice: !!firstProduct.price,
+        hasPrice: !!firstProduct.price || !!firstProduct.pricing,
         price: firstProduct.price,
+        pricing: firstProduct.pricing ? {
+          summary: firstProduct.pricing.summary,
+          currency: firstProduct.pricing.currency
+        } : null,
         priceFields: firstProduct.price ? Object.keys(firstProduct.price) : [],
         hasThumbnail: !!firstProduct.thumbnailURL || !!firstProduct.thumbnailHiResURL,
         thumbnailURL: firstProduct.thumbnailURL,
@@ -147,8 +151,13 @@ export const searchAttractionsNearLocation = async (
         // Add more specific price debugging
         console.log('[Viator] Price-related fields in first product:', {
           'price object present': !!firstProduct.price,
+          'pricing object present': !!firstProduct.pricing,
           'price structure': firstProduct.price ? Object.keys(firstProduct.price).join(', ') : 'N/A',
+          'pricing structure': firstProduct.pricing ? Object.keys(firstProduct.pricing).join(', ') : 'N/A',
+          'pricing.summary': firstProduct.pricing?.summary ? Object.keys(firstProduct.pricing.summary).join(', ') : 'N/A',
           'fromPriceFormatted': firstProduct.price?.fromPriceFormatted || 'missing',
+          'pricing.summary.fromPrice': firstProduct.pricing?.summary?.fromPrice || 'missing',
+          'pricing.currency': firstProduct.pricing?.currency || 'missing',
           'fromPrice raw': firstProduct.price?.fromPrice || 'missing',
           'priceFormatted': firstProduct.priceFormatted || 'missing',
           'bookingFeeFormatted': firstProduct.price?.bookingFeeFormatted || 'missing',
@@ -318,12 +327,61 @@ const deduplicateAttractions = (attractions: POI[]): POI[] => {
 const transformViatorToPOIs = (products: any[], destinationName?: string, userDestination?: Coordinates, destinationDistance?: number, destinationId?: number): POI[] => {
   return products.map(product => {
     // Extract price info
-    let priceFormatted = product.price?.fromPriceFormatted || '';
+    let priceFormatted = '';
+    
+    // Check for the new pricing structure (from recent API responses)
+    if (product.pricing?.summary?.fromPrice) {
+      const price = product.pricing.summary.fromPrice;
+      const originalPrice = product.pricing.summary.fromPriceBeforeDiscount || price;
+      const currency = product.pricing.currency || 'USD';
+      
+      // Calculate discount percentage if there is one
+      const hasDiscount = originalPrice > price;
+      let discountPercent = 0;
+      
+      if (hasDiscount) {
+        discountPercent = Math.round(((originalPrice - price) / originalPrice) * 100);
+        // Only consider it a discount if it's at least 5%
+        if (discountPercent < 5) {
+          discountPercent = 0;
+        }
+        // Cap display at 70% to avoid unrealistic looking discounts
+        if (discountPercent > 70) {
+          discountPercent = 70;
+        }
+      }
+      
+      // Format price with currency symbol
+      const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+      
+      priceFormatted = `From ${formatter.format(price)}`;
+      
+      // Store discount information for UI
+      if (discountPercent > 0) {
+        // Store the original price and discount percentage in tags
+        product.originalPrice = formatter.format(originalPrice);
+        product.discountPercent = discountPercent;
+        console.log(`[Viator] Product has discount: ${discountPercent}% off (${formatter.format(originalPrice)} → ${formatter.format(price)})`);
+      }
+      
+      console.log(`[Viator] Formatted price from pricing.summary: ${priceFormatted}`);
+    } 
+    // Fallback to the old price structure if it exists
+    else if (product.price?.fromPriceFormatted) {
+      priceFormatted = product.price.fromPriceFormatted;
+      console.log(`[Viator] Using existing formatted price: ${priceFormatted}`);
+    }
     
     // If price is still empty, use a more generic fallback instead of location-specific prices
     if (!priceFormatted) {
       // Always use "Price varies" instead of hardcoded amounts to avoid misleading users
       priceFormatted = 'Price varies';
+      console.log(`[Viator] No price found, using fallback: ${priceFormatted}`);
     }
     
     // Ensure consistent price formatting
@@ -493,7 +551,13 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
       hasThumbnail: !!product.thumbnailURL || !!product.thumbnailHiResURL,
       thumbnailURL: product.thumbnailURL || 'MISSING',
       thumbnailHiResURL: product.thumbnailHiResURL || 'MISSING',
-      price: priceFormatted || 'MISSING',
+      pricingInfo: {
+        formatted: priceFormatted || 'MISSING',
+        oldPriceObj: product.price ? 'PRESENT' : 'MISSING',
+        newPricingObj: product.pricing ? 'PRESENT' : 'MISSING',
+        fromPrice: product.pricing?.summary?.fromPrice || product.price?.fromPrice || 'MISSING',
+        currency: product.pricing?.currency || 'USD'
+      },
       rating: product.rating || 'MISSING',
       hasCoordinates: hasValidLocation,
       destinationInfo: {
@@ -513,6 +577,8 @@ const transformViatorToPOIs = (products: any[], destinationName?: string, userDe
       approximateLocation: !hasValidLocation,
       tags: {
         price: priceFormatted,
+        originalPrice: product.originalPrice || null,
+        discountPercent: product.discountPercent || 0,
         rating: rating,
         reviews: reviewCount,
         duration: durationStr,
