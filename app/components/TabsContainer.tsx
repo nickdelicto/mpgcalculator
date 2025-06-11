@@ -200,22 +200,22 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
         )}
       </div>
       
-      {/* Tab Content */}
+      {/* Tab Content - Updated to fill remaining height */}
       <div className="flex-grow overflow-y-auto">
         {hasHotels && activeTab === getTabIndex('hotels') && (
-          <div className="p-4">{hotelsList}</div>
+          <div className="p-4 h-full">{hotelsList}</div>
         )}
         
         {hasAttractions && activeTab === getTabIndex('attractions') && (
-          <div className="p-4">{attractionsList}</div>
+          <div className="p-4 h-full">{attractionsList}</div>
         )}
         
         {hasDirections && activeTab === getTabIndex('directions') && (
-          <div className="p-4">{directions}</div>
+          <div className="p-4 h-full">{directions}</div>
         )}
         
         {activeTab === getTabIndex('summary') && (
-          <div className="p-4">{tripSummary}</div>
+          <div className="p-4 h-full">{tripSummary}</div>
         )}
       </div>
     </div>

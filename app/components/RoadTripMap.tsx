@@ -639,22 +639,23 @@ const RoadTripMap: React.FC<MapProps> = ({
     const { city, region, fullLocation } = extractLocationDetails(endLocation)
     
     // Create a Viator search URL with proper attribution parameters
-    const viatorAffiliateId = 'P00255194' // Replace with your actual Viator affiliate ID
+    const viatorAffiliateId = 'P00255194'
     
-    // For a more effective search, use location details to create a better search query
-    // If we have both city and region, include both for more relevant results
-    const searchQuery = region ? `things to do in ${city}, ${region}` : `things to do in ${city}`
+    // Base URL with tracking parameters - using the new format
+    const baseViatorUrl = 'https://www.viator.com/'
     
+    // Prepare the attribution parameters
     const searchParams = new URLSearchParams({
       pid: viatorAffiliateId,
-      mcid: '42383', // Standard MCID parameter for attribution
+      mcid: '42383',
       medium: 'link',
-      campaign: 'road-trip-calculator',
-      q: searchQuery
+      medium_version: 'selector',
+      campaign: 'road-trip-cost-calculator-map-button'
     })
     
-    const viatorUrl = `https://www.viator.com/search?${searchParams.toString()}`
-    console.log(`Opening Viator search for attractions in ${fullLocation}: ${viatorUrl}`)
+    // Create the final URL with just the tracking parameters, no search query
+    const viatorUrl = `${baseViatorUrl}?${searchParams.toString()}`
+    console.log(`Opening Viator for attractions: ${viatorUrl}`)
     
     // Open in new tab
     window.open(viatorUrl, '_blank')
@@ -741,10 +742,12 @@ const RoadTripMap: React.FC<MapProps> = ({
         </div>
       )}
         
-        {/* Debugging indicator */}
-        <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">
-          {debugInfo}
-        </div>
+        {/* Debugging indicator - only show in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">
+            {debugInfo}
+          </div>
+        )}
       </div>
     </div>
   )
