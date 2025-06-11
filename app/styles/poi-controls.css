@@ -2,14 +2,14 @@
 
 /* Base styling for POI control buttons */
 .poi-control-button {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 /* Active state styling */
 .poi-control-active {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6) !important;
 }
 
 /* Pulse animation for active buttons */
@@ -134,4 +134,58 @@
 .poi-detail-panel {
   overflow: hidden;
   transition: max-height 0.3s ease-out;
+}
+
+/* POI Control Styles */
+
+/* POI Icons */
+.poi-control-button:hover {
+  transform: scale(1.05);
+}
+
+/* Map Action Buttons */
+.map-action-button {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  position: relative;
+  overflow: hidden;
+}
+
+.map-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Add subtle animation for the button icons */
+.map-action-button svg {
+  transition: all 0.3s ease;
+}
+
+.map-action-button:hover svg {
+  transform: scale(1.2);
+}
+
+/* Add a subtle background "shine" effect on hover */
+.map-action-button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.map-action-button:hover::after {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Ensure action buttons container is always on top */
+[data-testid="map-action-buttons"] {
+  z-index: 1000; /* High z-index to stay on top */
 } 
