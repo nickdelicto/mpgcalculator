@@ -148,12 +148,12 @@ export default function RoadTripVehicleEfficiency({ onDataChange }: VehicleEffic
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fuel-type" className="text-gray-200">Fuel Type</Label>
+          <Label htmlFor="fuel-type" className="text-gray-700 font-medium">Fuel Type</Label>
           <Select
             value={fuelType}
             onValueChange={(value: FuelType) => setFuelType(value)}
           >
-            <SelectTrigger id="fuel-type" className="bg-gray-700 border-gray-600">
+            <SelectTrigger id="fuel-type" className="bg-white border-gray-200 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
               <SelectValue placeholder="Select fuel type" />
             </SelectTrigger>
             <SelectContent>
@@ -165,12 +165,12 @@ export default function RoadTripVehicleEfficiency({ onDataChange }: VehicleEffic
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="unit-system" className="text-gray-200">Unit System</Label>
+          <Label htmlFor="unit-system" className="text-gray-700 font-medium">Unit System</Label>
           <Select
             value={unitSystem}
             onValueChange={(value: UnitSystem) => setUnitSystem(value)}
           >
-            <SelectTrigger id="unit-system" className="bg-gray-700 border-gray-600">
+            <SelectTrigger id="unit-system" className="bg-white border-gray-200 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
               <SelectValue placeholder="Select units" />
             </SelectTrigger>
             <SelectContent>
@@ -184,15 +184,17 @@ export default function RoadTripVehicleEfficiency({ onDataChange }: VehicleEffic
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Label htmlFor="efficiency" className="text-gray-200">
+            <Label htmlFor="efficiency" className="text-gray-700 font-medium">
               {getEfficiencyLabel()}
             </Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="bg-blue-100 rounded-full p-0.5 cursor-help">
+                    <Info className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
+                <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-lg">
                   <p>{getEfficiencyTooltip()}</p>
                 </TooltipContent>
               </Tooltip>
@@ -208,21 +210,23 @@ export default function RoadTripVehicleEfficiency({ onDataChange }: VehicleEffic
             placeholder={fuelType === 'electric' ? 
               (unitSystem === 'imperial' ? '30' : '18') : 
               (unitSystem === 'imperial' ? '25' : '9.4')}
-            className="bg-gray-700 border-gray-600"
+            className="bg-white border-gray-200 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
         
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Label htmlFor="fuel-cost" className="text-gray-200">
+            <Label htmlFor="fuel-cost" className="text-gray-700 font-medium">
               {getFuelCostLabel()}
             </Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="bg-green-100 rounded-full p-0.5 cursor-help">
+                    <Info className="h-3.5 w-3.5 text-green-600" />
+                  </div>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
+                <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-lg">
                   <p>{getFuelCostTooltip()}</p>
                 </TooltipContent>
               </Tooltip>
@@ -235,7 +239,7 @@ export default function RoadTripVehicleEfficiency({ onDataChange }: VehicleEffic
             min="0"
             value={fuelCost}
             onChange={handleFuelCostChange}
-            className="bg-gray-700 border-gray-600"
+            className="bg-white border-gray-200 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
           />
         </div>
       </div>

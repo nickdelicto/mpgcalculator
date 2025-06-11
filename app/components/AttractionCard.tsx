@@ -231,12 +231,15 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
   
   return (
     <Card 
-      className="bg-gray-800 hover:bg-gray-750 border-gray-700 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:border-purple-500"
+      className="bg-white dark:bg-gray-100 border-gray-200 dark:border-gray-300 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
       onClick={() => onClick(attraction)}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${attraction.name}`}
     >
       {/* Image section */}
       <div className="relative h-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-800/70 to-transparent z-10" />
         
         {thumbnail ? (
           <img 
@@ -267,8 +270,8 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
         
         {/* Price badge - make sure it's more visible */}
         {attraction.tags.price && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-80 px-2 py-1 rounded-full z-20 flex items-center">
-            <DollarSign className="h-3 w-3 text-green-400 mr-1" />
+          <div className="absolute top-2 right-2 bg-green-600 bg-opacity-90 px-2 py-1 rounded-full z-20 flex items-center">
+            <DollarSign className="h-3 w-3 text-white mr-1" />
             <span className="text-white text-xs font-medium">{attraction.tags.price}</span>
           </div>
         )}
@@ -276,12 +279,12 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
       
       {/* Content section */}
       <div className="p-3">
-        <h3 className="font-medium text-white text-sm mb-2 line-clamp-2 h-10">
+        <h3 className="font-medium text-gray-800 text-sm mb-2 line-clamp-2 h-10">
           {attraction.name}
         </h3>
         
-        <div className="flex items-center text-gray-400 text-xs mb-1">
-          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+        <div className="flex items-center text-gray-600 text-xs mb-1">
+          <MapPin className="h-3 w-3 mr-1 flex-shrink-0 text-gray-500" />
           <span className="truncate">{attraction.tags.address ? getLocationPart(attraction.tags.address) : 'Location info unavailable'}</span>
         </div>
         
@@ -294,14 +297,14 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
         
         {/* Duration if available */}
         {attraction.tags.duration && (
-          <div className="flex items-center text-gray-400 text-xs mb-2">
-            <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+          <div className="flex items-center text-gray-600 text-xs mb-2">
+            <Clock className="h-3 w-3 mr-1 flex-shrink-0 text-gray-500" />
             <span>{attraction.tags.duration}</span>
           </div>
         )}
         
         <Button 
-          className="w-full bg-purple-700 hover:bg-purple-600 text-xs h-8 mt-1"
+          className="w-full bg-purple-600 hover:bg-purple-500 text-xs h-8 mt-1"
           onClick={handleBookNow}
         >
           <DollarSign className="h-3 w-3 mr-1" />

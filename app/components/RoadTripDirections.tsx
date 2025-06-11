@@ -61,55 +61,107 @@ const formatDuration = (seconds: number): string => {
 // Define SVG icons for start and end markers to match the map
 const START_MARKER_SVG = `
 <svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 0C5.383 0 0 5.383 0 12C0 20.383 12 36 12 36C12 36 24 20.383 24 12C24 5.383 18.617 0 12 0Z" fill="#008000"/>
-  <circle cx="12" cy="12" r="6" fill="white"/>
+  <path d="M12 0C5.383 0 0 5.383 0 12C0 20.383 12 36 12 36C12 36 24 20.383 24 12C24 5.383 18.617 0 12 0Z" fill="#00a000"/>
+  <circle cx="12" cy="12" r="8" fill="white"/>
+  <circle cx="12" cy="12" r="4" fill="#00a000"/>
 </svg>
 `;
 
 const END_MARKER_SVG = `
-<svg width="28" height="32" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect x="2" y="0" width="4" height="32" fill="#666"/>
   <rect x="6" y="0" width="20" height="20" fill="#FF3B30"/>
-  <rect x="6" y="0" width="10" height="10" fill="white"/>
-  <rect x="16" y="10" width="10" height="10" fill="white"/>
+  <circle cx="16" cy="10" r="6" fill="white"/>
+  <path d="M16 6L20 10L16 14L12 10L16 6Z" fill="#FF3B30"/>
 </svg>
 `;
 
 const RoadTripDirections: React.FC<DirectionsProps> = ({ steps, unitSystem }) => {
+  // Create a copy of steps to avoid mutating props
+  const displaySteps = [...steps].reverse();
+  
   return (
-    <div className="space-y-2 pr-2">
-      {steps && steps.map((step, index) => {
-        // Determine if this is first step (departure) or last step (arrival)
-        const isFirstStep = index === 0;
-        const isLastStep = index === steps.length - 1;
-        
-        // Special styling for first and last steps
-        const bgColor = isFirstStep ? 'bg-green-800' : isLastStep ? 'bg-red-800' : 'bg-gray-700';
-        
-        return (
-          <div key={index} className={`p-2 ${bgColor} rounded flex items-start`}>
-            {/* Special marker for first/last step, regular icon for other steps */}
-            {isFirstStep ? (
-              <div className="mr-3 mt-1 flex-shrink-0 h-8 w-6" dangerouslySetInnerHTML={{ __html: START_MARKER_SVG }} />
-            ) : isLastStep ? (
-              <div className="mr-3 mt-1 flex-shrink-0 h-8 w-7" dangerouslySetInnerHTML={{ __html: END_MARKER_SVG }} />
-            ) : (
-          <div className="mr-3 mt-1 bg-blue-500 rounded-full p-1 flex-shrink-0">
-            {getInstructionIcon(step.type)}
+    <div className="space-y-3 pr-2 py-2">
+      {/* Directions timeline */}
+      <div className="relative">
+        {displaySteps && displaySteps.map((step, index) => {
+          // In reversed order, the last index is the first step and vice versa
+          const isFirstStep = index === displaySteps.length - 1;
+          const isLastStep = index === 0;
+          const isMiddleStep = !isFirstStep && !isLastStep;
+          
+          // Special styling for first and last steps (maintaining the green/red)
+          const bgColor = isFirstStep 
+            ? 'bg-gradient-to-r from-green-700 to-green-600' 
+            : isLastStep 
+              ? 'bg-gradient-to-r from-red-700 to-red-600' 
+              : 'bg-gray-100';
+          
+          const textColor = isFirstStep || isLastStep ? 'text-white' : 'text-gray-800';
+          const subTextColor = isFirstStep || isLastStep ? 'text-gray-200' : 'text-gray-500';
+          
+          // Timeline connector line (shown between steps)
+          const showConnector = index < displaySteps.length - 1;
+          
+          return (
+            <React.Fragment key={index}>
+              <div className={`p-3 ${bgColor} rounded-lg shadow-sm flex items-start mb-2 ${isMiddleStep ? 'border border-gray-200 hover:shadow-md transition-shadow duration-200' : ''}`}>
+                {/* Special marker for first/last step, regular icon for other steps */}
+                {isFirstStep ? (
+                  <div className="mr-3 mt-1 flex-shrink-0 h-8 w-6 drop-shadow-sm" dangerouslySetInnerHTML={{ __html: START_MARKER_SVG }} />
+                ) : isLastStep ? (
+                  <div className="mr-3 mt-1 flex-shrink-0 h-8 w-7 drop-shadow-sm" dangerouslySetInnerHTML={{ __html: END_MARKER_SVG }} />
+                ) : (
+                  <div className="mr-3 mt-1 bg-blue-600 rounded-full p-1.5 flex-shrink-0 shadow-sm">
+                    <div className="text-white">
+                      {getInstructionIcon(step.type)}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex-1">
+                  <p className={`font-medium ${textColor}`}>
+                    {isFirstStep ? 'Start' : isLastStep ? 'Arrive at destination' : step.instruction}
+                  </p>
+                  <div className="flex items-center mt-1">
+                    <span className={`text-xs ${subTextColor} font-medium`}>
+                      {formatDistance(step.distance, unitSystem)}
+                    </span>
+                    <span className={`text-xs ${subTextColor} mx-1`}>•</span>
+                    <span className={`text-xs ${subTextColor}`}>
+                      {formatDuration(step.duration)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Distance badge for middle steps */}
+                {isMiddleStep && (
+                  <div className="ml-2 bg-white border border-gray-200 rounded-full px-2 py-1 text-xs text-gray-600 self-center">
+                    {formatDistance(step.distance, unitSystem)}
+                  </div>
+                )}
+              </div>
+              
+              {/* Connector line */}
+              {showConnector && (
+                <div className="h-4 w-0.5 bg-gray-300 ml-4 mb-1"></div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      
+      {/* Total trip stats */}
+      {steps && steps.length > 0 && (
+        <div className="bg-white rounded-lg p-4 border border-gray-200 mt-4 shadow-sm flex justify-between">
+          <div className="text-sm text-gray-700">
+            <span className="font-medium">Total Distance:</span> {formatDistance(steps.reduce((total, step) => total + step.distance, 0), unitSystem)}
           </div>
-            )}
-            
-          <div className="flex-1">
-              <p className="text-white font-medium">
-                {isFirstStep ? 'Start' : isLastStep ? 'Arrive at destination' : step.instruction}
-              </p>
-            <p className="text-xs text-gray-300">
-              {formatDistance(step.distance, unitSystem)} • {formatDuration(step.duration)}
-            </p>
+          <div className="text-sm text-gray-700">
+            <span className="font-medium">Total Time:</span> {formatDuration(steps.reduce((total, step) => total + step.duration, 0))}
           </div>
         </div>
-        );
-      })}
+      )}
     </div>
   );
 };

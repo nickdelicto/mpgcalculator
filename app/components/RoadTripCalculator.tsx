@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import { Alert, AlertDescription } from '../../components/ui/alert'
-import { MapPin, Car, DollarSign, Route, Info, Navigation } from 'lucide-react'
+import { MapPin, Car, DollarSign, Route, Info, Navigation, Loader2 } from 'lucide-react'
 import DynamicRoadTripMap from './DynamicRoadTripMap'
 import RoadTripVehicleEfficiency from './RoadTripVehicleEfficiency'
 import RoadTripCosts from './RoadTripCosts'
@@ -393,12 +393,13 @@ export default function RoadTripCalculator() {
     setSelectedPOI(poi);
     console.log('Selected POI for detailed view:', poi.name);
     
-    // Scroll the small screen POI panel into view after a short delay
+    // Only scroll on mobile/tablet views
     setTimeout(() => {
       if (window.innerWidth < 1280 && smallScreenPOIRef.current) { // 1280px is the xl breakpoint
+        // Prevent scrolling the entire page on desktop
         smallScreenPOIRef.current.scrollIntoView({ 
           behavior: 'smooth',
-          block: 'center'
+          block: 'start'
         });
       }
     }, 100);
@@ -497,37 +498,55 @@ export default function RoadTripCalculator() {
     <div className="flex flex-col xl:flex-row h-screen">
       {/* Form inputs - before calculation */}
       {!route && (
-        <div className="w-full xl:w-1/3 bg-gray-900 p-6 overflow-y-auto">
-          <h2 className="text-2xl font-bold text-white mb-6">Road Trip Calculator</h2>
+        <div className="w-full xl:w-1/3 bg-gradient-to-br from-gray-50 to-blue-50 p-6 overflow-y-auto">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-900 mb-6">Road Trip Calculator</h2>
+          
+          {/* Custom animation styles */}
+          <style jsx global>{`
+            @keyframes fadeInUp {
+              from {
+                opacity: 0;
+                transform: translateY(10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            
+            @keyframes pulse-subtle {
+              0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.1);
+              }
+              70% {
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+              }
+              100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+              }
+            }
+            
+            .card-animate-in {
+              animation: fadeInUp 0.4s ease-out forwards;
+            }
+            
+            .input-focus-animation:focus {
+              animation: pulse-subtle 1.5s infinite;
+            }
+          `}</style>
           
         {/* Route Information */}
-          <Card className="bg-gray-800 border-gray-700 mb-6">
+          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '0ms' }}>
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
-              <MapPin className="h-6 w-6 text-blue-400 mt-1" />
-              <h3 className="text-xl font-semibold text-white">Route Information</h3>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <MapPin className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800">Route Information</h3>
             </div>
             
             <div className="space-y-4">
-              <div>
-                <AddressAutocomplete
-                  id="start-location"
-                  label="Starting Point"
-                  placeholder="Enter city or address"
-                  value={startLocation}
-                  onChange={setStartLocation}
-                  onSelectLocation={handleStartLocationSelect}
-                />
-                {validationErrors.startLocation && (
-                  <div className="text-red-400 text-sm mt-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {validationErrors.startLocation}
-                  </div>
-                )}
-              </div>
-              
+              {/* Destination field first */}
               <div>
                 <AddressAutocomplete
                   id="end-location"
@@ -536,9 +555,10 @@ export default function RoadTripCalculator() {
                   value={endLocation}
                   onChange={setEndLocation}
                   onSelectLocation={handleEndLocationSelect}
+                  className="input-focus-animation"
                 />
                 {validationErrors.endLocation && (
-                  <div className="text-red-400 text-sm mt-1 flex items-center">
+                  <div className="text-red-500 text-sm mt-1 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
@@ -546,29 +566,57 @@ export default function RoadTripCalculator() {
                   </div>
                 )}
               </div>
+              
+              {/* Starting point second */}
+              <div>
+                <AddressAutocomplete
+                  id="start-location"
+                  label="Starting Point"
+                  placeholder="Enter city or address"
+                  value={startLocation}
+                  onChange={setStartLocation}
+                  onSelectLocation={handleStartLocationSelect}
+                  className="input-focus-animation"
+                />
+                {validationErrors.startLocation && (
+                  <div className="text-red-500 text-sm mt-1 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {validationErrors.startLocation}
+                  </div>
+                )}
+              </div>
                 
                 {/* POI Controls */}
-                <POIControlsBar 
-                  activeLayers={activePOILayers}
-                  onChange={handlePOILayerChange}
-                  data-testid="route-poi-controls"
-                />
+                <div className="pt-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-2">
+                    Show on map:
+                  </label>
+                  <POIControlsBar 
+                    activeLayers={activePOILayers}
+                    onChange={handlePOILayerChange}
+                    data-testid="route-poi-controls"
+                  />
+                </div>
             </div>
           </CardContent>
         </Card>
         
         {/* Vehicle & Fuel */}
-          <Card className="bg-gray-800 border-gray-700 mb-6">
+          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '100ms' }}>
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
-              <Car className="h-6 w-6 text-blue-400 mt-1" />
-              <h3 className="text-xl font-semibold text-white">Vehicle & Fuel</h3>
+              <div className="bg-indigo-100 p-2 rounded-lg">
+                <Car className="h-5 w-5 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800">Vehicle & Fuel</h3>
             </div>
             
             <div>
               <RoadTripVehicleEfficiency onDataChange={handleVehicleEfficiencyChange} />
               {validationErrors.vehicleEfficiency && (
-                <div className="text-red-400 text-sm mt-2 flex items-center">
+                <div className="text-red-500 text-sm mt-2 flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -580,11 +628,13 @@ export default function RoadTripCalculator() {
         </Card>
         
         {/* Additional Costs */}
-          <Card className="bg-gray-800 border-gray-700 mb-6">
+          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '200ms' }}>
           <CardContent className="pt-6">
             <div className="flex items-start gap-2 mb-4">
-              <DollarSign className="h-6 w-6 text-blue-400 mt-1" />
-              <h3 className="text-xl font-semibold text-white">Additional Costs</h3>
+              <div className="bg-green-100 p-2 rounded-lg">
+                <DollarSign className="h-5 w-5 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800">Additional Costs</h3>
             </div>
             
             <RoadTripTollsInput value={tollCost} onChange={handleTollChange} />
@@ -593,19 +643,25 @@ export default function RoadTripCalculator() {
         
         {/* Calculate button */}
         <Button 
-          className="w-full py-6 text-lg"
+          className="w-full py-6 text-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white transition-all shadow-md hover:shadow-lg hover:scale-[1.01] card-animate-in"
+          style={{ animationDelay: '300ms' }}
           onClick={handleCalculate}
           disabled={status.loading}
         >
-          {status.loading ? 'Calculating...' : 'Calculate Trip Cost'}
+          {status.loading ? (
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              <span>Calculating...</span>
+            </div>
+          ) : 'Calculate Trip Cost'}
         </Button>
         
         {/* Error message - Make it more noticeable */}
         {status.error && (
             <div className="sticky bottom-4 z-50 mt-4">
-            <Alert variant="destructive" className="bg-red-900 border-red-800 text-white animate-pulse shadow-lg border-2">
-              <AlertDescription className="text-white font-medium flex items-center text-lg py-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-700 shadow-lg border animate-pulse">
+              <AlertDescription className="font-medium flex items-center text-base py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 {status.error}
@@ -618,12 +674,12 @@ export default function RoadTripCalculator() {
       
       {/* Tabbed container after calculation */}
       {route && (
-        <div className="w-full xl:w-1/3 bg-gray-900 h-full overflow-hidden flex flex-col">
+        <div className="w-full xl:w-1/3 bg-white dark:bg-gray-50 h-full overflow-hidden flex flex-col" ref={smallScreenPOIRef}>
           {/* Show POI detail panel when a POI is selected */}
           {selectedPOI && (
             <div className="px-4 pt-4">
-              <div className="flex items-center gap-2 mb-2 text-white">
-                <MapPin className="h-5 w-5 text-blue-400" />
+              <div className="flex items-center gap-2 mb-2 text-gray-800">
+                <MapPin className="h-5 w-5 text-blue-600" />
                 <h3 className="text-lg font-medium">Selected Point Details</h3>
               </div>
               <POIDetailPanel 
@@ -648,7 +704,7 @@ export default function RoadTripCalculator() {
                     unitSystem={vehicleEfficiency?.unitSystem || 'imperial'} 
                   />
                 ) : (
-                  <div className="text-center p-6 text-gray-400">
+                  <div className="text-center p-6 text-gray-500">
                     <p>No detailed directions available for this route.</p>
                   </div>
                 )
@@ -661,7 +717,7 @@ export default function RoadTripCalculator() {
                     unitSystem={vehicleEfficiency?.unitSystem || 'imperial'}
                   />
                 ) : (
-                  <div className="text-center p-6 text-gray-400">
+                  <div className="text-center p-6 text-gray-500">
                     <p>Cost information not available.</p>
                   </div>
                 )
@@ -674,26 +730,12 @@ export default function RoadTripCalculator() {
             />
           </div>
           
-          {/* Status message - Removed to save space */}
-          {/* {status.message && (
-            <div className="p-4">
-          <Alert className={status.usingFallback ? "bg-amber-900 border-amber-800" : "bg-blue-900 border-blue-800"}>
-            <AlertDescription className="text-white flex items-center">
-              {status.usingFallback ? (
-                <Info className="h-4 w-4 mr-2" />
-              ) : null}
-              {status.message}
-            </AlertDescription>
-          </Alert>
-            </div>
-          )} */}
-        
           {/* Only show critical fallback warning */}
           {status.usingFallback && (
             <div className="p-4">
-              <Alert className="bg-amber-900 border-amber-800">
-                <AlertDescription className="text-white flex items-center">
-                  <Info className="h-4 w-4 mr-2" />
+              <Alert className="bg-amber-50 border-amber-200 text-amber-800">
+                <AlertDescription className="text-amber-800 flex items-center">
+                  <Info className="h-4 w-4 mr-2 text-amber-600" />
                   Using estimated route. Distance and time are approximate.
                 </AlertDescription>
               </Alert>
@@ -701,10 +743,9 @@ export default function RoadTripCalculator() {
           )}
           
           {/* Back to Edit button */}
-          <div className="p-4 border-t border-gray-800">
+          <div className={`p-4 border-t border-gray-200 ${selectedPOI ? 'pt-0.5' : ''}`}>
             <Button 
-              variant="outline" 
-              className="w-full"
+              className="w-full py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-2"
               onClick={() => {
                 setRoute(null);
                 setCosts(null);
@@ -716,11 +757,15 @@ export default function RoadTripCalculator() {
                 });
               }}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+              </svg>
               Edit Trip Details
             </Button>
-            </div>
           </div>
-        )}
+        </div>
+      )}
       
       {/* Map container */}
       <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[400px] xl:h-screen`}>

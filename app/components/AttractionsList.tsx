@@ -15,7 +15,7 @@ const AttractionsList: React.FC<AttractionsListProps> = ({ attractions, onAttrac
   
   if (attractions.length === 0) {
     return (
-      <div className="text-center p-6 text-gray-400">
+      <div className="text-center p-6 text-gray-500">
         <p>No attractions found near your route.</p>
         <p className="text-sm mt-2">Try adjusting your route or enabling the Attractions layer.</p>
       </div>
@@ -24,7 +24,7 @@ const AttractionsList: React.FC<AttractionsListProps> = ({ attractions, onAttrac
   
   return (
     <div>
-      <h3 className="text-white font-medium mb-4">Attractions & Tours Along Your Route</h3>
+      <h3 className="text-gray-800 dark:text-gray-900 font-medium mb-4">Attractions & Tours Along Your Route</h3>
       <div className="grid grid-cols-2 gap-4">
         {limitedAttractions.map((attraction) => (
           <AttractionCard
@@ -35,7 +35,7 @@ const AttractionsList: React.FC<AttractionsListProps> = ({ attractions, onAttrac
         ))}
       </div>
       {attractions.length > 14 && (
-        <p className="text-center text-gray-400 text-sm mt-4">
+        <p className="text-center text-gray-500 text-sm mt-4">
           Showing 14 of {attractions.length} attractions. Zoom in on the map to see more.
         </p>
       )}
