@@ -12,6 +12,7 @@ interface AddressAutocompleteProps {
   onChange: (value: string) => void;
   onSelectLocation: (value: string) => void;
   className?: string;
+  customIcon?: React.ReactNode;
 }
 
 interface Suggestion {
@@ -27,6 +28,7 @@ export default function AddressAutocomplete({
   onChange,
   onSelectLocation,
   className = '',
+  customIcon,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -148,9 +150,11 @@ export default function AddressAutocomplete({
   
   return (
     <div className="space-y-2 relative">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      {label && (
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
       <div className="relative">
         <Input
           id={id}
@@ -162,7 +166,7 @@ export default function AddressAutocomplete({
           onFocus={() => value.length >= 3 && setShowSuggestions(true)}
         />
         <div className="absolute left-3 top-2.5 h-5 w-5 text-blue-500 opacity-70">
-          <MapPin className="h-5 w-5" />
+          {customIcon || <MapPin className="h-5 w-5" />}
         </div>
         {isLoading && (
           <div className="absolute right-3 top-2.5 h-5 w-5 text-blue-500">
@@ -199,7 +203,13 @@ export default function AddressAutocomplete({
               >
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mr-2 mt-0.5 text-blue-500">
-                    <MapPin className="h-4 w-4" />
+                    {customIcon ? (
+                      <div className="h-4 w-4 scale-75 transform origin-top-left">
+                        {customIcon}
+                      </div>
+                    ) : (
+                      <MapPin className="h-4 w-4" />
+                    )}
                   </div>
                   <span>{suggestion.label}</span>
                 </div>

@@ -495,11 +495,11 @@ export default function RoadTripCalculator() {
   const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
   
   return (
-    <div className="flex flex-col xl:flex-row h-screen">
-      {/* Form inputs - before calculation */}
+    <div className="flex flex-col xl:flex-row min-h-screen">
+      {/* Form inputs - before calculation - adjusted to fill more space on mobile */}
       {!route && (
-        <div className="w-full xl:w-1/3 bg-gradient-to-br from-gray-50 to-blue-50 p-6 overflow-y-auto">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-900 mb-6">Road Trip Calculator</h2>
+        <div className="w-full xl:w-1/3 bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6 min-h-[1000px] xl:h-screen overflow-y-auto flex flex-col">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-900 mb-4 sm:mb-6">Road Trip Calculator</h2>
           
           {/* Custom animation styles */}
           <style jsx global>{`
@@ -535,146 +535,190 @@ export default function RoadTripCalculator() {
             }
           `}</style>
           
-        {/* Route Information */}
-          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '0ms' }}>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-2 mb-4">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <MapPin className="h-5 w-5 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800">Route Information</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {/* Destination field first */}
-              <div>
-                <AddressAutocomplete
-                  id="end-location"
-                  label="Destination"
-                  placeholder="Enter city or address"
-                  value={endLocation}
-                  onChange={setEndLocation}
-                  onSelectLocation={handleEndLocationSelect}
-                  className="input-focus-animation"
-                />
-                {validationErrors.endLocation && (
-                  <div className="text-red-500 text-sm mt-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {validationErrors.endLocation}
+          <div className="flex-grow flex flex-col justify-between">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Route Information */}
+              <Card className="bg-white border-none shadow-md rounded-xl mb-3 sm:mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '0ms' }}>
+                <CardContent className="p-4 sm:pt-6 sm:px-6">
+                  <div className="flex items-start gap-2 mb-3 sm:mb-4">
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <MapPin className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Route Information</h3>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Destination field first */}
+                    <div>
+                      <label htmlFor="end-location" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                        <span className="inline-flex items-center justify-center bg-red-100 rounded-full p-1">
+                          <svg width="14" height="14" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="0" width="4" height="32" fill="#666"/>
+                            <rect x="6" y="0" width="20" height="20" fill="#FF3B30"/>
+                            <rect x="6" y="0" width="10" height="10" fill="white"/>
+                            <rect x="16" y="10" width="10" height="10" fill="white"/>
+                          </svg>
+                        </span>
+                        Destination
+                      </label>
+                      <div className="relative rounded-md overflow-hidden border-2 border-red-100 shadow-sm">
+                        <AddressAutocomplete
+                          id="end-location"
+                          label=""
+                          placeholder="Enter city or address"
+                          value={endLocation}
+                          onChange={setEndLocation}
+                          onSelectLocation={handleEndLocationSelect}
+                          className="input-focus-animation border-0 bg-red-50/30 focus:bg-white transition-colors"
+                          customIcon={
+                            <svg width="16" height="16" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-90">
+                              <rect x="2" y="0" width="4" height="32" fill="#666"/>
+                              <rect x="6" y="0" width="20" height="20" fill="#FF3B30"/>
+                              <rect x="6" y="0" width="10" height="10" fill="white"/>
+                              <rect x="16" y="10" width="10" height="10" fill="white"/>
+                            </svg>
+                          }
+                        />
+                      </div>
+                      {validationErrors.endLocation && (
+                        <div className="text-red-500 text-sm mt-1 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {validationErrors.endLocation}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Starting point second */}
+                    <div>
+                      <label htmlFor="start-location" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                        <span className="inline-flex items-center justify-center bg-green-100 rounded-full p-1">
+                          <svg width="14" height="14" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 0C5.383 0 0 5.383 0 12C0 20.383 12 36 12 36C12 36 24 20.383 24 12C24 5.383 18.617 0 12 0Z" fill="#008000"/>
+                            <circle cx="12" cy="12" r="6" fill="white"/>
+                          </svg>
+                        </span>
+                        Starting Point
+                      </label>
+                      <div className="relative rounded-md overflow-hidden border-2 border-green-100 shadow-sm">
+                        <AddressAutocomplete
+                          id="start-location"
+                          label=""
+                          placeholder="Enter city or address"
+                          value={startLocation}
+                          onChange={setStartLocation}
+                          onSelectLocation={handleStartLocationSelect}
+                          className="input-focus-animation border-0 bg-green-50/30 focus:bg-white transition-colors"
+                          customIcon={
+                            <svg width="16" height="16" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-90">
+                              <path d="M12 0C5.383 0 0 5.383 0 12C0 20.383 12 36 12 36C12 36 24 20.383 24 12C24 5.383 18.617 0 12 0Z" fill="#008000"/>
+                              <circle cx="12" cy="12" r="6" fill="white"/>
+                            </svg>
+                          }
+                        />
+                      </div>
+                      {validationErrors.startLocation && (
+                        <div className="text-red-500 text-sm mt-1 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {validationErrors.startLocation}
+                        </div>
+                      )}
+                    </div>
+                      
+                    {/* POI Controls */}
+                    <div className="pt-1 sm:pt-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 sm:mb-2">
+                        Show on map:
+                      </label>
+                      <POIControlsBar 
+                        activeLayers={activePOILayers}
+                        onChange={handlePOILayerChange}
+                        data-testid="route-poi-controls"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
               
-              {/* Starting point second */}
-              <div>
-                <AddressAutocomplete
-                  id="start-location"
-                  label="Starting Point"
-                  placeholder="Enter city or address"
-                  value={startLocation}
-                  onChange={setStartLocation}
-                  onSelectLocation={handleStartLocationSelect}
-                  className="input-focus-animation"
-                />
-                {validationErrors.startLocation && (
-                  <div className="text-red-500 text-sm mt-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {validationErrors.startLocation}
+              {/* Vehicle & Fuel */}
+              <Card className="bg-white border-none shadow-md rounded-xl mb-3 sm:mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '100ms' }}>
+                <CardContent className="p-4 sm:pt-6 sm:px-6">
+                  <div className="flex items-start gap-2 mb-3 sm:mb-4">
+                    <div className="bg-indigo-100 p-2 rounded-lg">
+                      <Car className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Vehicle & Fuel</h3>
                   </div>
-                )}
-              </div>
-                
-                {/* POI Controls */}
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-2">
-                    Show on map:
-                  </label>
-                  <POIControlsBar 
-                    activeLayers={activePOILayers}
-                    onChange={handlePOILayerChange}
-                    data-testid="route-poi-controls"
-                  />
-                </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Vehicle & Fuel */}
-          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '100ms' }}>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-2 mb-4">
-              <div className="bg-indigo-100 p-2 rounded-lg">
-                <Car className="h-5 w-5 text-indigo-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800">Vehicle & Fuel</h3>
+                  
+                  <div>
+                    <RoadTripVehicleEfficiency onDataChange={handleVehicleEfficiencyChange} />
+                    {validationErrors.vehicleEfficiency && (
+                      <div className="text-red-500 text-sm mt-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {validationErrors.vehicleEfficiency}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Additional Costs */}
+              <Card className="bg-white border-none shadow-md rounded-xl mb-3 sm:mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '200ms' }}>
+                <CardContent className="p-4 sm:pt-6 sm:px-6">
+                  <div className="flex items-start gap-2 mb-3 sm:mb-4">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Additional Costs</h3>
+                  </div>
+                  
+                  <RoadTripTollsInput value={tollCost} onChange={handleTollChange} />
+                </CardContent>
+              </Card>
             </div>
             
-            <div>
-              <RoadTripVehicleEfficiency onDataChange={handleVehicleEfficiencyChange} />
-              {validationErrors.vehicleEfficiency && (
-                <div className="text-red-500 text-sm mt-2 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {validationErrors.vehicleEfficiency}
+            {/* Calculate button - pushed to bottom with margin-top auto */}
+            <div className="mt-auto pt-4">
+              <Button 
+                className="w-full py-4 sm:py-6 text-base sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white transition-all shadow-md hover:shadow-lg hover:scale-[1.01] card-animate-in"
+                style={{ animationDelay: '300ms' }}
+                onClick={handleCalculate}
+                disabled={status.loading}
+              >
+                {status.loading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    <span>Calculating...</span>
+                  </div>
+                ) : 'Calculate Trip Cost'}
+              </Button>
+              
+              {/* Error message - Make it more noticeable */}
+              {status.error && (
+                <div className="sticky bottom-4 z-50 mt-4">
+                  <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-700 shadow-lg border animate-pulse">
+                    <AlertDescription className="font-medium flex items-center text-base py-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {status.error}
+                    </AlertDescription>
+                  </Alert>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* Additional Costs */}
-          <Card className="bg-white border-none shadow-md rounded-xl mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '200ms' }}>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-2 mb-4">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <DollarSign className="h-5 w-5 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800">Additional Costs</h3>
-            </div>
-            
-            <RoadTripTollsInput value={tollCost} onChange={handleTollChange} />
-          </CardContent>
-        </Card>
-        
-        {/* Calculate button */}
-        <Button 
-          className="w-full py-6 text-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white transition-all shadow-md hover:shadow-lg hover:scale-[1.01] card-animate-in"
-          style={{ animationDelay: '300ms' }}
-          onClick={handleCalculate}
-          disabled={status.loading}
-        >
-          {status.loading ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              <span>Calculating...</span>
-            </div>
-          ) : 'Calculate Trip Cost'}
-        </Button>
-        
-        {/* Error message - Make it more noticeable */}
-        {status.error && (
-            <div className="sticky bottom-4 z-50 mt-4">
-            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-700 shadow-lg border animate-pulse">
-              <AlertDescription className="font-medium flex items-center text-base py-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                {status.error}
-              </AlertDescription>
-            </Alert>
           </div>
-        )}
         </div>
       )}
       
-      {/* Tabbed container after calculation */}
+      {/* Tabbed container after calculation - matched to height of trip details */}
       {route && (
-        <div className="w-full xl:w-1/3 bg-white dark:bg-gray-50 h-full overflow-hidden flex flex-col" ref={smallScreenPOIRef}>
+        <div className="w-full xl:w-1/3 bg-white dark:bg-gray-50 min-h-[1000px] xl:h-screen overflow-hidden flex flex-col" ref={smallScreenPOIRef}>
           {/* Show POI detail panel when a POI is selected */}
           {selectedPOI && (
             <div className="px-4 pt-4">
@@ -745,7 +789,7 @@ export default function RoadTripCalculator() {
           {/* Back to Edit button */}
           <div className={`p-4 border-t border-gray-200 ${selectedPOI ? 'pt-0.5' : ''}`}>
             <Button 
-              className="w-full py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-2"
+              className="w-full py-3 sm:py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-2"
               onClick={() => {
                 setRoute(null);
                 setCosts(null);
@@ -767,8 +811,8 @@ export default function RoadTripCalculator() {
         </div>
       )}
       
-      {/* Map container */}
-      <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[400px] xl:h-screen`}>
+      {/* Map container - preserving dimensions while allowing form to expand */}
+      <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] xl:h-screen`}>
           <DynamicRoadTripMap 
             startCoords={startCoords || undefined} 
             endCoords={endCoords || undefined} 
@@ -776,10 +820,10 @@ export default function RoadTripCalculator() {
             isFallbackRoute={status.usingFallback}
             startLocation={startLocation}
             endLocation={endLocation}
-          activePOILayers={activePOILayers}
-          onLayerChange={handlePOILayerChange}
-          onSelectPOI={handlePOISelect}
-        />
+            activePOILayers={activePOILayers}
+            onLayerChange={handlePOILayerChange}
+            onSelectPOI={handlePOISelect}
+          />
       </div>
     </div>
   )
