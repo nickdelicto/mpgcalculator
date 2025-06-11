@@ -7,6 +7,7 @@ import { Coordinates } from '../utils/routingService'
 import ServiceMarkers from './ServiceMarkers'
 import { POI } from '../utils/overpassService'
 import MapPOIControls from './MapPOIControls'
+import MapActionButtons from './MapActionButtons'
 
 // Define prop types for the map component
 interface MapProps {
@@ -52,6 +53,10 @@ const RoadTripMap: React.FC<MapProps> = ({
   // Add a state to track when the map is fully ready for user interaction
   const [mapFullyReady, setMapFullyReady] = useState(false)
   const [poiCount, setPoiCount] = useState(0)
+  
+  // States to determine when to show the action buttons
+  const [showAttractionButton, setShowAttractionButton] = useState(false)
+  const [showAccommodationButton, setShowAccommodationButton] = useState(false)
   
   // Load saved layers from localStorage after mount (client-side only)
   useEffect(() => {
@@ -595,6 +600,99 @@ const RoadTripMap: React.FC<MapProps> = ({
   // Fix the POI counter display
   const debugInfo = `Map Ready: ${mapFullyReady ? 'Yes' : 'No'} | Layers: ${activeLayers.length} | POIs: ${poiCount}`;
   
+  // Extract destination location details from full location string
+  const extractLocationDetails = (location: string): { city: string, region: string, fullLocation: string } => {
+    if (!location) return { city: '', region: '', fullLocation: '' }
+    
+    // Split the string by commas
+    const parts = location.split(',').map(part => part.trim())
+    
+    // Default values
+    let city = ''
+    let region = ''
+    let fullLocation = ''
+    
+    // If we have multiple parts, extract city and region
+    if (parts.length >= 2) {
+      city = parts[0]
+      region = parts[1]
+      
+      // Create a more complete location string for better search results
+      fullLocation = `${city}, ${region}`
+    } else if (parts.length === 1) {
+      // If we only have one part, use it as the city
+      city = parts[0]
+      fullLocation = city
+    }
+    
+    return { city, region, fullLocation }
+  }
+  
+  // Handle Find Attractions button click - now opens Viator search in new tab
+  const handleFindAttractions = () => {
+    if (!endCoords || !endLocation) {
+      console.log('Cannot find attractions: No destination set')
+      return
+    }
+    
+    // Extract location details
+    const { city, region, fullLocation } = extractLocationDetails(endLocation)
+    
+    // Create a Viator search URL with proper attribution parameters
+    const viatorAffiliateId = 'P00255194' // Replace with your actual Viator affiliate ID
+    
+    // For a more effective search, use location details to create a better search query
+    // If we have both city and region, include both for more relevant results
+    const searchQuery = region ? `things to do in ${city}, ${region}` : `things to do in ${city}`
+    
+    const searchParams = new URLSearchParams({
+      pid: viatorAffiliateId,
+      mcid: '42383', // Standard MCID parameter for attribution
+      medium: 'link',
+      campaign: 'road-trip-calculator',
+      q: searchQuery
+    })
+    
+    const viatorUrl = `https://www.viator.com/search?${searchParams.toString()}`
+    console.log(`Opening Viator search for attractions in ${fullLocation}: ${viatorUrl}`)
+    
+    // Open in new tab
+    window.open(viatorUrl, '_blank')
+  }
+  
+  // Handle Find Accommodation button click - now opens TripAdvisor search in new tab
+  const handleFindAccommodation = () => {
+    if (!endCoords || !endLocation) {
+      console.log('Cannot find accommodation: No destination set')
+      return
+    }
+    
+    // Extract location details
+    const { city, region, fullLocation } = extractLocationDetails(endLocation)
+    
+    // Create a more effective TripAdvisor URL
+    // Include both city and region in the search query if available
+    const searchQuery = region ? `${city}, ${region} hotels` : `${city} hotels`
+    
+    // For now, use the search approach which is more forgiving with destination names
+    const tripAdvisorUrl = `https://www.tripadvisor.com/Search?q=${encodeURIComponent(searchQuery)}&searchSessionId=road-trip-calc-${Date.now()}`
+    
+    console.log(`Opening TripAdvisor search for hotels in ${fullLocation}: ${tripAdvisorUrl}`)
+    
+    // Open in new tab
+    window.open(tripAdvisorUrl, '_blank')
+  }
+  
+  // Only show buttons when we have a destination
+  useEffect(() => {
+    // Only show buttons when we have a route and destination
+    const hasDestination = mapFullyReady && routeGeometry && endCoords && endLocation
+    
+    setShowAttractionButton(hasDestination)
+    setShowAccommodationButton(hasDestination)
+    
+  }, [mapFullyReady, routeGeometry, endCoords, endLocation])
+  
   return (
     <div className="flex flex-col h-full w-full">
       {/* POI Controls positioned OUTSIDE the map */}
@@ -620,6 +718,16 @@ const RoadTripMap: React.FC<MapProps> = ({
             onPOIClick={handlePOIClick}
             onCountUpdate={updatePOICount}
             onSelectPOI={onSelectPOI}
+          />
+        )}
+        
+        {/* Map Action Buttons */}
+        {mapFullyReady && (
+          <MapActionButtons
+            showAttractions={showAttractionButton}
+            showAccommodation={showAccommodationButton}
+            onFindAttractions={handleFindAttractions}
+            onFindAccommodation={handleFindAccommodation}
           />
         )}
         

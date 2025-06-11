@@ -381,18 +381,18 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
           {/* Image or colored background with icon */}
           {(poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL) ? (
             <>
-              <img 
-                src={poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL}
-                alt={poi.name}
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const fallbackElement = document.getElementById(`fallback-icon-${poi.id}`);
-                  if (fallbackElement) {
-                    fallbackElement.style.display = 'flex';
-                  }
-                }}
-              />
+            <img 
+              src={poi.tags.thumbnailHiResURL || poi.tags.thumbnailURL}
+              alt={poi.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallbackElement = document.getElementById(`fallback-icon-${poi.id}`);
+                if (fallbackElement) {
+                  fallbackElement.style.display = 'flex';
+                }
+              }}
+            />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70"></div>
             </>
           ) : (
@@ -588,85 +588,85 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Details section */}
-            <div className="sm:col-span-2 text-gray-300 space-y-3">
-              {/* Address */}
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                <span>{poi.tags.address || 'Address not available'}</span>
-              </div>
-              
-              {/* Phone if available */}
-              {poi.tags.phone && poi.type !== 'hotels' && (
-                <div className="flex items-start gap-2">
-                  <Phone className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span>{formatPhone(poi.tags.phone)}</span>
-                </div>
-              )}
-              
-              {/* Opening hours if available */}
-              {poi.tags.opening_hours && poi.type !== 'hotels' && (
-                <div className="flex items-start gap-2">
-                  <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <span>{poi.tags.opening_hours}</span>
-                </div>
-              )}
-              
-              {/* Website if available */}
-              {poi.tags.website && poi.type !== 'hotels' && (
-                <div className="flex items-start gap-2">
-                  <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <a 
-                    href={poi.tags.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-400 hover:underline truncate max-w-full"
-                  >
-                    {poi.tags.website.replace(/^https?:\/\//, '')}
-                  </a>
-                </div>
-              )}
-              
-              {/* Category-specific details */}
-              {poi.type === 'gasStations' && (
-                <>
-                  {poi.tags.brand && (
-                    <div className="flex items-start gap-2">
-                      <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                      <span><strong>Brand:</strong> {poi.tags.brand}</span>
-                    </div>
-                  )}
-                  {poi.tags.fuel_type && (
-                    <div className="flex items-start gap-2">
-                      <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                      <span><strong>Fuel Types:</strong> {poi.tags.fuel_type}</span>
-                    </div>
-                  )}
-                </>
-              )}
-              
-              {poi.type === 'evCharging' && (
-                <>
-                  {poi.tags.brand && (
-                    <div className="flex items-start gap-2">
-                      <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                      <span><strong>Operator:</strong> {poi.tags.brand}</span>
-                    </div>
-                  )}
-                  {poi.tags.capacity && (
-                    <div className="flex items-start gap-2">
-                      <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
-                      <span><strong>Charging Points:</strong> {poi.tags.capacity}</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
         
+        {/* Details section */}
+        <div className="sm:col-span-2 text-gray-300 space-y-3">
+          {/* Address */}
+          <div className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+            <span>{poi.tags.address || 'Address not available'}</span>
+          </div>
+          
+          {/* Phone if available */}
+          {poi.tags.phone && poi.type !== 'hotels' && (
+            <div className="flex items-start gap-2">
+              <Phone className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+              <span>{formatPhone(poi.tags.phone)}</span>
+            </div>
+          )}
+          
+          {/* Opening hours if available */}
+          {poi.tags.opening_hours && poi.type !== 'hotels' && (
+            <div className="flex items-start gap-2">
+              <Clock className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+              <span>{poi.tags.opening_hours}</span>
+            </div>
+          )}
+          
+          {/* Website if available */}
+          {poi.tags.website && poi.type !== 'hotels' && (
+            <div className="flex items-start gap-2">
+              <Globe className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+              <a 
+                href={poi.tags.website} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-blue-400 hover:underline truncate max-w-full"
+              >
+                {poi.tags.website.replace(/^https?:\/\//, '')}
+              </a>
+            </div>
+          )}
+          
+          {/* Category-specific details */}
+          {poi.type === 'gasStations' && (
+            <>
+              {poi.tags.brand && (
+                <div className="flex items-start gap-2">
+                  <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>Brand:</strong> {poi.tags.brand}</span>
+                </div>
+              )}
+              {poi.tags.fuel_type && (
+                <div className="flex items-start gap-2">
+                  <Fuel className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>Fuel Types:</strong> {poi.tags.fuel_type}</span>
+                </div>
+              )}
+            </>
+          )}
+          
+          {poi.type === 'evCharging' && (
+            <>
+              {poi.tags.brand && (
+                <div className="flex items-start gap-2">
+                  <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>Operator:</strong> {poi.tags.brand}</span>
+                </div>
+              )}
+              {poi.tags.capacity && (
+                <div className="flex items-start gap-2">
+                  <Zap className="h-4 w-4 mt-1 flex-shrink-0 text-gray-400" />
+                  <span><strong>Charging Points:</strong> {poi.tags.capacity}</span>
+                </div>
+              )}
+            </>
+          )}
+                    </div>
+                  </div>
+                )}
+                
         {/* Only render action buttons for non-attraction POIs since we handle them separately for attractions */}
         {poi.type !== 'attractions' && renderActionButtons()}
       </div>
