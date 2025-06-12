@@ -133,59 +133,59 @@ const TabsContainer: React.FC<TabsContainerProps> = ({
       <div className="relative">
         <div className="overflow-x-auto scrollbar-hide" ref={scrollContainerRef}>
           <div className="flex border-b border-gray-200 min-w-max">
-            {hasHotels && (
-              <button
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                  activeTab === getTabIndex('hotels')
+        {hasHotels && (
+          <button
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+              activeTab === getTabIndex('hotels')
                     ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-                onClick={() => handleTabClick(getTabIndex('hotels'))}
-              >
-                <Hotel className="h-4 w-4" />
-                <span>Hotels</span>
-              </button>
-            )}
-            
-            {hasAttractions && (
-              <button
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                  activeTab === getTabIndex('attractions')
+            }`}
+            onClick={() => handleTabClick(getTabIndex('hotels'))}
+          >
+            <Hotel className="h-4 w-4" />
+            <span>Hotels</span>
+          </button>
+        )}
+        
+        {hasAttractions && (
+          <button
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+              activeTab === getTabIndex('attractions')
                     ? 'text-purple-600 border-b-2 border-purple-600'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-                onClick={() => handleTabClick(getTabIndex('attractions'))}
-              >
-                <Camera className="h-4 w-4" />
-                <span>Attractions</span>
-              </button>
-            )}
-            
-            {hasDirections && (
-              <button
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                  activeTab === getTabIndex('directions')
+            }`}
+            onClick={() => handleTabClick(getTabIndex('attractions'))}
+          >
+            <Camera className="h-4 w-4" />
+            <span>Attractions</span>
+          </button>
+        )}
+        
+        {hasDirections && (
+          <button
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+              activeTab === getTabIndex('directions')
                     ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-                onClick={() => handleTabClick(getTabIndex('directions'))}
-              >
-                <Navigation className="h-4 w-4" />
-                <span>Directions</span>
-              </button>
-            )}
-            
-            <button
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
-                activeTab === getTabIndex('summary')
+            }`}
+            onClick={() => handleTabClick(getTabIndex('directions'))}
+          >
+            <Navigation className="h-4 w-4" />
+            <span>Directions</span>
+          </button>
+        )}
+        
+        <button
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+            activeTab === getTabIndex('summary')
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-              onClick={() => handleTabClick(getTabIndex('summary'))}
-            >
-              <Route className="h-4 w-4" />
-              <span>Trip Summary</span>
-            </button>
+          }`}
+          onClick={() => handleTabClick(getTabIndex('summary'))}
+        >
+          <Route className="h-4 w-4" />
+          <span>Trip Summary</span>
+        </button>
           </div>
         </div>
         

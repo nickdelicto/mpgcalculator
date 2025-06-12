@@ -290,7 +290,7 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
                 </span>
               </div>
             ) : (
-              <span className="text-white text-xs font-medium">{attraction.tags.price}</span>
+            <span className="text-white text-xs font-medium">{attraction.tags.price}</span>
             )}
           </div>
         )}
@@ -330,7 +330,7 @@ const AttractionCard: React.FC<AttractionCardProps> = ({ attraction, onClick }) 
           {attraction.tags.originalPrice && Number(attraction.tags.discountPercent) > 0 
             ? `Book with ${attraction.tags.discountPercent}% OFF` 
             : (attraction.tags.price && attraction.tags.price !== 'Price varies' 
-                ? 'Book Now' 
+            ? 'Book Now' 
                 : 'Check Pricing')}
         </Button>
       </div>

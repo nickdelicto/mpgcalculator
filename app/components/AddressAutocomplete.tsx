@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import ReactDOM from 'react-dom'
 import { Input } from '../../components/ui/input'
 import { Loader2, MapPin, AlertCircle } from 'lucide-react'
 
@@ -36,8 +37,61 @@ export default function AddressAutocomplete({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
   
+  // Portal related states
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  
+  // Create portal container on mount
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const container = document.createElement('div');
+      container.className = 'address-autocomplete-portal';
+      document.body.appendChild(container);
+      setPortalContainer(container);
+      
+      return () => {
+        document.body.removeChild(container);
+      };
+    }
+  }, []);
+  
+  // Update dropdown position
+  const updatePosition = useCallback(() => {
+    if (inputWrapperRef.current) {
+      const rect = inputWrapperRef.current.getBoundingClientRect();
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      setDropdownPosition({
+        top: rect.bottom + scrollTop,
+        left: rect.left + scrollLeft,
+        width: rect.width
+      });
+    }
+  }, []);
+  
+  // Set up position tracking
+  useEffect(() => {
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [updatePosition]);
+  
+  // Update position when suggestions change
+  useEffect(() => {
+    if (showSuggestions && suggestions.length > 0) {
+      updatePosition();
+    }
+  }, [showSuggestions, suggestions, updatePosition]);
   
   // Function to fetch address suggestions from our proxy API
   const fetchSuggestions = async (query: string) => {
@@ -114,10 +168,8 @@ export default function AddressAutocomplete({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        suggestionsRef.current && 
-        !suggestionsRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
+        (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) &&
+        (inputRef.current && !inputRef.current.contains(event.target as Node))
       ) {
         setShowSuggestions(false);
       }
@@ -148,14 +200,59 @@ export default function AddressAutocomplete({
     }
   };
   
+  // Add some global styles for portal dropdown
+  useEffect(() => {
+    // Only run on client
+    if (typeof document === 'undefined') return;
+    
+    const styleId = 'address-autocomplete-portal-styles';
+    if (!document.getElementById(styleId)) {
+      const styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      styleEl.innerHTML = `
+        .address-autocomplete-portal {
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 9999;
+          width: 0;
+          height: 0;
+        }
+        
+        .address-autocomplete-dropdown {
+          animation: dropdownFadeIn 0.15s ease-out;
+        }
+        
+        @keyframes dropdownFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+    
+    return () => {
+      const styleEl = document.getElementById(styleId);
+      if (styleEl) {
+        styleEl.remove();
+      }
+    };
+  }, []);
+  
   return (
     <div className="space-y-2 relative">
       {label && (
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
+        {label}
+      </label>
       )}
-      <div className="relative">
+      <div className="relative" ref={inputWrapperRef}>
         <Input
           id={id}
           ref={inputRef}
@@ -183,11 +280,21 @@ export default function AddressAutocomplete({
         </div>
       )}
       
-      {/* Suggestions dropdown - show whenever we have suggestions and user has typed enough */}
-      {showSuggestions && suggestions.length > 0 && (
+      {/* Portal-based suggestions dropdown */}
+      {portalContainer && showSuggestions && suggestions.length > 0 && ReactDOM.createPortal(
         <div 
           ref={suggestionsRef}
-          className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-auto"
+          className="address-autocomplete-dropdown shadow-lg rounded-md border border-gray-200 bg-white"
+          style={{
+            position: 'absolute',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`,
+            zIndex: 9999,
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
+          aria-labelledby={id}
         >
           {isFallback && (
             <div className="px-3 py-1 text-xs text-amber-700 bg-amber-50 border-b border-gray-200">
@@ -216,7 +323,8 @@ export default function AddressAutocomplete({
               </li>
             ))}
           </ul>
-        </div>
+        </div>,
+        portalContainer
       )}
     </div>
   );
