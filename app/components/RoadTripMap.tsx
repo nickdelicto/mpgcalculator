@@ -744,9 +744,9 @@ const RoadTripMap: React.FC<MapProps> = ({
         
         {/* Debugging indicator - only show in development */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">
-            {debugInfo}
-          </div>
+        <div className="fixed bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white p-1 rounded z-50">
+          {debugInfo}
+        </div>
         )}
       </div>
     </div>

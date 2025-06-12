@@ -89,7 +89,7 @@ const RoadTripDirections: React.FC<DirectionsProps> = ({ steps, unitSystem }) =>
           const isFirstStep = index === displaySteps.length - 1;
           const isLastStep = index === 0;
           const isMiddleStep = !isFirstStep && !isLastStep;
-          
+        
           // Special styling for first and last steps (maintaining the green/red)
           const bgColor = isFirstStep 
             ? 'bg-gradient-to-r from-green-700 to-green-600' 
@@ -102,27 +102,27 @@ const RoadTripDirections: React.FC<DirectionsProps> = ({ steps, unitSystem }) =>
           
           // Timeline connector line (shown between steps)
           const showConnector = index < displaySteps.length - 1;
-          
-          return (
+        
+        return (
             <React.Fragment key={index}>
               <div className={`p-3 ${bgColor} rounded-lg shadow-sm flex items-start mb-2 ${isMiddleStep ? 'border border-gray-200 hover:shadow-md transition-shadow duration-200' : ''}`}>
-                {/* Special marker for first/last step, regular icon for other steps */}
-                {isFirstStep ? (
+            {/* Special marker for first/last step, regular icon for other steps */}
+            {isFirstStep ? (
                   <div className="mr-3 mt-1 flex-shrink-0 h-8 w-6 drop-shadow-sm" dangerouslySetInnerHTML={{ __html: START_MARKER_SVG }} />
-                ) : isLastStep ? (
+            ) : isLastStep ? (
                   <div className="mr-3 mt-1 flex-shrink-0 h-8 w-7 drop-shadow-sm" dangerouslySetInnerHTML={{ __html: END_MARKER_SVG }} />
-                ) : (
+            ) : (
                   <div className="mr-3 mt-1 bg-blue-600 rounded-full p-1.5 flex-shrink-0 shadow-sm">
                     <div className="text-white">
-                      {getInstructionIcon(step.type)}
+            {getInstructionIcon(step.type)}
                     </div>
-                  </div>
-                )}
-                
-                <div className="flex-1">
+          </div>
+            )}
+            
+          <div className="flex-1">
                   <p className={`font-medium ${textColor}`}>
-                    {isFirstStep ? 'Start' : isLastStep ? 'Arrive at destination' : step.instruction}
-                  </p>
+                {isFirstStep ? 'Start' : isLastStep ? 'Arrive at destination' : step.instruction}
+              </p>
                   <div className="flex items-center mt-1">
                     <span className={`text-xs ${subTextColor} font-medium`}>
                       {formatDistance(step.distance, unitSystem)}

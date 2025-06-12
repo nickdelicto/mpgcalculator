@@ -545,11 +545,11 @@ export default function RoadTripCalculator() {
                       <MapPin className="h-5 w-5 text-blue-600" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Route Information</h3>
-                  </div>
-                  
+              </div>
+              
                   <div className="space-y-3 sm:space-y-4">
                     {/* Destination field first */}
-                    <div>
+              <div>
                       <label htmlFor="end-location" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                         <span className="inline-flex items-center justify-center bg-red-100 rounded-full p-1">
                           <svg width="14" height="14" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -562,13 +562,13 @@ export default function RoadTripCalculator() {
                         Destination
                       </label>
                       <div className="relative rounded-md overflow-hidden border-2 border-red-100 shadow-sm">
-                        <AddressAutocomplete
-                          id="end-location"
+                <AddressAutocomplete
+                  id="end-location"
                           label=""
-                          placeholder="Enter city or address"
-                          value={endLocation}
-                          onChange={setEndLocation}
-                          onSelectLocation={handleEndLocationSelect}
+                  placeholder="Enter city or address"
+                  value={endLocation}
+                  onChange={setEndLocation}
+                  onSelectLocation={handleEndLocationSelect}
                           className="input-focus-animation border-0 bg-red-50/30 focus:bg-white transition-colors"
                           customIcon={
                             <svg width="16" height="16" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-90">
@@ -578,17 +578,17 @@ export default function RoadTripCalculator() {
                               <rect x="16" y="10" width="10" height="10" fill="white"/>
                             </svg>
                           }
-                        />
+                />
                       </div>
-                      {validationErrors.endLocation && (
+                {validationErrors.endLocation && (
                         <div className="text-red-500 text-sm mt-1 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {validationErrors.endLocation}
-                        </div>
-                      )}
-                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {validationErrors.endLocation}
+                  </div>
+                )}
+              </div>
                     
                     {/* Starting point second */}
                     <div>
@@ -627,23 +627,23 @@ export default function RoadTripCalculator() {
                         </div>
                       )}
                     </div>
-                      
-                    {/* POI Controls */}
+                
+                {/* POI Controls */}
                     <div className="pt-1 sm:pt-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 sm:mb-2">
                         Show on map:
                       </label>
-                      <POIControlsBar 
-                        activeLayers={activePOILayers}
-                        onChange={handlePOILayerChange}
-                        data-testid="route-poi-controls"
-                      />
+                <POIControlsBar 
+                  activeLayers={activePOILayers}
+                  onChange={handlePOILayerChange}
+                  data-testid="route-poi-controls"
+                />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Vehicle & Fuel */}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Vehicle & Fuel */}
               <Card className="bg-white border-none shadow-md rounded-xl mb-3 sm:mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '100ms' }}>
                 <CardContent className="p-4 sm:pt-6 sm:px-6">
                   <div className="flex items-start gap-2 mb-3 sm:mb-4">
@@ -651,23 +651,23 @@ export default function RoadTripCalculator() {
                       <Car className="h-5 w-5 text-indigo-600" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Vehicle & Fuel</h3>
-                  </div>
-                  
-                  <div>
-                    <RoadTripVehicleEfficiency onDataChange={handleVehicleEfficiencyChange} />
-                    {validationErrors.vehicleEfficiency && (
+            </div>
+            
+            <div>
+              <RoadTripVehicleEfficiency onDataChange={handleVehicleEfficiencyChange} />
+              {validationErrors.vehicleEfficiency && (
                       <div className="text-red-500 text-sm mt-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        {validationErrors.vehicleEfficiency}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Additional Costs */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {validationErrors.vehicleEfficiency}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Additional Costs */}
               <Card className="bg-white border-none shadow-md rounded-xl mb-3 sm:mb-6 overflow-hidden hover:shadow-lg transition-all duration-300 card-animate-in" style={{ animationDelay: '200ms' }}>
                 <CardContent className="p-4 sm:pt-6 sm:px-6">
                   <div className="flex items-start gap-2 mb-3 sm:mb-4">
@@ -675,42 +675,42 @@ export default function RoadTripCalculator() {
                       <DollarSign className="h-5 w-5 text-green-600" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Additional Costs</h3>
-                  </div>
-                  
-                  <RoadTripTollsInput value={tollCost} onChange={handleTollChange} />
-                </CardContent>
-              </Card>
             </div>
             
+            <RoadTripTollsInput value={tollCost} onChange={handleTollChange} />
+          </CardContent>
+        </Card>
+            </div>
+        
             {/* Calculate button - pushed to bottom with margin-top auto */}
             <div className="mt-auto pt-4">
-              <Button 
+        <Button 
                 className="w-full py-4 sm:py-6 text-base sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white transition-all shadow-md hover:shadow-lg hover:scale-[1.01] card-animate-in"
                 style={{ animationDelay: '300ms' }}
-                onClick={handleCalculate}
-                disabled={status.loading}
-              >
+          onClick={handleCalculate}
+          disabled={status.loading}
+        >
                 {status.loading ? (
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                     <span>Calculating...</span>
                   </div>
                 ) : 'Calculate Trip Cost'}
-              </Button>
-              
-              {/* Error message - Make it more noticeable */}
-              {status.error && (
-                <div className="sticky bottom-4 z-50 mt-4">
+        </Button>
+        
+        {/* Error message - Make it more noticeable */}
+        {status.error && (
+            <div className="sticky bottom-4 z-50 mt-4">
                   <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-700 shadow-lg border animate-pulse">
                     <AlertDescription className="font-medium flex items-center text-base py-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      {status.error}
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              )}
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {status.error}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
             </div>
           </div>
         </div>
@@ -773,7 +773,7 @@ export default function RoadTripCalculator() {
               hasDirections={hasDirections}
             />
           </div>
-          
+        
           {/* Only show critical fallback warning */}
           {status.usingFallback && (
             <div className="p-4">
@@ -807,9 +807,9 @@ export default function RoadTripCalculator() {
               </svg>
               Edit Trip Details
             </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       
       {/* Map container - preserving dimensions while allowing form to expand */}
       <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] xl:h-screen`}>
@@ -820,10 +820,10 @@ export default function RoadTripCalculator() {
             isFallbackRoute={status.usingFallback}
             startLocation={startLocation}
             endLocation={endLocation}
-            activePOILayers={activePOILayers}
-            onLayerChange={handlePOILayerChange}
-            onSelectPOI={handlePOISelect}
-          />
+          activePOILayers={activePOILayers}
+          onLayerChange={handlePOILayerChange}
+          onSelectPOI={handlePOISelect}
+        />
       </div>
     </div>
   )
