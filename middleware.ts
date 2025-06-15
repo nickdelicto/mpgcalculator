@@ -54,6 +54,11 @@ export function middleware(request: NextRequest) {
   response.headers.set('x-pathname', pathname)
   response.headers.set('x-is-embed', pathname.includes('/embed') ? 'true' : 'false')
   
+  // Add noindex headers for template pages
+  if (pathname.includes('/blog/template/')) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  }
+  
   return response
 }
 
@@ -63,5 +68,6 @@ export const config = {
     '/bolingo/:path*',
     '/api/admin/:path*',
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/blog/template/:path*',
   ],
 } 

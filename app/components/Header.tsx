@@ -5,9 +5,23 @@ import { Button } from "../../components/ui/button"
 import MPGLogo from './MPGLogo'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
+  
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+  
+  const isActive = (path: string) => {
+    return pathname === path || pathname?.startsWith(`${path}/`)
+  }
 
   return (
     <header className="bg-gradient-to-r from-[#057C57] to-[#046A4A] text-[#EDEDED] border-b border-[#046A4A]">
@@ -23,7 +37,7 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button 
             className="md:hidden p-2 hover:bg-[#E77C00] rounded-lg text-[#EDEDED]"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={toggleMenu}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -53,7 +67,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] font-nunito">
-                  <Link href="/feedback">Send Feedback</Link>
+                  <Link href="/blog">Blog</Link>
                 </Button>
               </li>
             </ul>
@@ -86,7 +100,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
-                  <Link href="/feedback">Send Feedback</Link>
+                  <Link href="/blog">Blog</Link>
                 </Button>
               </li>
             </ul>

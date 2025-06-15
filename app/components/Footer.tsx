@@ -23,7 +23,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li><Link href="/road-trip-cost-calculator" className="hover:text-[#E77C00]">Road Trip Cost Calculator</Link></li>
               <li><Link href="/fuel-savings-calculator" className="hover:text-[#E77C00]">Fuel Savings Calculator</Link></li>
-              <li><Link href="/vehicle-mpg-checker" className="hover:text-[#E77C00]">Vehicle MPG Checker</Link></li>
+              <li><Link href="/vehicles" className="hover:text-[#E77C00]">Vehicle MPG Checker</Link></li>
               <li><Link href="/fuel-economy-compare" className="hover:text-[#E77C00]">Compare Fuel Economy</Link></li>
             </ul>
           </div>
