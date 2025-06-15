@@ -18,7 +18,8 @@ export default function robots(): MetadataRoute.Robots {
         '/api/',     // All API routes
         '/bolingo/', // Admin section (renamed from /admin for security)
         '/bolingo/login',
-        '/bolingo/embed-analytics'
+        '/bolingo/embed-analytics',
+        '/blog/template/' // Blog template page - development only
       ]
     },
     sitemap: `${baseUrl}/sitemap.xml`
