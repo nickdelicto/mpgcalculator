@@ -3,12 +3,8 @@ import { POI } from './overpassService';
 import { searchPOIsNearDestination } from './tomtomService';
 import { findNearestDestination } from './viatorDestinationService';
 
-// Viator API key - replace with actual key from environment variable
-const VIATOR_API_KEY = process.env.NEXT_PUBLIC_VIATOR_API_KEY || '';
-
-// Log the presence of the API key (not the key itself for security)
-console.log(`Viator API key ${VIATOR_API_KEY ? 'is configured' : 'is NOT configured'}`);
-console.log('Make sure to set NEXT_PUBLIC_VIATOR_API_KEY in your .env.local file');
+// Viator API is accessed through server-side proxy routes
+// No client-side API key needed - the proxy handles authentication
 
 // Base URL for Viator API
 const BASE_URL = 'https://api.viator.com/partner/';
@@ -27,10 +23,7 @@ export const searchAttractionsNearLocation = async (
 ): Promise<POI[]> => {
   console.log(`[Viator] Attempting to fetch attractions near lat:${location.lat}, lng:${location.lng}, radius:${radius}km`);
   
-  if (!VIATOR_API_KEY) {
-    console.warn('[Viator] API key not configured, using TomTom fallback');
-    return fetchTomTomAttractions(location, radius);
-  }
+  // API calls go through server-side proxy which handles authentication
 
   try {
     // Find the nearest Viator destination to our coordinates
@@ -617,10 +610,7 @@ function calculateDistance(
  * Fetch detailed information about a specific attraction by its Viator product code
  */
 export const getAttractionDetails = async (productCode: string): Promise<any> => {
-  if (!VIATOR_API_KEY) {
-    console.warn('[Viator] API key not configured, cannot fetch attraction details');
-    return null;
-  }
+  // API calls go through server-side proxy which handles authentication
   
   try {
     // Use our proxy endpoint for product details

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const ORS_API_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY || '';
+const ORS_API_KEY = process.env.ORS_API_KEY || '';
 // The geocoding API uses a different endpoint structure than the directions API
 const BASE_URL = 'https://api.openrouteservice.org';
 

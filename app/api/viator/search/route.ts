@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // Add debug log to show this file is loaded
 console.log('🔍 [API] Viator search route module loaded');
 
-const VIATOR_API_KEY = process.env.NEXT_PUBLIC_VIATOR_API_KEY || '';
+const VIATOR_API_KEY = process.env.VIATOR_API_KEY || '';
 const BASE_URL = 'https://api.viator.com/partner';
 
 export async function POST(request: Request) {
@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       console.error('CRITICAL ERROR: Missing Viator API key in environment variables');
       console.error('Environment check:', {
         nodeEnv: process.env.NODE_ENV,
-        hasKey: !!process.env.NEXT_PUBLIC_VIATOR_API_KEY,
-        keyLength: (process.env.NEXT_PUBLIC_VIATOR_API_KEY || '').length
+        hasKey: !!process.env.VIATOR_API_KEY,
+        keyLength: (process.env.VIATOR_API_KEY || '').length
       });
       return NextResponse.json(
         { error: 'Viator API key not configured' },

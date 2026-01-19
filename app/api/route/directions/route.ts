@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const ORS_API_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY || '';
+const ORS_API_KEY = process.env.ORS_API_KEY || '';
 const BASE_URL = 'https://api.openrouteservice.org/v2';
 
 export async function POST(request: Request) {
@@ -12,8 +12,8 @@ export async function POST(request: Request) {
       console.error('CRITICAL ERROR: Missing API key in environment variables for directions API');
       console.error('Environment check:', {
         nodeEnv: process.env.NODE_ENV,
-        hasKey: !!process.env.NEXT_PUBLIC_ORS_API_KEY,
-        keyLength: (process.env.NEXT_PUBLIC_ORS_API_KEY || '').length
+        hasKey: !!process.env.ORS_API_KEY,
+        keyLength: (process.env.ORS_API_KEY || '').length
       });
       return NextResponse.json(
         { error: 'API key not configured' },

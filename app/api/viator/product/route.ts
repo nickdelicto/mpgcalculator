@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // Add debug log to show this file is loaded
 console.log('🔍 [API] Viator product route module loaded');
 
-const VIATOR_API_KEY = process.env.NEXT_PUBLIC_VIATOR_API_KEY || '';
+const VIATOR_API_KEY = process.env.VIATOR_API_KEY || '';
 const BASE_URL = 'https://api.viator.com/partner';
 
 export async function GET(request: Request) {

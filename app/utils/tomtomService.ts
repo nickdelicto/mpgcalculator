@@ -1,12 +1,8 @@
 import { Coordinates } from './routingService';
 import { POI } from './overpassService';
 
-// TomTom API key - replace with actual key from environment variable
-const TOMTOM_API_KEY = process.env.NEXT_PUBLIC_TOMTOM_API_KEY || '';
-
-// Log the presence of the API key (not the key itself for security)
-console.log(`TomTom API key ${TOMTOM_API_KEY ? 'is configured' : 'is NOT configured'}`);
-console.log('Make sure to set NEXT_PUBLIC_TOMTOM_API_KEY in your .env.local file');
+// TomTom API is accessed through server-side proxy routes
+// No client-side API key needed - the proxy handles authentication
 
 // Category mapping between our internal categories and TomTom categories
 const CATEGORY_MAPPING = {
@@ -123,11 +119,6 @@ export const searchPOIsAlongRoute = async (
   routeGeometry: any,
   poiType: string
 ): Promise<POI[]> => {
-  if (!TOMTOM_API_KEY) {
-    console.error('TomTom API key not found');
-    throw new Error('TomTom API key not configured');
-  }
-  
   try {
     // Extract coordinates from route geometry
     const coordinates = routeGeometry.coordinates;
@@ -230,16 +221,17 @@ const searchPOIsAroundPoint = async (
 ): Promise<any[]> => {
   // TomTom API parameters
   const limit = 10; // Maximum 10 results per point
-  
-  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_API_KEY}&lat=${point.lat}&lon=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
-  
+
+  // Use proxy route instead of direct API call
+  const url = `/api/tomtom/nearby?lat=${point.lat}&lng=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
+
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`TomTom API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data.results || [];
   } catch (error) {
@@ -298,11 +290,6 @@ export const searchPOIsNearDestination = async (
   destination: Coordinates,
   poiTypes: string[]
 ): Promise<{[key: string]: POI[]}> => {
-  if (!TOMTOM_API_KEY) {
-    console.error('TomTom API key not found');
-    throw new Error('TomTom API key not configured');
-  }
-  
   try {
     // Create an object to store POIs by type
     const result: {[key: string]: POI[]} = {};
@@ -343,74 +330,23 @@ const batchSearchPOIsNearDestination = async (
   destination: Coordinates,
   poiTypes: string[]
 ): Promise<{[key: string]: POI[]}> => {
-  if (!TOMTOM_API_KEY) {
-    console.error('TomTom API key not found');
-    throw new Error('TomTom API key not configured');
-  }
-  
   try {
-    // Create batch request URL
-    const batchRequests = poiTypes.map(poiType => {
-      // Get TomTom category ID
+    // Use parallel individual requests through proxy instead of batch API
+    const result: {[key: string]: POI[]} = {};
+
+    const searchPromises = poiTypes.map(async (poiType) => {
       const categoryId = CATEGORY_MAPPING[poiType as keyof typeof CATEGORY_MAPPING];
       if (!categoryId) {
         console.warn(`Unknown POI type: ${poiType}`);
-        return null;
+        return;
       }
-      
-      // Determine appropriate search radius for this POI type
+
       const radius = getSearchRadiusForPOI(poiType);
-      
-      // Create batch request
-      return {
-        query: `nearby/${destination.lat},${destination.lng}.json?key=${TOMTOM_API_KEY}&radius=${radius}&limit=20&categorySet=${categoryId}`,
-        poiType
-      };
-    }).filter(Boolean);
-    
-    if (batchRequests.length === 0) {
-      throw new Error('No valid POI types to search for');
-    }
-    
-    // Construct batch request
-    const batchUrl = 'https://api.tomtom.com/search/2/batch.json';
-    const batchData = {
-      batchItems: batchRequests.map(req => ({
-        query: `/search/2/${req?.query}`
-      }))
-    };
-    
-    // Make batch request
-    const response = await fetch(batchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(batchData)
+      const pois = await searchPOIsWithRadius(destination, categoryId, radius);
+      result[poiType] = pois.map(poi => convertTomTomPOI(poi, poiType));
     });
-    
-    if (!response.ok) {
-      throw new Error(`TomTom API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Process batch response
-    const result: {[key: string]: POI[]} = {};
-    
-    if (data.batchItems && Array.isArray(data.batchItems)) {
-      data.batchItems.forEach((item: any, index: number) => {
-        if (item.statusCode === 200 && item.response && item.response.results) {
-          const poiType = batchRequests[index]?.poiType;
-          if (poiType) {
-            result[poiType] = item.response.results.map((poi: any) => 
-              convertTomTomPOI(poi, poiType)
-            );
-          }
-        }
-      });
-    }
-    
+
+    await Promise.all(searchPromises);
     return result;
   } catch (error) {
     console.error('Error performing batch search with TomTom API:', error);
@@ -428,16 +364,17 @@ const searchPOIsWithRadius = async (
 ): Promise<any[]> => {
   // TomTom API parameters
   const limit = 20; // Maximum 20 results
-  
-  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_API_KEY}&lat=${point.lat}&lon=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
-  
+
+  // Use proxy route instead of direct API call
+  const url = `/api/tomtom/nearby?lat=${point.lat}&lng=${point.lng}&radius=${radius}&limit=${limit}&categorySet=${categoryId}`;
+
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`TomTom API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data.results || [];
   } catch (error) {
@@ -454,23 +391,18 @@ export const fetchPOIDetails = async (poiId: string): Promise<any> => {
     console.error('POI ID is required to fetch details');
     return null;
   }
-  
-  if (!TOMTOM_API_KEY) {
-    console.error('TomTom API key not found');
-    return null;
-  }
-  
+
   try {
-    // Use the Place API endpoint
-    const url = `https://api.tomtom.com/search/2/place.json?key=${TOMTOM_API_KEY}&entityId=${poiId}`;
-    
+    // Use proxy route instead of direct API call
+    const url = `/api/tomtom/place?entityId=${encodeURIComponent(poiId)}`;
+
     console.log(`Fetching POI details for ID: ${poiId}`);
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`TomTom Place API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {

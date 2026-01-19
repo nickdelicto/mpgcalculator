@@ -3,16 +3,8 @@
 // Import the polyline decoder
 import { decodePolyline } from './polyline';
 
-// Get a free API key from https://openrouteservice.org/dev/#/signup
-const ORS_API_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY || '';
-
-// Enhanced debug logs
-console.log('OpenRouteService config DETAILED:', { 
-  hasApiKey: !!ORS_API_KEY, 
-  keyLength: ORS_API_KEY?.length || 0,
-  environment: process.env.NODE_ENV,
-  keyStartsWith: ORS_API_KEY ? ORS_API_KEY.substring(0, 3) + '...' : 'none'
-});
+// OpenRouteService is accessed through server-side proxy routes
+// No client-side API key needed - the proxy handles authentication
 
 // Define types for our geocoding and routing functions
 export interface Coordinates {
@@ -54,13 +46,7 @@ export interface RouteData {
 export async function geocodeAddress(address: string): Promise<Coordinates> {
   console.log('Geocoding address:', address);
   try {
-    // Check if we have an API key
-    if (!ORS_API_KEY) {
-      console.warn('No OpenRouteService API key provided. Using fallback geocoding.');
-      return fallbackGeocode(address);
-    }
-    
-    // Try to use our proxy API endpoint first
+    // Use our proxy API endpoint (server-side handles authentication)
     try {
       // Use our proxy API to avoid CORS issues
       const url = `/api/route/geocode?text=${encodeURIComponent(address)}`;
@@ -109,17 +95,7 @@ export async function geocodeAddress(address: string): Promise<Coordinates> {
 export async function calculateRoute(start: Coordinates, end: Coordinates): Promise<RouteData> {
   console.log('Calculating route from', start, 'to', end);
   try {
-    // Check if we have an API key
-    if (!ORS_API_KEY) {
-      console.warn('*** CRITICAL ERROR: No OpenRouteService API key provided. Using fallback routing. ***');
-      console.warn('Environment check:', {
-        nodeEnv: process.env.NODE_ENV,
-        hasKey: !!process.env.NEXT_PUBLIC_ORS_API_KEY
-      });
-      return fallbackRouteCalculation(start, end);
-    }
-
-    // Try to use our proxy API endpoint first
+    // Use our proxy API endpoint (server-side handles authentication)
     try {
       const body = {
         coordinates: [

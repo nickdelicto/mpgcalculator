@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const apiKey = process.env.NEXT_PUBLIC_ORS_API_KEY || '';
+  const apiKey = process.env.ORS_API_KEY || '';
   
   // Only log that the key exists and its length, never the actual key
   const debugInfo = {
