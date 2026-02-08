@@ -257,10 +257,16 @@ async function VehicleContent({ params }: Props) {
   const vehicles = await getVehicleData(resolvedParams.slug)
   
   // Add this: Fetch products
-  const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/amazon/products`, {
-    cache: 'no-store'
-  })
-  const products = await productsResponse.json()
+  let products: AmazonProduct[] = []
+  try {
+    const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/amazon/products`, {
+      cache: 'no-store'
+    })
+    const productsData = await productsResponse.json()
+    products = Array.isArray(productsData) ? productsData : []
+  } catch {
+    console.error('Failed to fetch Amazon products, continuing without them')
+  }
 
   if (!vehicles.length) {
     return (
