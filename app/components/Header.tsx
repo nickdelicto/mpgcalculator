@@ -66,6 +66,11 @@ export function Header() {
                 </Button>
               </li>
               <li>
+                <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00]">
+                  <Link href="/games/escape-the-grind">Escape the Grind</Link>
+                </Button>
+              </li>
+              <li>
                 <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] font-nunito">
                   <Link href="/blog">Blog</Link>
                 </Button>
@@ -96,6 +101,11 @@ export function Header() {
               <li>
                 <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
                   <Link href="/road-trip-cost-calculator">Road Trip Cost Calculator</Link>
+                </Button>
+              </li>
+              <li>
+                <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
+                  <Link href="/games/escape-the-grind">Escape the Grind</Link>
                 </Button>
               </li>
               <li>

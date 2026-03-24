@@ -67,6 +67,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9
+    },
+    {
+      url: `${baseUrl}/games/escape-the-grind`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/blog/road-trips`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/blog/road-trips/best-road-trip-routes-usa`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7
     }
   ]
 

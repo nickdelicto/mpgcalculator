@@ -46,10 +46,21 @@ MPGCalculator.net is a free automotive tools website that helps users calculate,
   - Compare emissions data
   - Support for comparing conventional, hybrid, and electric vehicles
 
+### Escape the Grind - Financial Independence Simulator
+- **Path**: /games/escape-the-grind
+- **Purpose**: A free turn-based financial independence simulator game
+- **Features**:
+  - Start with a salary and invest in 40+ different assets
+  - Stress mechanics and life events to navigate
+  - Daily challenges and leaderboards
+  - Learn about passive income and financial freedom
+- **Powered by**: SetForMoney.com (embedded via iframe)
+
 ## Site Structure
 - **Home Page**: Houses the MPG Calculator and promotes other tools
 - **Calculators**: Individual pages for each specialized calculator
-- **Blog**: (Coming soon) Articles about fuel economy, vehicle efficiency, and road trips
+- **Games**: Interactive financial games (Escape the Grind)
+- **Blog**: Articles about fuel economy, vehicle efficiency, and road trips
 - **Privacy & Terms**: Legal information about site usage
 
 ## Data and Sources

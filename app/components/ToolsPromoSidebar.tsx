@@ -39,7 +39,32 @@ export default function ToolsPromoSidebar({ className = "", width = "lg:w-1/3" }
           
           <div className="space-y-6 py-4 pb-8">
             {/* Tool Promo Cards */}
-            
+
+            {/* Escape the Grind Game */}
+            <a href="/games/escape-the-grind" className="block">
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl shadow-lg overflow-hidden border border-amber-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
+                <div className="px-6 py-5">
+                  <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Escape the Grind</h3>
+                  <p className="text-amber-100 text-sm mb-4">Can you build enough passive income to never need a paycheck? Play the financial independence simulator.</p>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center font-semibold text-white hover:text-amber-200 text-sm">
+                      Play now
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                    <div className="w-12 h-12 flex items-center justify-center bg-amber-700 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </a>
+
             {/* Road Trip Cost Calculator */}
             <a href="/road-trip-cost-calculator" className="block">
               <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg overflow-hidden border border-indigo-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">

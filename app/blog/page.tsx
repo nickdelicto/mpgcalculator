@@ -129,6 +129,20 @@ export default function BlogHomePage() {
                   </div>
                 </Link>
               </li>
+              <li>
+                <Link href="/games/escape-the-grind" className="flex items-start hover:bg-blue-100 p-2 rounded transition-colors">
+                  <div className="mr-3 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <line x1="12" y1="1" x2="12" y2="23"></line>
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="font-medium block">Escape the Grind</span>
+                    <span className="text-sm text-gray-600">Financial independence simulator</span>
+                  </div>
+                </Link>
+              </li>
             </ul>
           </div>
           

@@ -25,6 +25,7 @@ export function Footer() {
               <li><Link href="/fuel-savings-calculator" className="hover:text-[#E77C00]">Fuel Savings Calculator</Link></li>
               <li><Link href="/vehicles" className="hover:text-[#E77C00]">Vehicle MPG Checker</Link></li>
               <li><Link href="/fuel-economy-compare" className="hover:text-[#E77C00]">Compare Fuel Economy</Link></li>
+              <li><Link href="/games/escape-the-grind" className="hover:text-[#E77C00]">Escape the Grind Game</Link></li>
             </ul>
           </div>
           <div>
