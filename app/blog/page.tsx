@@ -130,7 +130,7 @@ export default function BlogHomePage() {
                 </Link>
               </li>
               <li>
-                <Link href="/games/escape-the-grind" className="flex items-start hover:bg-blue-100 p-2 rounded transition-colors">
+                <Link href="/escape-the-grind" className="flex items-start hover:bg-blue-100 p-2 rounded transition-colors">
                   <div className="mr-3 text-amber-500">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <line x1="12" y1="1" x2="12" y2="23"></line>

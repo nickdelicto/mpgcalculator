@@ -67,7 +67,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00]">
-                  <Link href="/games/escape-the-grind">Escape the Grind</Link>
+                  <Link href="/escape-the-grind">Escape the Grind</Link>
                 </Button>
               </li>
               <li>
@@ -105,7 +105,7 @@ export function Header() {
               </li>
               <li>
                 <Button asChild variant="ghost" className="w-full text-[#EDEDED] hover:text-[#EDEDED] hover:bg-[#E77C00] justify-start">
-                  <Link href="/games/escape-the-grind">Escape the Grind</Link>
+                  <Link href="/escape-the-grind">Escape the Grind</Link>
                 </Button>
               </li>
               <li>

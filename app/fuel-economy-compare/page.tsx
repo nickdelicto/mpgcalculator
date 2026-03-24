@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
 import VehicleComparison from '../components/VehicleComparison'
 import SearchParamsWrapper from '../components/SearchParamsWrapper'
@@ -90,6 +91,22 @@ export default function FuelEconomyComparePage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Escape the Grind Promo */}
+          <div className="mb-8">
+            <Link href="/escape-the-grind" className="block">
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl shadow-lg overflow-hidden border border-amber-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
+                <div className="px-6 py-5">
+                  <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Smart With Cars? Try Being Smart With Money</h3>
+                  <p className="text-amber-100 text-sm mb-3">Play Escape the Grind — a free financial independence simulator where you invest in 40+ assets and try to build enough passive income to never work again. Daily challenges and global leaderboards.</p>
+                  <span className="inline-flex items-center font-semibold text-white text-sm">
+                    Play Escape the Grind →
+                  </span>
+                </div>
+              </div>
+            </Link>
           </div>
 
           {/* Expert Guide and FAQs */}

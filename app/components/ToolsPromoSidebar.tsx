@@ -41,7 +41,7 @@ export default function ToolsPromoSidebar({ className = "", width = "lg:w-1/3" }
             {/* Tool Promo Cards */}
 
             {/* Escape the Grind Game */}
-            <a href="/games/escape-the-grind" className="block">
+            <a href="/escape-the-grind" className="block">
               <div className="bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl shadow-lg overflow-hidden border border-amber-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
                 <div className="px-6 py-5">
                   <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>

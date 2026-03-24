@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Script from 'next/script'
+import Link from 'next/link'
 
 // SetForMoney Logo SVG Component
 const SetForMoneyLogo = ({ size = 32 }: { size?: number }) => (
@@ -104,13 +105,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Escape the Grind - Free Financial Independence Simulator',
     description: 'A turn-based financial simulator. Start with a salary, invest in 40+ assets, and build enough passive income to escape the rat race. Daily challenges and global leaderboards.',
-    url: 'https://mpgcalculator.net/games/escape-the-grind',
+    url: 'https://mpgcalculator.net/escape-the-grind',
     siteName: 'MPGCalculator.net',
     locale: 'en_US',
     type: 'website',
   },
   alternates: {
-    canonical: 'https://mpgcalculator.net/games/escape-the-grind',
+    canonical: 'https://mpgcalculator.net/escape-the-grind',
   },
   robots: {
     index: true,
@@ -444,6 +445,80 @@ export default function EscapeTheGrindPage() {
               <p className="text-gray-700 max-w-lg mx-auto text-sm sm:text-base">
                 Escape the Grind has a growing community of players sharing strategies, competing on daily leaderboards, and discussing their path to financial independence. Can you escape the rat race before going broke?
               </p>
+            </div>
+          </div>
+
+          {/* Cross-links to other tools */}
+          <div className="mt-12 text-gray-900 space-y-6 font-heading">
+            <h2 className="text-3xl font-bold font-heading bg-gradient-to-r from-blue-700 to-blue-900 text-transparent bg-clip-text">More Free Tools on MPGCalculator.net</h2>
+
+            <p className="text-lg leading-relaxed">
+              Love saving money in Escape the Grind? Put those skills to work in real life with our free calculators:
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <Link href="/fuel-savings-calculator" className="block">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full">
+                  <div className="flex items-start">
+                    <div className="bg-green-100 p-3 rounded-lg mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Fuel Savings Calculator</h3>
+                      <p className="text-gray-600">
+                        Compare fuel costs between vehicles and see how much you could save by switching to a more efficient car. A great real-world companion to the financial strategies you learn in Escape the Grind.
+                      </p>
+                      <span className="inline-flex items-center mt-3 text-green-600 font-semibold text-sm">
+                        Calculate your savings →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/road-trip-cost-calculator" className="block">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full">
+                  <div className="flex items-start">
+                    <div className="bg-indigo-100 p-3 rounded-lg mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Road Trip Cost Calculator</h3>
+                      <p className="text-gray-600">
+                        Planning a road trip? Estimate your total fuel costs, find hotels along your route, and discover attractions — all for free. Know exactly what your next adventure will cost before you hit the road.
+                      </p>
+                      <span className="inline-flex items-center mt-3 text-indigo-600 font-semibold text-sm">
+                        Plan your trip →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/fuel-economy-compare" className="block">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full">
+                  <div className="flex items-start">
+                    <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Compare Vehicle Fuel Economy</h3>
+                      <p className="text-gray-600">
+                        Compare MPG ratings between up to three vehicles side by side. See city, highway, and combined fuel economy plus emissions data to make smarter vehicle choices.
+                      </p>
+                      <span className="inline-flex items-center mt-3 text-blue-600 font-semibold text-sm">
+                        Compare vehicles →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
         </main>

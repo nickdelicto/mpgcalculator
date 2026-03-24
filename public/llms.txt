@@ -47,7 +47,7 @@ MPGCalculator.net is a free automotive tools website that helps users calculate,
   - Support for comparing conventional, hybrid, and electric vehicles
 
 ### Escape the Grind - Financial Independence Simulator
-- **Path**: /games/escape-the-grind
+- **Path**: /escape-the-grind
 - **Purpose**: A free turn-based financial independence simulator game
 - **Features**:
   - Start with a salary and invest in 40+ different assets

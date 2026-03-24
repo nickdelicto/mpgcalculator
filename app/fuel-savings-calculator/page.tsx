@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import FuelSavingsCalculator from '../components/FuelSavingsCalculator'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Calculator, DollarSign } from 'lucide-react'
@@ -86,6 +87,22 @@ export default function FuelSavingsPage() {
           {/* Embed Section */}
           <div className="mb-12">
             <EmbedSection />
+          </div>
+
+          {/* Escape the Grind Promo */}
+          <div className="mb-12">
+            <Link href="/escape-the-grind" className="block">
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl shadow-lg overflow-hidden border border-amber-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
+                <div className="px-6 py-5">
+                  <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Think You Can Reach Financial Independence?</h3>
+                  <p className="text-amber-100 text-sm mb-3">Put your savings skills to the test in Escape the Grind — a free financial independence simulator. Invest in 40+ assets, navigate life events, and see if you can build enough passive income to never need a paycheck again.</p>
+                  <span className="inline-flex items-center font-semibold text-white text-sm">
+                    Play Escape the Grind →
+                  </span>
+                </div>
+              </div>
+            </Link>
           </div>
 
           {/* Donation Section */}
