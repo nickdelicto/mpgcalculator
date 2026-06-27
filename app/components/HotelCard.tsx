@@ -5,6 +5,7 @@ import { Card } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { DollarSign, Star, MapPin, Building, Bed, Hotel } from 'lucide-react'
 import { POI } from '../utils/overpassService'
+import { generateStay22AllezLink } from '../utils/stay22'
 
 interface HotelCardProps {
   hotel: POI
@@ -135,7 +136,12 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
           className="w-full bg-blue-600 hover:bg-blue-500 text-xs h-8 mt-1"
           onClick={(e) => {
             e.stopPropagation(); // Prevent triggering the card's onClick
-            window.open(`https://www.tripadvisor.com/Search?q=${encodeURIComponent(hotel.name + ' ' + (hotel.tags.address || ''))}`, '_blank');
+            window.open(generateStay22AllezLink({
+              lat: hotel.location?.lat,
+              lng: hotel.location?.lng,
+              hotelName: hotel.name,
+              address: hotel.tags.address,
+            }), '_blank');
           }}
         >
           <DollarSign className="h-3 w-3 mr-1" />

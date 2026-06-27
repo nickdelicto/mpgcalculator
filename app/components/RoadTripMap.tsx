@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import { Coordinates } from '../utils/routingService'
 import ServiceMarkers from './ServiceMarkers'
 import { POI } from '../utils/overpassService'
+import { generateStay22AllezLink } from '../utils/stay22'
 import MapPOIControls from './MapPOIControls'
 import MapActionButtons from './MapActionButtons'
 
@@ -670,18 +671,19 @@ const RoadTripMap: React.FC<MapProps> = ({
     
     // Extract location details
     const { city, region, fullLocation } = extractLocationDetails(endLocation)
-    
-    // Create a more effective TripAdvisor URL
-    // Include both city and region in the search query if available
-    const searchQuery = region ? `${city}, ${region} hotels` : `${city} hotels`
-    
-    // For now, use the search approach which is more forgiving with destination names
-    const tripAdvisorUrl = `https://www.tripadvisor.com/Search?q=${encodeURIComponent(searchQuery)}&searchSessionId=road-trip-calc-${Date.now()}`
-    
-    console.log(`Opening TripAdvisor search for hotels in ${fullLocation}: ${tripAdvisorUrl}`)
-    
+
+    // Build a monetized Stay22 Allez link for the destination area.
+    // Prefer destination coordinates; fall back to the city/region text.
+    const accommodationUrl = generateStay22AllezLink({
+      lat: endCoords?.lat,
+      lng: endCoords?.lng,
+      address: region ? `${city}, ${region}` : city,
+    })
+
+    console.log(`Opening Stay22 accommodations for ${fullLocation}: ${accommodationUrl}`)
+
     // Open in new tab
-    window.open(tripAdvisorUrl, '_blank')
+    window.open(accommodationUrl, '_blank')
   }
   
   // Only show buttons when we have a destination

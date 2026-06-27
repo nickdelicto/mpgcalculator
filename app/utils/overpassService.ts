@@ -34,6 +34,20 @@ export type POI = {
 // Define POI categories we want to support
 export const POI_CATEGORIES: POICategory[] = [
   {
+    id: 'hotels',
+    name: 'Hotels & Lodging',
+    icon: 'hotel',
+    query: 'tourism=hotel,motel,hostel',
+    color: '#007AFF'  // Blue
+  },
+  {
+    id: 'attractions',
+    name: 'Attractions & Tours',
+    icon: 'attraction',
+    query: 'viator=attraction,tour,activity',  // Updated to indicate Viator source
+    color: '#AF52DE'  // Purple
+  },
+  {
     id: 'gasStations',
     name: 'Gas Stations',
     icon: 'fuel',
@@ -48,25 +62,11 @@ export const POI_CATEGORIES: POICategory[] = [
     color: '#34C759'  // Green
   },
   {
-    id: 'hotels',
-    name: 'Hotels & Lodging',
-    icon: 'hotel',
-    query: 'tourism=hotel,motel,hostel',
-    color: '#007AFF'  // Blue
-  },
-  {
     id: 'restaurants',
     name: 'Restaurants',
     icon: 'restaurant',
     query: 'amenity=restaurant',
     color: '#FF9500'  // Orange
-  },
-  {
-    id: 'attractions',
-    name: 'Attractions & Tours',
-    icon: 'attraction',
-    query: 'viator=attraction,tour,activity',  // Updated to indicate Viator source
-    color: '#AF52DE'  // Purple
   }
 ];
 

@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { POI } from '../utils/overpassService';
 import { generateViatorDeepLink } from '../utils/viatorService';
+import { generateStay22AllezLink } from '../utils/stay22';
 
 interface POIDetailPanelProps {
   poi: POI | null;
@@ -277,7 +278,12 @@ const POIDetailPanel: React.FC<POIDetailPanelProps> = ({
             <Button 
               variant="default" 
               className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900"
-              onClick={() => window.open(`https://www.tripadvisor.com/Search?q=${encodeURIComponent(poi.name + ' ' + (poi.tags.address || ''))}`, '_blank')}
+              onClick={() => window.open(generateStay22AllezLink({
+                lat: poi.location?.lat,
+                lng: poi.location?.lng,
+                hotelName: poi.name,
+                address: poi.tags.address,
+              }), '_blank')}
             >
               <DollarSign className="h-4 w-4" />
               <span>Check Availability</span>

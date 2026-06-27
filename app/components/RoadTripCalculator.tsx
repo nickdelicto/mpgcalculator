@@ -19,6 +19,7 @@ import { initPOIControlSync, cleanupPOIControlSync } from '../utils/poiControlSy
 import { fetchPOIDetails } from '../utils/tomtomService'
 import TabsContainer from './TabsContainer'
 import HotelsList from './HotelsList'
+import Stay22Map from './Stay22Map'
 import AttractionsList from './AttractionsList'
 
 export default function RoadTripCalculator() {
@@ -295,22 +296,10 @@ export default function RoadTripCalculator() {
       return
     }
     
-    // After validation passes, switch to an appropriate tab based on available content
-    if (activePOILayers.includes('hotels')) {
-      setActiveTab(0); // Hotels tab
-    } else if (activePOILayers.includes('attractions')) {
-      setActiveTab(0); // Attractions tab (when no hotels)
-    } else if (route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0) {
-      setActiveTab(activePOILayers.includes('hotels') || activePOILayers.includes('attractions') ? 
-        (activePOILayers.includes('hotels') && activePOILayers.includes('attractions') ? 2 : 1) : 0); // Directions tab
-    } else {
-      // Calculate the summary tab index based on what's available
-      let tabIndex = 0;
-      if (activePOILayers.includes('hotels')) tabIndex++;
-      if (activePOILayers.includes('attractions')) tabIndex++;
-      if (activePOILayers.includes('directions')) tabIndex++;
-      setActiveTab(tabIndex);
-    }
+    // Default to the Hotels tab (index 0) so results lead with the Stay22
+    // accommodation map (highest-intent, monetized). Route + cost are one click
+    // away on the Directions / Trip Summary tabs.
+    setActiveTab(0);
     
     // Start loading
     console.log('Validation passed, starting calculation')
@@ -488,8 +477,14 @@ export default function RoadTripCalculator() {
   // Check if we have directions to show
   const hasDirections = Boolean(route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0);
   
-  // Check if we have hotels layer active
-  const hasHotels = activePOILayers.includes('hotels') && hotels.length > 0;
+  // Show the Hotels tab whenever a destination exists. The Hotels tab swaps the
+  // big map area to the Stay22 accommodation map, which only needs the destination
+  // coords (decoupled from OSM hotel POIs).
+  const hasHotels = Boolean(endCoords);
+
+  // The Hotels tab is index 0 in TabsContainer. When it's active we swap the big
+  // map area from the route map to the Stay22 hotel map.
+  const showHotelMap = hasHotels && activeTab === 0 && Boolean(endCoords);
   
   // Check if we have attractions layer active
   const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
@@ -718,7 +713,7 @@ export default function RoadTripCalculator() {
       
       {/* Tabbed container after calculation - matched to height of trip details */}
       {route && (
-        <div className="w-full xl:w-1/3 bg-white dark:bg-gray-50 min-h-[1000px] xl:h-screen overflow-hidden flex flex-col" ref={smallScreenPOIRef}>
+        <div className={`w-full xl:w-1/3 bg-white dark:bg-gray-50 ${showHotelMap ? 'min-h-0' : 'min-h-[1000px]'} xl:h-screen overflow-hidden flex flex-col`} ref={smallScreenPOIRef}>
           {/* Show POI detail panel when a POI is selected */}
           {selectedPOI && (
             <div className="px-4 pt-4">
@@ -739,7 +734,16 @@ export default function RoadTripCalculator() {
           {/* Tabbed navigation container */}
           <div className="flex-grow overflow-hidden">
             <TabsContainer
-              hotelsList={<HotelsList hotels={hotels} onHotelSelect={handleHotelSelect} />}
+              hotelsList={
+                <div className="text-center p-4 text-gray-600">
+                  <p className="font-medium text-gray-800 mb-1">
+                    Browse hotels on the map
+                    <span className="xl:hidden"> ↓</span>
+                    <span className="hidden xl:inline"> →</span>
+                  </p>
+                  <p className="text-sm">Real hotels with live prices near your destination. Click any hotel to see rates and book.</p>
+                </div>
+              }
               attractionsList={<AttractionsList attractions={attractions} onAttractionSelect={handleAttractionSelect} />}
               directions={
                 route && route.segments && route.segments[0]?.steps ? (
@@ -813,9 +817,17 @@ export default function RoadTripCalculator() {
       
       {/* Map container - preserving dimensions while allowing form to expand */}
       <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] xl:h-screen`}>
-          <DynamicRoadTripMap 
-            startCoords={startCoords || undefined} 
-            endCoords={endCoords || undefined} 
+        {showHotelMap && endCoords ? (
+          <Stay22Map
+            lat={endCoords.lat}
+            lng={endCoords.lng}
+            destinationName={endLocation}
+            campaign="road-trip-cost-calculator"
+          />
+        ) : (
+          <DynamicRoadTripMap
+            startCoords={startCoords || undefined}
+            endCoords={endCoords || undefined}
             routeGeometry={route?.routeGeometry}
             isFallbackRoute={status.usingFallback}
             startLocation={startLocation}
@@ -824,6 +836,7 @@ export default function RoadTripCalculator() {
           onLayerChange={handlePOILayerChange}
           onSelectPOI={handlePOISelect}
         />
+        )}
       </div>
     </div>
   )
