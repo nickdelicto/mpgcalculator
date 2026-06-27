@@ -51,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9
     },
     {
-      url: `${baseUrl}/compare`,
+      url: `${baseUrl}/fuel-economy-compare`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9

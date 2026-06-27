@@ -5,8 +5,8 @@ import VehicleComparison from '../components/VehicleComparison'
 import SearchParamsWrapper from '../components/SearchParamsWrapper'
 
 export const metadata: Metadata = {
-  title: 'Compare Vehicle Fuel Economy | MPG Comparison Tool',
-  description: 'Compare fuel efficiency, emissions, and specifications between different vehicles side by side. Find the most efficient vehicle for your needs.',
+  title: 'Compare Car Fuel Economy: MPG & Emissions Side by Side',
+  description: 'Compare up to 3 vehicles side by side on MPG, fuel efficiency, and CO2 emissions. Find the most fuel-efficient car for you in seconds. Free, no sign-up.',
   keywords: 'Vehicle MPG comparison, fuel economy compare, car comparison tool, vehicle efficiency comparison, fuel consumption comparison',
 }
 
