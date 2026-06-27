@@ -37,7 +37,7 @@ export function generateStay22AllezLink({
   hotelName,
   checkin,
   checkout,
-  campaign = 'road-trip-cost-calculator',
+  campaign = 'roadtrip',
 }: AllezLinkParams): string {
   const params = new URLSearchParams({ aid: STAY22_AID, campaign })
 

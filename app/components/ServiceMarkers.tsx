@@ -182,7 +182,8 @@ export default function ServiceMarkers({
       if (endCoords && activeLayers.length > 0) {
         try {
           // Filter out layers that are already loaded or loading
-          const layersToLoad = activeLayers.filter(layerId => 
+          const layersToLoad = activeLayers.filter(layerId =>
+            layerId !== 'hotels' && // hotels are shown via the Stay22 map, not as route-map pins
             !loadedLayers.has(layerId) && !loadingLayersRef.current.has(layerId)
           );
           
@@ -333,12 +334,12 @@ export default function ServiceMarkers({
         } catch (error) {
           console.error('Error fetching destination POIs:', error);
           
-          // Fall back to individual processing for each active layer
-          fallbackToIndividualLoading(activeLayers);
+          // Fall back to individual processing for each active layer (hotels excluded — shown via Stay22 map)
+          fallbackToIndividualLoading(activeLayers.filter(layerId => layerId !== 'hotels'));
         }
       } else {
         // Fall back to original route-based processing if we don't have destination coords
-        fallbackToIndividualLoading(activeLayers);
+        fallbackToIndividualLoading(activeLayers.filter(layerId => layerId !== 'hotels'));
       }
     };
     

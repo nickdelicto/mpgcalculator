@@ -73,7 +73,7 @@ export default function RoadTripCalculator() {
   const [showDirections, setShowDirections] = useState(false)
   
   // State for active POI layers - Fix hydration mismatch
-  const [activePOILayers, setActivePOILayers] = useState<string[]>(['hotels']);
+  const [activePOILayers, setActivePOILayers] = useState<string[]>(['hotels', 'attractions']);
   
   // State for selected POI for detailed view
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
@@ -366,8 +366,14 @@ export default function RoadTripCalculator() {
   // Handle POI layer changes
   const handlePOILayerChange = (layers: string[]) => {
     console.log('Updating POI layers to:', layers);
+
+    // If the user just turned the Hotels layer on, swap to the Hotels tab (the
+    // Stay22 accommodation map) instead of dropping hotel pins on the route map.
+    const hotelsJustEnabled = layers.includes('hotels') && !activePOILayers.includes('hotels');
+
     setActivePOILayers(layers);
-    
+    if (hotelsJustEnabled) setActiveTab(0);
+
     // Persist to localStorage
     try {
       localStorage.setItem('activePOILayers', JSON.stringify(layers));
@@ -490,7 +496,7 @@ export default function RoadTripCalculator() {
   const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
   
   return (
-    <div className="flex flex-col xl:flex-row min-h-screen">
+    <div className={`flex flex-col ${showHotelMap ? '' : 'xl:flex-row'} min-h-screen`}>
       {/* Form inputs - before calculation - adjusted to fill more space on mobile */}
       {!route && (
         <div className="w-full xl:w-1/3 bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6 min-h-[1000px] xl:h-screen overflow-y-auto flex flex-col">
@@ -713,7 +719,7 @@ export default function RoadTripCalculator() {
       
       {/* Tabbed container after calculation - matched to height of trip details */}
       {route && (
-        <div className={`w-full xl:w-1/3 bg-white dark:bg-gray-50 ${showHotelMap ? 'min-h-0' : 'min-h-[1000px]'} xl:h-screen overflow-hidden flex flex-col`} ref={smallScreenPOIRef}>
+        <div className={`w-full ${showHotelMap ? '' : 'xl:w-1/3'} bg-white dark:bg-gray-50 ${showHotelMap ? 'min-h-0' : 'min-h-[1000px] xl:h-screen'} overflow-hidden flex flex-col`} ref={smallScreenPOIRef}>
           {/* Show POI detail panel when a POI is selected */}
           {selectedPOI && (
             <div className="px-4 pt-4">
@@ -735,13 +741,8 @@ export default function RoadTripCalculator() {
           <div className="flex-grow overflow-hidden">
             <TabsContainer
               hotelsList={
-                <div className="text-center p-4 text-gray-600">
-                  <p className="font-medium text-gray-800 mb-1">
-                    Browse hotels on the map
-                    <span className="xl:hidden"> ↓</span>
-                    <span className="hidden xl:inline"> →</span>
-                  </p>
-                  <p className="text-sm">Real hotels with live prices near your destination. Click any hotel to see rates and book.</p>
+                <div className="text-center p-3 text-gray-600">
+                  <p className="font-medium text-gray-800">Real hotels, live prices near your destination. Click any below to compare and book 👇</p>
                 </div>
               }
               attractionsList={<AttractionsList attractions={attractions} onAttractionSelect={handleAttractionSelect} />}
@@ -816,13 +817,13 @@ export default function RoadTripCalculator() {
         )}
       
       {/* Map container - preserving dimensions while allowing form to expand */}
-      <div className={`w-full ${route ? 'xl:w-2/3' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] xl:h-screen`}>
+      <div className={`w-full ${showHotelMap ? '' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] ${showHotelMap ? 'xl:h-[80vh]' : 'xl:h-screen'}`}>
         {showHotelMap && endCoords ? (
           <Stay22Map
             lat={endCoords.lat}
             lng={endCoords.lng}
             destinationName={endLocation}
-            campaign="road-trip-cost-calculator"
+            campaign="roadtrip_map"
           />
         ) : (
           <DynamicRoadTripMap

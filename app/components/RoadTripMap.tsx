@@ -678,6 +678,7 @@ const RoadTripMap: React.FC<MapProps> = ({
       lat: endCoords?.lat,
       lng: endCoords?.lng,
       address: region ? `${city}, ${region}` : city,
+      campaign: 'roadtrip_findbtn',
     })
 
     console.log(`Opening Stay22 accommodations for ${fullLocation}: ${accommodationUrl}`)

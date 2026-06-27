@@ -34,7 +34,7 @@ const Stay22Map: React.FC<Stay22MapProps> = ({
   checkin,
   checkout,
   aid = STAY22_AID,
-  campaign = 'road-trip-cost-calculator',
+  campaign = 'roadtrip_map',
   destinationName,
 }) => {
   const [loaded, setLoaded] = useState(false)
