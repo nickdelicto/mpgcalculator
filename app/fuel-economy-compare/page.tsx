@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import VehicleComparison from '../components/VehicleComparison'
 import SearchParamsWrapper from '../components/SearchParamsWrapper'
+import SupportButton from '../components/SupportButton'
 
 export const metadata: Metadata = {
   title: 'Compare Car Fuel Economy: MPG & Emissions Side by Side',
@@ -23,9 +24,12 @@ export default function FuelEconomyComparePage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col">
         <main className="w-full">
-          <h1 className="text-3xl font-heading font-bold text-gray-800 mb-6">
-            Compare Vehicle Fuel Economy
-          </h1>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h1 className="text-3xl font-heading font-bold text-gray-800">
+              Compare Vehicle Fuel Economy
+            </h1>
+            <SupportButton />
+          </div>
           <p className="text-gray-600 mb-8 font-sans">
             Select up to three vehicles to compare MPG, side by side.
           </p>
