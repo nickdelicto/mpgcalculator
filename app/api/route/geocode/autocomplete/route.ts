@@ -30,8 +30,6 @@ export async function GET(request: Request) {
     // The correct endpoint is /geocode/autocomplete/... (without v2)
     const url = `${BASE_URL}/geocode/autocomplete?text=${encodeURIComponent(text)}&api_key=${ORS_API_KEY}`;
     
-    console.log('Geocoding autocomplete request URL:', url.replace(ORS_API_KEY, 'API_KEY_HIDDEN'));
-    
     const response = await fetch(url);
     
     // Handle API errors

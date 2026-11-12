@@ -77,9 +77,6 @@ export async function GET(request: Request) {
       [lowerBound, upperBound, mpg]
     )
     
-    // Add this console.log
-    console.log('API Response Data:', JSON.stringify(rows[0], null, 2))
-
     return NextResponse.json(rows)
   } catch (error) {
     console.error('Database error:', error)

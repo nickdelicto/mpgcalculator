@@ -24,6 +24,9 @@ interface VehiclePageProductsProps {
 }
 
 export default function VehiclePageProducts({ title, subtitle, products }: VehiclePageProductsProps) {
+  // No products (e.g. Amazon unavailable): render nothing rather than an empty heading
+  if (!products?.length) return null
+
   return (
     <div className="mb-12">
       <div className="mb-6">

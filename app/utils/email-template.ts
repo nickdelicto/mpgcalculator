@@ -3,7 +3,7 @@ import { Vehicle } from '../types/vehicle'
 import { ManualVehicleFuel, AVAILABLE_FUEL_TYPES, FuelTypeDefinition } from '../types/fuel'
 
 // Helper function to get vehicle display name
-function getVehicleDisplayName(selection: VehicleSelection): string {
+export function getVehicleDisplayName(selection: VehicleSelection): string {
   if (!selection) return 'Vehicle';
   
   // For vehicles from database

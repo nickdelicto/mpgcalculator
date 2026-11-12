@@ -122,7 +122,7 @@ export default function ProductRecommendations({ usesElectricity }: ProductRecom
         const response = await fetch('/api/amazon/products')
         if (!response.ok) throw new Error('Failed to fetch products')
         const data = await response.json()
-        setProducts(data)
+        setProducts(Array.isArray(data) ? data : [])
       } catch (err) {
         setError('Unable to load product recommendations')
         console.error(err)
@@ -177,7 +177,7 @@ export default function ProductRecommendations({ usesElectricity }: ProductRecom
     )
   }
 
-  if (error) {
+  if (error || !products.length) {
     return null
   }
 

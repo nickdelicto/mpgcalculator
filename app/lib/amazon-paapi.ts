@@ -82,7 +82,8 @@ export function signRequest(
   service: string,
   payload: string,
   accessKey: string,
-  secretKey: string
+  secretKey: string,
+  operation: 'GetItems' | 'SearchItems' = 'GetItems'
 ): RequestOptions {
   const date = new Date()
   const amzDate = getAmzDate(date)
@@ -94,7 +95,7 @@ export function signRequest(
     'content-type': 'application/json; charset=utf-8',
     'host': host,
     'x-amz-date': amzDate,
-    'x-amz-target': 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems'
+    'x-amz-target': `com.amazon.paapi5.v1.ProductAdvertisingAPIv1.${operation}`
   }
 
   const canonicalHeaders = Object.entries(headers)

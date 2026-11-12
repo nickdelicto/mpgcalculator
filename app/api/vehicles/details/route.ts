@@ -19,8 +19,7 @@ export async function GET(request: Request) {
   const make = searchParams.get('make')
   const model = searchParams.get('model')
   const year = searchParams.get('year')
-  
-  console.log('API received params:', { make, model, year })
+
 
   if (!make || !model || !year) {
     return NextResponse.json(
@@ -80,26 +79,12 @@ export async function GET(request: Request) {
        )
        AND year::text = $3`
     const values = [make, model, year]
-    
-    console.log('Executing query:', {
-      query,
-      values
-    })
 
     const { rows } = await client.query(query, values)
-    
-    console.log('Query results:', {
-      rowCount: rows.length,
-      firstRow: rows[0] ? { 
-        make: rows[0].make, 
-        model: rows[0].model, 
-        year: rows[0].year 
-      } : null
-    })
 
     return NextResponse.json(rows)
   } catch (error) {
-    console.error('Database error:', error)
+    console.error('Vehicle details database error:', { make, model, year }, error instanceof Error ? error.message : error)
     return NextResponse.json(
       { error: 'Failed to fetch vehicle details' },
       { status: 500 }

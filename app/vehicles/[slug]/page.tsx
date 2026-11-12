@@ -184,36 +184,23 @@ async function getVehicleData(slug: string): Promise<Vehicle[]> {
   // Join the remaining parts with spaces to match database normalization
   const model = modelParts.join(' ')
   
-  console.log('Parsed URL components:', {
-    original_slug: slug,
-    year,
-    make,
-    model,
-    normalized_model: model.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim()
-  })
-
   const url = new URL(`${baseUrl}/api/vehicles/details`)
   url.searchParams.append('make', make)
   url.searchParams.append('model', model)
   url.searchParams.append('year', year)
 
-  console.log('Fetching from URL:', url.toString())
-
   try {
     const response = await fetch(url.toString(), { cache: 'no-store' })
-    console.log('Response status:', response.status)
-    
+
     if (!response.ok) {
-      console.log('Response not OK:', await response.text())
-      throw new Error('Failed to fetch vehicle')
+      console.error(`Error fetching vehicle ${slug}: details API returned ${response.status}`)
+      return []
     }
-    
+
     const data = await response.json()
-    console.log('Response data:', data)
-    
     return data || []
   } catch (error) {
-    console.error('Error fetching vehicle:', error)
+    console.error(`Error fetching vehicle ${slug}:`, error instanceof Error ? error.message : error)
     return []
   }
 }

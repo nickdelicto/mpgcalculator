@@ -36,8 +36,6 @@ export async function GET(request: Request) {
       url += `&categorySet=${categorySet}`;
     }
 
-    console.log('TomTom nearby search:', url.replace(TOMTOM_API_KEY, 'API_KEY_HIDDEN'));
-
     const response = await fetch(url);
 
     if (!response.ok) {

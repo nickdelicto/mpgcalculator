@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server';
 
-// Add debug log to show this file is loaded
-console.log('🔍 [API] Viator destinations route module loaded');
-
 const VIATOR_API_KEY = process.env.VIATOR_API_KEY || '';
 const BASE_URL = 'https://api.viator.com/partner';
 
 export async function GET() {
   try {
-    console.log('Fetching Viator destinations taxonomy');
-    
     // Check for API key
     if (!VIATOR_API_KEY) {
       console.error('CRITICAL ERROR: Missing Viator API key in environment variables');
@@ -36,7 +31,6 @@ export async function GET() {
     }
     
     const data = await response.json();
-    console.log(`Retrieved ${data.destinations?.length || 0} Viator destinations`);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Server error processing destination request:', error);

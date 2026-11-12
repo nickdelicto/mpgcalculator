@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateEmailTemplate } from '../../utils/email-template'
+import { generateEmailTemplate, getVehicleDisplayName } from '../../utils/email-template'
 import { sendEmail } from '../../utils/email'
+import { recordReportEmail, markReportEmail } from '../../lib/reportEmails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +31,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const annualSavings = Math.abs((reportData.costs?.vehicle1?.annual || 0) - (reportData.costs?.vehicle2?.annual || 0))
+
+    // Keep the address in our own database before sending
+    const rowId = await recordReportEmail({
+      email,
+      vehicle1: reportData.vehicle1 ? getVehicleDisplayName(reportData.vehicle1) : null,
+      vehicle2: reportData.vehicle2 ? getVehicleDisplayName(reportData.vehicle2) : null,
+      annualMileage: Number.isFinite(reportData.annualMileage) ? Math.round(reportData.annualMileage) : null,
+      annualSavings: Number.isFinite(annualSavings) ? annualSavings : null,
+      report: reportData,
+      country: request.headers.get('cf-ipcountry'),
+      referrer: request.headers.get('referer'),
+    })
+
     try {
       // Generate the email HTML
       const emailHtml = generateEmailTemplate(reportData)
@@ -37,9 +52,10 @@ export async function POST(request: NextRequest) {
       // Send the email
       const emailResult = await sendEmail({
         to: email,
-        subject: `Your Personalized Fuel Savings Results - Save ${Math.abs(reportData.costs.vehicle1.annual - reportData.costs.vehicle2.annual).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} Annually`,
+        subject: `Your Personalized Fuel Savings Results - Save ${annualSavings.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} Annually`,
         html: emailHtml
       })
+      await markReportEmail(rowId, { messageId: emailResult?.messageId })
 
       return NextResponse.json({ 
         success: true,
@@ -48,6 +64,7 @@ export async function POST(request: NextRequest) {
       })
     } catch (emailError) {
       console.error('Email sending failed:', emailError)
+      await markReportEmail(rowId, { error: emailError instanceof Error ? emailError.message : 'Unknown error' })
       return NextResponse.json(
         { 
           error: 'Failed to send email',

@@ -5,8 +5,6 @@ const BASE_URL = 'https://api.openrouteservice.org/v2';
 
 export async function POST(request: Request) {
   try {
-    console.log('Directions API proxy request received');
-    
     // Check for API key
     if (!ORS_API_KEY) {
       console.error('CRITICAL ERROR: Missing API key in environment variables for directions API');
@@ -23,7 +21,6 @@ export async function POST(request: Request) {
 
     // Get request body
     const body = await request.json();
-    console.log('Original request body:', JSON.stringify(body));
     
     // Validate request
     if (!body.coordinates || body.coordinates.length < 2) {
@@ -46,16 +43,12 @@ export async function POST(request: Request) {
       preference: body.preference || 'recommended'
     };
     
-    console.log('Enhanced request body:', JSON.stringify(enhancedBody));
-    
     // Make request to OpenRouteService with proper profile and parameters
     // Use driving-car as default profile or use the one provided
     const profile = body.profile || 'driving-car';
     
     // The api_key as query parameter allows for all geometry formats
     const url = `${BASE_URL}/directions/${profile}?api_key=${ORS_API_KEY}`;
-    
-    console.log('OpenRouteService request URL:', url.replace(ORS_API_KEY, 'API_KEY_HIDDEN'));
     
     const response = await fetch(url, {
       method: 'POST',
@@ -78,27 +71,6 @@ export async function POST(request: Request) {
     
     // Get and log the response data
     const data = await response.json();
-    
-    // Log a summary of the response (without the full geometry details)
-    const responseSummary = {
-      ...data,
-      routes: data.routes ? data.routes.map((route: any) => ({
-        ...route,
-        geometry: typeof route.geometry === 'string' ? 
-          `[Encoded polyline string length: ${route.geometry.length}]` :
-          route.geometry ? 
-            { type: route.geometry.type, coordinates: `[Array of ${route.geometry.coordinates?.length || 0} points]` } : 
-            route.geometry
-      })) : data.routes,
-      features: data.features ? data.features.map((feature: any) => ({
-        ...feature,
-        geometry: feature.geometry ? 
-          { type: feature.geometry.type, coordinates: `[Array of ${feature.geometry.coordinates?.length || 0} points]` } : 
-          feature.geometry
-      })) : data.features
-    };
-    
-    console.log('OpenRouteService response summary:', JSON.stringify(responseSummary));
     
     // Return the full API response
     return NextResponse.json(data);

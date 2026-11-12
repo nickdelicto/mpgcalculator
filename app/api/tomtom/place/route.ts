@@ -28,8 +28,6 @@ export async function GET(request: Request) {
     // Build TomTom API URL
     const url = `https://api.tomtom.com/search/2/place.json?key=${TOMTOM_API_KEY}&entityId=${entityId}`;
 
-    console.log('TomTom place lookup:', url.replace(TOMTOM_API_KEY, 'API_KEY_HIDDEN'));
-
     const response = await fetch(url);
 
     if (!response.ok) {

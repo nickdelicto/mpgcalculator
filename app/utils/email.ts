@@ -15,9 +15,6 @@ export async function sendEmail({ to, subject, html }: EmailParams) {
   }
 
   try {
-    console.log('Attempting to send email via Brevo API...')
-    console.log('To Email:', to)
-    
     const endpoint = 'https://api.brevo.com/v3/smtp/email'
     
     const payload = {
@@ -34,8 +31,6 @@ export async function sendEmail({ to, subject, html }: EmailParams) {
       textContent: 'Your fuel savings results are attached. If you cannot view the HTML version, please visit MPGCalculator.net'
     }
     
-    console.log('Sending email with payload:', JSON.stringify(payload, null, 2))
-    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -46,8 +41,6 @@ export async function sendEmail({ to, subject, html }: EmailParams) {
       body: JSON.stringify(payload)
     })
 
-    console.log('Response status:', response.status)
-    
     const data = await response.json()
 
     if (!response.ok) {
@@ -55,7 +48,6 @@ export async function sendEmail({ to, subject, html }: EmailParams) {
       throw new Error(data.message || 'Failed to send email')
     }
 
-    console.log('Email sent successfully:', data)
     return data
   } catch (error) {
     console.error('Email sending failed:', error)

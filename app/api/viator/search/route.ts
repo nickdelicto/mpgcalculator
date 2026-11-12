@@ -1,18 +1,10 @@
 import { NextResponse } from 'next/server';
 
-// Add debug log to show this file is loaded
-console.log('🔍 [API] Viator search route module loaded');
-
 const VIATOR_API_KEY = process.env.VIATOR_API_KEY || '';
 const BASE_URL = 'https://api.viator.com/partner';
 
 export async function POST(request: Request) {
-  // Add immediate debug log when route is called
-  console.log('🔍 [API] Viator search route called with POST method');
-  
   try {
-    console.log('Viator API proxy request received');
-    
     // Check for API key
     if (!VIATOR_API_KEY) {
       console.error('CRITICAL ERROR: Missing Viator API key in environment variables');
@@ -29,7 +21,6 @@ export async function POST(request: Request) {
 
     // Get request body
     const body = await request.json();
-    console.log('Viator proxy request body:', JSON.stringify(body, null, 2));
     
     // Extract endpoint from the request
     const { endpoint, ...requestData } = body;
@@ -43,7 +34,6 @@ export async function POST(request: Request) {
     
     // Construct full URL for the Viator API
     const url = `${BASE_URL}/${endpoint}`;
-    console.log(`Making Viator API request to: ${url}`);
     
     // Make request to Viator API
     const response = await fetch(url, {
@@ -69,12 +59,6 @@ export async function POST(request: Request) {
     
     // Get the response data
     const data = await response.json();
-    
-    // Log a summary of the response
-    console.log(`Viator API response for ${endpoint}:`, 
-      data.products ? 
-        `Found ${data.products.length} products` : 
-        'Response received (no products array)');
     
     // Return the full API response
     return NextResponse.json(data);
