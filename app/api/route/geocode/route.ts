@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 
 const ORS_API_KEY = process.env.ORS_API_KEY || '';
 // The geocoding API uses a different endpoint structure than the directions API
-const BASE_URL = 'https://api.openrouteservice.org';
+// api.openrouteservice.org was shut down Nov 2026 — geocoding (Pelias) moved to api.heigit.org/pelias/v1
+const BASE_URL = 'https://api.heigit.org/pelias/v1';
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     
     // Make request to OpenRouteService Pelias geocoding API
     // The correct endpoint is /geocode/search/... (without v2)
-    const url = `${BASE_URL}/geocode/search?text=${encodeURIComponent(text)}&api_key=${ORS_API_KEY}`;
+    const url = `${BASE_URL}/search?text=${encodeURIComponent(text)}&api_key=${ORS_API_KEY}`;
     
     const response = await fetch(url);
     

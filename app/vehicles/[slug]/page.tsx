@@ -5,6 +5,7 @@ import { Fuel, CarFront, Leaf, Gauge, LineChart, DollarSign } from 'lucide-react
 import VehicleComparison from '../../components/VehicleComparison'
 import VehicleTimeline from '../../components/VehicleTimeline'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import VehiclePageSkeleton from '../../components/VehiclePageSkeleton'
 import Script from 'next/script'
@@ -78,10 +79,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   
   // Fetch the complete vehicle data first
   const vehicles = await getVehicleData(resolvedParams.slug)
-  
+
+  // Unknown vehicle → proper 404 (was a 200 "Vehicle Not Found" soft-404 that hurt indexing)
+  if (vehicles.length === 0) notFound()
+
   let title = ''
   let description = ''
-  
+
   if (vehicles.length > 0) {
     // Use the complete vehicle data to create a unique title
     const vehicle = vehicles[0]
@@ -189,20 +193,18 @@ async function getVehicleData(slug: string): Promise<Vehicle[]> {
   url.searchParams.append('model', model)
   url.searchParams.append('year', year)
 
-  try {
-    const response = await fetch(url.toString(), { cache: 'no-store' })
+  // Malformed slug (e.g. /vehicles/null, /vehicles/robots.txt) — no make/model to look up
+  if (!year || !make || !model) return []
 
-    if (!response.ok) {
-      console.error(`Error fetching vehicle ${slug}: details API returned ${response.status}`)
-      return []
-    }
-
-    const data = await response.json()
-    return data || []
-  } catch (error) {
-    console.error(`Error fetching vehicle ${slug}:`, error instanceof Error ? error.message : error)
-    return []
+  // 400/404/empty = vehicle doesn't exist → caller returns a real 404.
+  // 5xx/network errors are thrown instead, so a DB hiccup never tells Google a real page is gone.
+  const response = await fetch(url.toString(), { cache: 'no-store' })
+  if (response.status === 400 || response.status === 404) return []
+  if (!response.ok) {
+    throw new Error(`Error fetching vehicle ${slug}: details API returned ${response.status}`)
   }
+  const data = await response.json()
+  return Array.isArray(data) ? data : []
 }
 
 async function getSimilarVehicles(vehicle: Vehicle): Promise<Vehicle[]> {
@@ -255,14 +257,7 @@ async function VehicleContent({ params }: Props) {
     console.error('Failed to fetch Amazon products, continuing without them')
   }
 
-  if (!vehicles.length) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Vehicle Not Found</h1>
-        <p className="text-gray-300">Sorry, we couldn't find the vehicle you're looking for.</p>
-      </div>
-    )
-  }
+  if (!vehicles.length) notFound()
 
   const [vehicle, ...variants] = vehicles
   const similarVehicles = await getSimilarVehicles(vehicle)

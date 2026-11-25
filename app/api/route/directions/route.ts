@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
 const ORS_API_KEY = process.env.ORS_API_KEY || '';
-const BASE_URL = 'https://api.openrouteservice.org/v2';
+// api.openrouteservice.org was shut down Nov 2026 — directions moved to api.heigit.org/openrouteservice/v2
+const BASE_URL = 'https://api.heigit.org/openrouteservice/v2';
 
 export async function POST(request: Request) {
   try {
