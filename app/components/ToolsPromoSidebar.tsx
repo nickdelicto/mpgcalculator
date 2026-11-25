@@ -115,7 +115,7 @@ export default function ToolsPromoSidebar({ className = "", width = "lg:w-1/3" }
             </a>
             
             {/* Vehicle MPG Comparison */}
-            <a href="/compare-vehicle-mpg" className="block">
+            <a href="/fuel-economy-compare" className="block">
               <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl shadow-lg overflow-hidden border border-blue-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
                 <div className="px-6 py-5">
                   <div className="inline-block bg-blue-200 text-blue-900 font-bold text-xs px-3 py-1 rounded-full mb-3">COMPARE</div>
@@ -139,7 +139,7 @@ export default function ToolsPromoSidebar({ className = "", width = "lg:w-1/3" }
             </a>
             
             {/* Vehicle MPG Checker */}
-            <a href="/vehicle-mpg-checker" className="block">
+            <a href="/vehicles" className="block">
               <div className="bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl shadow-lg overflow-hidden border border-orange-400 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer">
                 <div className="px-6 py-5">
                   <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">QUICK CHECK</div>

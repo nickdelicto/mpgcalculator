@@ -37,7 +37,6 @@ ecosystem.config.js
 next-env.d.ts
 
 # Specific public files to ignore
-public/favicon.ico
 public/gauge-icon.svg
 public/mpg-calculator-screenshot.jpg
 scripts/last-submitted-urls.json

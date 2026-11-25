@@ -12,6 +12,7 @@ const isExternalLink = (href: string) => {
 }
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/blog/road-trips/best-road-trip-routes-usa' },
   title: '11 Most Popular Best Road Trip Routes in the US with Cost Breakdowns | MPGCalculator.net',
   description: 'Explore America\'s most iconic best road trip routes with detailed cost breakdowns, including fuel costs, accommodations, and attractions. Plan your perfect road trip adventure.',
 }

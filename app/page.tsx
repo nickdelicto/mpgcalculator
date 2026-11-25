@@ -8,6 +8,7 @@ import FloatingRoadTripPromo from './components/FloatingRoadTripPromo'
 import ToolsPromoSidebar from './components/ToolsPromoSidebar'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net' },
   title: 'MPG Calculator | Fuel Efficiency Calculator with Cost Analysis',
   description: 'This free MPG Calculator estimates your vehicle\'s fuel economy & cost of a trip based on distance and gas price.',
   keywords: 'MPG calculator, fuel efficiency calculator, fuel economy, miles per gallon, multi-trip calculator, fuel costs calculator',

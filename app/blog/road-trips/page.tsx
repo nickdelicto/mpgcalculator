@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/blog/road-trips' },
   title: 'Road Trip Guides | MPGCalculator.net Blog',
   description: 'Explore our collection of road trip guides with routes, cost estimates, and planning tips for your next adventure.',
 }

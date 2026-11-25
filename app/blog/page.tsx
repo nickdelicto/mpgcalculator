@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/blog' },
   title: 'MPGCalculator.net Blog | Road Trip Guides & Travel Resources',
   description: 'Explore our collection of road trip guides, destination tips, vehicle advice, and travel resources to plan your perfect journey.',
 }
@@ -85,11 +86,6 @@ export default function BlogHomePage() {
               <li>
                 <Link href="/blog/accommodations" className="text-blue-600 hover:text-blue-800">
                   Accommodation Tips
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog/travel-resources" className="text-blue-600 hover:text-blue-800">
-                  Travel Resources
                 </Link>
               </li>
               <li>

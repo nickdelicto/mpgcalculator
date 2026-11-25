@@ -6,6 +6,7 @@ import SearchParamsWrapper from '../components/SearchParamsWrapper'
 import SupportButton from '../components/SupportButton'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/fuel-economy-compare' },
   title: 'Compare Car Fuel Economy: MPG & Emissions Side by Side',
   description: 'Compare up to 3 vehicles side by side on MPG, fuel efficiency, and CO2 emissions. Find the most fuel-efficient car for you in seconds. Free, no sign-up.',
   keywords: 'Vehicle MPG comparison, fuel economy compare, car comparison tool, vehicle efficiency comparison, fuel consumption comparison',

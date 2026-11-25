@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${article.title} | Road Trip Guides | MPGCalculator.net Blog`,
     description: article.description,
+    alternates: { canonical: `https://mpgcalculator.net/blog/road-trips/${resolvedParams.slug}` },
     openGraph: {
       title: article.title,
       description: article.description,

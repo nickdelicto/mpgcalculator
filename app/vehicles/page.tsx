@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { CarFront, Gauge, Leaf, Info } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/vehicles' },
   title: 'Vehicle MPG Directory | Search Fuel Economy Data',
   description: 'Lookup fuel consumption and MPG by car model. Find and compare fuel efficiency for various vehicle models.',
   keywords: 'fuel consumption comparison, fuel consumption calculator by car model, vehicle MPG lookup, car fuel efficiency, gas mileage calculator by make and model,',

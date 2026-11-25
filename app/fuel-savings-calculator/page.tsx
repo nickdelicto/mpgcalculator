@@ -45,6 +45,7 @@ const StructuredData = () => {
 }
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://mpgcalculator.net/fuel-savings-calculator' },
   title: 'Fuel Savings Calculator | Compare Gas, Hybrid & EV Costs',
   description: 'Compare what two cars cost to fuel and see how much you\'d save switching to a hybrid or EV. Free calculator for gas, hybrid, and electric vehicles, by month and year.',
   keywords: 'fuel savings calculator, gas savings calculator, ev savings calculator, phev savings calculator, gas vs ev savings calculator, hybrid vs gas cost calculator, fuel efficiency savings, car fuel cost comparison',
