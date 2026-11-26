@@ -13,6 +13,8 @@ import FuelSavingsCalculator from '../../components/FuelSavingsCalculator'
 import VehiclePageProducts from '../../components/VehiclePageProducts'
 import ToolsPromoSidebar from '../../components/ToolsPromoSidebar'
 import type { AmazonProduct } from '../../components/VehiclePageProducts'
+import VehicleFamilyLinks from '../../components/VehicleFamilyLinks'
+import { getVehicleIndex, getIndexDecision, vehicleSlug } from '../../lib/vehicleIndexing'
 
 // Helper function to determine if fuel type uses MPGe
 const usesMPGe = (fuelType: string): boolean => {
@@ -75,13 +77,17 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const canonicalUrl = `${baseUrl}/vehicles/${resolvedParams.slug}`
   
   // Fetch the complete vehicle data first
   const vehicles = await getVehicleData(resolvedParams.slug)
 
   // Unknown vehicle → proper 404 (was a 200 "Vehicle Not Found" soft-404 that hurt indexing)
   if (vehicles.length === 0) notFound()
+
+  // Index only the strong core (see app/lib/vehicleIndexing.ts). Trim pages stay
+  // live for users but are noindex,follow with a canonical to their keeper page.
+  const indexDecision = getIndexDecision(vehicleSlug(vehicles[0]), await getVehicleIndex())
+  const canonicalUrl = `${baseUrl}/vehicles/${indexDecision.canonicalSlug}`
 
   let title = ''
   let description = ''
@@ -142,13 +148,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
 
     // Additional metadata
-    robots: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    robots: indexDecision.indexable
+      ? {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        }
+      : { index: false, follow: true },
   }
 }
 
@@ -260,6 +268,14 @@ async function VehicleContent({ params }: Props) {
   if (!vehicles.length) notFound()
 
   const [vehicle, ...variants] = vehicles
+
+  // Trims of this model year + other model years (internal links)
+  const pageSlug = vehicleSlug(vehicle)
+  const vehicleIndex = await getVehicleIndex()
+  const familyGroup = vehicleIndex?.bySlug.get(pageSlug)
+  const familyYears = familyGroup
+    ? vehicleIndex?.byMakeFamily.get(`${familyGroup.make.toLowerCase()}|${familyGroup.family}`) ?? [familyGroup]
+    : []
   const similarVehicles = await getSimilarVehicles(vehicle)
   const bestCombinedMPG = getBestCombinedMPG(vehicle)
   const primaryMpgSuffix = usesMPGe(vehicle.fuelType1) ? 'MPGe' : 'MPG'
@@ -1077,6 +1093,10 @@ async function VehicleContent({ params }: Props) {
                 </section>
               )
             })}
+
+          {familyGroup && (
+            <VehicleFamilyLinks currentSlug={pageSlug} group={familyGroup} years={familyYears} />
+          )}
 
           {/* Similar Vehicles Section - if exists */}
           {similarVehicles.length > 0 && (

@@ -2,6 +2,10 @@ import { Metadata } from 'next'
 import VehicleLookupWrapper from '../components/VehicleLookupWrapper'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { CarFront, Gauge, Leaf, Info } from 'lucide-react'
+import VehicleDirectoryLinks from '../components/VehicleDirectoryLinks'
+
+// Directory links come from the vehicle API — refresh daily
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://mpgcalculator.net/vehicles' },
@@ -109,6 +113,9 @@ export default function VehiclesPage() {
               </div>
             </div>
           </div>
+
+          {/* Crawlable links to the newest model year's main vehicle pages */}
+          <VehicleDirectoryLinks />
         </main>
       </div>
     </div>
