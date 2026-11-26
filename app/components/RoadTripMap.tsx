@@ -21,6 +21,10 @@ interface MapProps {
   activePOILayers?: string[]; // Add this prop
   onLayerChange?: (layers: string[]) => void; // Add callback to update parent state
   onSelectPOI?: (poi: POI) => void; // Add callback for POI selection
+  // Destination stay dates/guests for the "Find Accommodation" Stay22 link
+  stayCheckin?: string;
+  stayCheckout?: string;
+  stayAdults?: number;
 }
 
 const RoadTripMap: React.FC<MapProps> = ({ 
@@ -32,7 +36,10 @@ const RoadTripMap: React.FC<MapProps> = ({
   endLocation = 'Destination',
   activePOILayers = [],
   onLayerChange,
-  onSelectPOI
+  onSelectPOI,
+  stayCheckin,
+  stayCheckout,
+  stayAdults
 }) => {
   // Refs for the map container and map instance
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -678,6 +685,9 @@ const RoadTripMap: React.FC<MapProps> = ({
       lat: endCoords?.lat,
       lng: endCoords?.lng,
       address: region ? `${city}, ${region}` : city,
+      checkin: stayCheckin,
+      checkout: stayCheckout,
+      adults: stayAdults,
       campaign: 'roadtrip_findbtn',
     })
 

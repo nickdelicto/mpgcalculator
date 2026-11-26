@@ -13,6 +13,9 @@ interface MapProps {
   activePOILayers?: string[];
   onLayerChange?: (layers: string[]) => void;
   onSelectPOI?: (poi: POI) => void;
+  stayCheckin?: string;
+  stayCheckout?: string;
+  stayAdults?: number;
 }
 
 // Use dynamic import with ssr: false to prevent server-side rendering of the map component
