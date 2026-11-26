@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { Vehicle } from './types/vehicle'
+import { ROUTES as ROAD_TRIP_ROUTES } from './road-trip-cost/lib'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
@@ -68,6 +69,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9
     },
+    // Route cost pages (/road-trip-cost/*) — gas prices refresh weekly
+    {
+      url: `${baseUrl}/road-trip-cost`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
+    ...ROAD_TRIP_ROUTES.map((r) => ({
+      url: `${baseUrl}/road-trip-cost/${r.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8
+    })),
     {
       url: `${baseUrl}/escape-the-grind`,
       lastModified: new Date(),

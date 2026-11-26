@@ -1,0 +1,646 @@
+{
+ "Los Angeles, CA": {
+  "name": "Los Angeles",
+  "state": "CA",
+  "label": "Los Angeles, CA, USA",
+  "lng": -118.257,
+  "lat": 34.0551
+ },
+ "Las Vegas, NV": {
+  "name": "Las Vegas",
+  "state": "NV",
+  "label": "Las Vegas, NV, USA",
+  "lng": -115.2791,
+  "lat": 36.1904
+ },
+ "San Francisco, CA": {
+  "name": "San Francisco",
+  "state": "CA",
+  "label": "San Francisco, CA, USA",
+  "lng": -122.4313,
+  "lat": 37.778
+ },
+ "San Diego, CA": {
+  "name": "San Diego",
+  "state": "CA",
+  "label": "San Diego, CA, USA",
+  "lng": -117.1553,
+  "lat": 32.7279
+ },
+ "Phoenix, AZ": {
+  "name": "Phoenix",
+  "state": "AZ",
+  "label": "Phoenix, AZ, USA",
+  "lng": -112.0709,
+  "lat": 33.605
+ },
+ "Grand Canyon Village, AZ": {
+  "name": "Grand Canyon Village",
+  "state": "AZ",
+  "label": "Grand Canyon Village, AZ, USA",
+  "lng": -112.1447,
+  "lat": 36.0422
+ },
+ "Yosemite Valley, CA": {
+  "name": "Yosemite Valley",
+  "state": "CA",
+  "label": "Yosemite Valley, CA, USA",
+  "lng": -119.5775,
+  "lat": 37.7416
+ },
+ "Seattle, WA": {
+  "name": "Seattle",
+  "state": "WA",
+  "label": "Seattle, WA, USA",
+  "lng": -122.3315,
+  "lat": 47.6735
+ },
+ "Portland, OR": {
+  "name": "Portland",
+  "state": "OR",
+  "label": "Portland, OR, USA",
+  "lng": -122.6501,
+  "lat": 45.5335
+ },
+ "Denver, CO": {
+  "name": "Denver",
+  "state": "CO",
+  "label": "Denver, CO, USA",
+  "lng": -104.9858,
+  "lat": 39.741
+ },
+ "Salt Lake City, UT": {
+  "name": "Salt Lake City",
+  "state": "UT",
+  "label": "Salt Lake City, UT, USA",
+  "lng": -111.934,
+  "lat": 40.7732
+ },
+ "Sedona, AZ": {
+  "name": "Sedona",
+  "state": "AZ",
+  "label": "Sedona, AZ, USA",
+  "lng": -111.7886,
+  "lat": 34.8597
+ },
+ "Palm Springs, CA": {
+  "name": "Palm Springs",
+  "state": "CA",
+  "label": "Palm Springs, CA, USA",
+  "lng": -116.5279,
+  "lat": 33.8078
+ },
+ "South Lake Tahoe, CA": {
+  "name": "South Lake Tahoe",
+  "state": "CA",
+  "label": "South Lake Tahoe, CA, USA",
+  "lng": -119.9843,
+  "lat": 38.9332
+ },
+ "Monterey, CA": {
+  "name": "Monterey",
+  "state": "CA",
+  "label": "Monterey, CA, USA",
+  "lng": -121.8984,
+  "lat": 36.5988
+ },
+ "Springdale, UT": {
+  "name": "Springdale",
+  "state": "UT",
+  "label": "Springdale, UT, USA",
+  "lng": -113.0022,
+  "lat": 37.184
+ },
+ "Page, AZ": {
+  "name": "Page",
+  "state": "AZ",
+  "label": "Page, AZ, USA",
+  "lng": -111.4562,
+  "lat": 36.902
+ },
+ "Albuquerque, NM": {
+  "name": "Albuquerque",
+  "state": "NM",
+  "label": "Albuquerque, NM, USA",
+  "lng": -106.5791,
+  "lat": 35.1287
+ },
+ "Tucson, AZ": {
+  "name": "Tucson",
+  "state": "AZ",
+  "label": "Tucson, AZ, USA",
+  "lng": -110.829,
+  "lat": 32.1971
+ },
+ "Spokane, WA": {
+  "name": "Spokane",
+  "state": "WA",
+  "label": "Spokane, WA, USA",
+  "lng": -117.4058,
+  "lat": 47.66
+ },
+ "West Yellowstone, MT": {
+  "name": "West Yellowstone",
+  "state": "MT",
+  "label": "West Yellowstone, MT, USA",
+  "lng": -111.1077,
+  "lat": 44.6629
+ },
+ "Boise, ID": {
+  "name": "Boise",
+  "state": "ID",
+  "label": "Boise, ID, USA",
+  "lng": -116.2275,
+  "lat": 43.6086
+ },
+ "Bend, OR": {
+  "name": "Bend",
+  "state": "OR",
+  "label": "Bend, OR, USA",
+  "lng": -121.3043,
+  "lat": 44.0517
+ },
+ "Cannon Beach, OR": {
+  "name": "Cannon Beach",
+  "state": "OR",
+  "label": "Cannon Beach, OR, USA",
+  "lng": -123.9603,
+  "lat": 45.8911
+ },
+ "Moab, UT": {
+  "name": "Moab",
+  "state": "UT",
+  "label": "Moab, UT, USA",
+  "lng": -109.5511,
+  "lat": 38.5721
+ },
+ "Kansas City, MO": {
+  "name": "Kansas City",
+  "state": "MO",
+  "label": "Kansas City, MO, USA",
+  "lng": -94.5415,
+  "lat": 39.051
+ },
+ "Dallas, TX": {
+  "name": "Dallas",
+  "state": "TX",
+  "label": "Dallas, TX, USA",
+  "lng": -96.7844,
+  "lat": 32.7362
+ },
+ "Aspen, CO": {
+  "name": "Aspen",
+  "state": "CO",
+  "label": "Aspen, CO, USA",
+  "lng": -106.8358,
+  "lat": 39.2007
+ },
+ "Keystone, SD": {
+  "name": "Keystone",
+  "state": "SD",
+  "label": "Keystone, SD, USA",
+  "lng": -103.4195,
+  "lat": 43.8938
+ },
+ "Jackson, WY": {
+  "name": "Jackson",
+  "state": "WY",
+  "label": "Jackson, WY, USA",
+  "lng": -110.764,
+  "lat": 43.4768
+ },
+ "Colorado Springs, CO": {
+  "name": "Colorado Springs",
+  "state": "CO",
+  "label": "Colorado Springs, CO, USA",
+  "lng": -104.8132,
+  "lat": 38.8754
+ },
+ "Santa Fe, NM": {
+  "name": "Santa Fe",
+  "state": "NM",
+  "label": "Santa Fe, NM, USA",
+  "lng": -105.9459,
+  "lat": 35.6814
+ },
+ "Chicago, IL": {
+  "name": "Chicago",
+  "state": "IL",
+  "label": "Chicago, IL, USA",
+  "lng": -87.6606,
+  "lat": 41.879
+ },
+ "Nashville, TN": {
+  "name": "Nashville",
+  "state": "TN",
+  "label": "Nashville, TN, USA",
+  "lng": -86.8347,
+  "lat": 36.2369
+ },
+ "Detroit, MI": {
+  "name": "Detroit",
+  "state": "MI",
+  "label": "Detroit, MI, USA",
+  "lng": -83.1646,
+  "lat": 42.3986
+ },
+ "Minneapolis, MN": {
+  "name": "Minneapolis",
+  "state": "MN",
+  "label": "Minneapolis, MN, USA",
+  "lng": -93.2666,
+  "lat": 44.9631
+ },
+ "St. Louis, MO": {
+  "name": "St. Louis",
+  "state": "MO",
+  "label": "St. Louis, MO, USA",
+  "lng": -90.2441,
+  "lat": 38.633
+ },
+ "Milwaukee, WI": {
+  "name": "Milwaukee",
+  "state": "WI",
+  "label": "Milwaukee, WI, USA",
+  "lng": -87.9484,
+  "lat": 43.0607
+ },
+ "Indianapolis, IN": {
+  "name": "Indianapolis",
+  "state": "IN",
+  "label": "Indianapolis, IN, USA",
+  "lng": -86.1434,
+  "lat": 39.7859
+ },
+ "New York, NY": {
+  "name": "New York",
+  "state": "NY",
+  "label": "New York, NY, USA",
+  "lng": -73.9708,
+  "lat": 40.683
+ },
+ "Memphis, TN": {
+  "name": "Memphis",
+  "state": "TN",
+  "label": "Memphis, TN, USA",
+  "lng": -89.9546,
+  "lat": 35.1121
+ },
+ "New Orleans, LA": {
+  "name": "New Orleans",
+  "state": "LA",
+  "label": "New Orleans, LA, USA",
+  "lng": -89.8899,
+  "lat": 30.0567
+ },
+ "Atlanta, GA": {
+  "name": "Atlanta",
+  "state": "GA",
+  "label": "Atlanta, GA, USA",
+  "lng": -84.4146,
+  "lat": 33.7698
+ },
+ "Mackinaw City, MI": {
+  "name": "Mackinaw City",
+  "state": "MI",
+  "label": "Mackinaw City, MI, USA",
+  "lng": -84.7485,
+  "lat": 45.789
+ },
+ "Orlando, FL": {
+  "name": "Orlando",
+  "state": "FL",
+  "label": "Orlando, FL, USA",
+  "lng": -81.2937,
+  "lat": 28.4196
+ },
+ "Wisconsin Dells, WI": {
+  "name": "Wisconsin Dells",
+  "state": "WI",
+  "label": "Wisconsin Dells, WI, USA",
+  "lng": -89.7712,
+  "lat": 43.6281
+ },
+ "Columbus, OH": {
+  "name": "Columbus",
+  "state": "OH",
+  "label": "Columbus, OH, USA",
+  "lng": -82.9853,
+  "lat": 39.9808
+ },
+ "Duluth, MN": {
+  "name": "Duluth",
+  "state": "MN",
+  "label": "Duluth, MN, USA",
+  "lng": -92.1249,
+  "lat": 46.7981
+ },
+ "Traverse City, MI": {
+  "name": "Traverse City",
+  "state": "MI",
+  "label": "Traverse City, MI, USA",
+  "lng": -85.5903,
+  "lat": 44.7556
+ },
+ "Cleveland, OH": {
+  "name": "Cleveland",
+  "state": "OH",
+  "label": "Cleveland, OH, USA",
+  "lng": -81.6513,
+  "lat": 41.4966
+ },
+ "Cincinnati, OH": {
+  "name": "Cincinnati",
+  "state": "OH",
+  "label": "Cincinnati, OH, USA",
+  "lng": -84.5441,
+  "lat": 39.1476
+ },
+ "Pittsburgh, PA": {
+  "name": "Pittsburgh",
+  "state": "PA",
+  "label": "Pittsburgh, PA, USA",
+  "lng": -79.9363,
+  "lat": 40.4505
+ },
+ "Houston, TX": {
+  "name": "Houston",
+  "state": "TX",
+  "label": "Houston, TX, USA",
+  "lng": -95.3614,
+  "lat": 29.7848
+ },
+ "Austin, TX": {
+  "name": "Austin",
+  "state": "TX",
+  "label": "Austin, TX, USA",
+  "lng": -97.8365,
+  "lat": 30.2223
+ },
+ "San Antonio, TX": {
+  "name": "San Antonio",
+  "state": "TX",
+  "label": "San Antonio, TX, USA",
+  "lng": -98.5886,
+  "lat": 29.375
+ },
+ "Oklahoma City, OK": {
+  "name": "Oklahoma City",
+  "state": "OK",
+  "label": "Oklahoma City, OK, USA",
+  "lng": -97.6025,
+  "lat": 35.3938
+ },
+ "Little Rock, AR": {
+  "name": "Little Rock",
+  "state": "AR",
+  "label": "Little Rock, AR, USA",
+  "lng": -92.3558,
+  "lat": 34.7136
+ },
+ "Galveston, TX": {
+  "name": "Galveston",
+  "state": "TX",
+  "label": "Galveston, TX, USA",
+  "lng": -94.8116,
+  "lat": 29.2859
+ },
+ "Corpus Christi, TX": {
+  "name": "Corpus Christi",
+  "state": "TX",
+  "label": "Corpus Christi, TX, USA",
+  "lng": -97.3136,
+  "lat": 27.7346
+ },
+ "Tulsa, OK": {
+  "name": "Tulsa",
+  "state": "OK",
+  "label": "Tulsa, OK, USA",
+  "lng": -95.9162,
+  "lat": 36.1058
+ },
+ "Savannah, GA": {
+  "name": "Savannah",
+  "state": "GA",
+  "label": "Savannah, GA, USA",
+  "lng": -81.0996,
+  "lat": 32.0433
+ },
+ "Charlotte, NC": {
+  "name": "Charlotte",
+  "state": "NC",
+  "label": "Charlotte, NC, USA",
+  "lng": -80.8171,
+  "lat": 35.1953
+ },
+ "Gatlinburg, TN": {
+  "name": "Gatlinburg",
+  "state": "TN",
+  "label": "Gatlinburg, TN, USA",
+  "lng": -83.4994,
+  "lat": 35.7215
+ },
+ "Miami, FL": {
+  "name": "Miami",
+  "state": "FL",
+  "label": "Miami, FL, USA",
+  "lng": -80.2103,
+  "lat": 25.7664
+ },
+ "Chattanooga, TN": {
+  "name": "Chattanooga",
+  "state": "TN",
+  "label": "Chattanooga, TN, USA",
+  "lng": -85.235,
+  "lat": 35.092
+ },
+ "Destin, FL": {
+  "name": "Destin",
+  "state": "FL",
+  "label": "Destin, FL, USA",
+  "lng": -86.4748,
+  "lat": 30.3968
+ },
+ "Myrtle Beach, SC": {
+  "name": "Myrtle Beach",
+  "state": "SC",
+  "label": "Myrtle Beach, SC, USA",
+  "lng": -78.9237,
+  "lat": 33.6732
+ },
+ "Louisville, KY": {
+  "name": "Louisville",
+  "state": "KY",
+  "label": "Louisville, KY, USA",
+  "lng": -85.7769,
+  "lat": 38.1412
+ },
+ "Key West, FL": {
+  "name": "Key West",
+  "state": "FL",
+  "label": "Key West, FL, USA",
+  "lng": -81.7697,
+  "lat": 24.5607
+ },
+ "Tampa, FL": {
+  "name": "Tampa",
+  "state": "FL",
+  "label": "Tampa, FL, USA",
+  "lng": -82.4957,
+  "lat": 27.9352
+ },
+ "Jacksonville, FL": {
+  "name": "Jacksonville",
+  "state": "FL",
+  "label": "Jacksonville, FL, USA",
+  "lng": -81.661,
+  "lat": 30.3699
+ },
+ "St. Augustine, FL": {
+  "name": "St. Augustine",
+  "state": "FL",
+  "label": "St. Augustine, FL, USA",
+  "lng": -81.3159,
+  "lat": 29.8975
+ },
+ "Asheville, NC": {
+  "name": "Asheville",
+  "state": "NC",
+  "label": "Asheville, NC, USA",
+  "lng": -82.5548,
+  "lat": 35.5893
+ },
+ "Raleigh, NC": {
+  "name": "Raleigh",
+  "state": "NC",
+  "label": "Raleigh, NC, USA",
+  "lng": -78.6444,
+  "lat": 35.7955
+ },
+ "Charleston, SC": {
+  "name": "Charleston",
+  "state": "SC",
+  "label": "Charleston, SC, USA",
+  "lng": -79.9482,
+  "lat": 32.7953
+ },
+ "Nags Head, NC": {
+  "name": "Nags Head",
+  "state": "NC",
+  "label": "Nags Head, NC, USA",
+  "lng": -75.6488,
+  "lat": 35.9802
+ },
+ "Richmond, VA": {
+  "name": "Richmond",
+  "state": "VA",
+  "label": "Richmond, VA, USA",
+  "lng": -77.4739,
+  "lat": 37.5192
+ },
+ "Virginia Beach, VA": {
+  "name": "Virginia Beach",
+  "state": "VA",
+  "label": "Virginia Beach, VA, USA",
+  "lng": -75.978,
+  "lat": 36.8529
+ },
+ "Boston, MA": {
+  "name": "Boston",
+  "state": "MA",
+  "label": "Boston, MA, USA",
+  "lng": -71.0486,
+  "lat": 42.3555
+ },
+ "Washington, DC": {
+  "name": "Washington",
+  "state": "DC",
+  "label": "Washington, DC, USA",
+  "lng": -77.0171,
+  "lat": 38.8265
+ },
+ "Philadelphia, PA": {
+  "name": "Philadelphia",
+  "state": "PA",
+  "label": "Philadelphia, PA, USA",
+  "lng": -75.1684,
+  "lat": 39.9908
+ },
+ "Niagara Falls, NY": {
+  "name": "Niagara Falls",
+  "state": "NY",
+  "label": "Niagara Falls, NY, USA",
+  "lng": -79.0249,
+  "lat": 43.0924
+ },
+ "Lake George, NY": {
+  "name": "Lake George",
+  "state": "NY",
+  "label": "Lake George, NY, USA",
+  "lng": -73.7284,
+  "lat": 43.4664
+ },
+ "Hyannis, MA": {
+  "name": "Hyannis",
+  "state": "MA",
+  "label": "Hyannis, MA, USA",
+  "lng": -70.2828,
+  "lat": 41.6529
+ },
+ "Bar Harbor, ME": {
+  "name": "Bar Harbor",
+  "state": "ME",
+  "label": "Bar Harbor, ME, USA",
+  "lng": -68.2089,
+  "lat": 44.3815
+ },
+ "Burlington, VT": {
+  "name": "Burlington",
+  "state": "VT",
+  "label": "Burlington, VT, USA",
+  "lng": -73.2273,
+  "lat": 44.4819
+ },
+ "Montauk, NY": {
+  "name": "Montauk",
+  "state": "NY",
+  "label": "Montauk, NY, USA",
+  "lng": -71.9365,
+  "lat": 41.056
+ },
+ "Portland, ME": {
+  "name": "Portland",
+  "state": "ME",
+  "label": "Portland, ME, USA",
+  "lng": -70.2739,
+  "lat": 43.6725
+ },
+ "North Conway, NH": {
+  "name": "North Conway",
+  "state": "NH",
+  "label": "North Conway, NH, USA",
+  "lng": -71.1317,
+  "lat": 44.0659
+ },
+ "Ocean City, MD": {
+  "name": "Ocean City",
+  "state": "MD",
+  "label": "Ocean City, MD, USA",
+  "lng": -75.0694,
+  "lat": 38.4083
+ },
+ "Luray, VA": {
+  "name": "Luray",
+  "state": "VA",
+  "label": "Luray, VA, USA",
+  "lng": -78.4574,
+  "lat": 38.6669
+ },
+ "Terlingua, TX": {
+  "name": "Terlingua",
+  "state": "TX",
+  "label": "Terlingua, TX, USA",
+  "lng": -103.5745,
+  "lat": 29.3003
+ }
+}

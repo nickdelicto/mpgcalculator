@@ -122,6 +122,14 @@ export default function PopularRoadTripRoutes() {
 
             {/* Methodology Section */}
             <section className="content-section">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <strong>Want this week&apos;s gas cost?</strong> We track{' '}
+                <Link href="/road-trip-cost" className="text-blue-700 underline">gas costs for 159 popular routes</Link>{' '}
+                with weekly EIA prices — e.g.{' '}
+                <Link href="/road-trip-cost/chicago-to-los-angeles" className="text-blue-700 underline">Chicago to Los Angeles</Link>,{' '}
+                <Link href="/road-trip-cost/san-francisco-to-san-diego" className="text-blue-700 underline">San Francisco to San Diego</Link> and{' '}
+                <Link href="/road-trip-cost/miami-to-key-west" className="text-blue-700 underline">Miami to Key West</Link>.
+              </div>
               <h2 id="methodology" className="text-2xl font-bold text-blue-900 mb-4">How We Calculated These Road Trip Costs</h2>
               
               <p className="text-gray-700 mb-6">
