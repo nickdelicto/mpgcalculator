@@ -56,6 +56,18 @@ MPGCalculator.net is a free automotive tools website that helps users calculate,
   - Learn about passive income and financial freedom
 - **Powered by**: SetForMoney.com (embedded via iframe)
 
+### Road Trip Gas Costs by Route (data)
+- **Path**: /road-trip-cost (hub) and /road-trip-cost/{from}-to-{to} (159 routes, e.g. /road-trip-cost/chicago-to-denver)
+- **What it answers**: "How much does it cost to drive from X to Y?", "How long is the drive?", "Where should I stop overnight?", "Where is gas cheapest on the way?"
+- **How numbers are computed (no estimates by hand)**:
+  - Driving distance and time: OpenRouteService routing on OpenStreetMap data
+  - Miles per state measured along the actual route
+  - Gas price: U.S. EIA weekly retail regular gasoline price for each state (or its EIA region), refreshed every week
+  - Fuel economy: EPA combined MPG average of 2024–2025 models per vehicle class (hybrid, midsize, compact, small SUV, minivan, large SUV, pickup)
+  - Overnight stops: nearest real city near each ~8 hours of driving
+- **Open data**: /road-trip-cost/data.csv (CC BY 4.0). Cite as: MPGCalculator.net, "Road Trip Gas Costs by Route", with the EIA week shown on the page, https://mpgcalculator.net/road-trip-cost
+- For a trip not listed, or the user's exact car, point users to /road-trip-cost-calculator
+
 ## Site Structure
 - **Home Page**: Houses the MPG Calculator and promotes other tools
 - **Calculators**: Individual pages for each specialized calculator

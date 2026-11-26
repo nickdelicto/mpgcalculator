@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const mid = vehicles.find((v) => v.key === DEFAULT_VEHICLE.key)!
   const year = gas.weekOf.slice(0, 4)
   const title = `${titleFor(r)} (${year}): Gas, Miles & Stops`
-  const description = `Driving ${cityName(r.from)} to ${cityName(r.to)} is ${miles(r.distanceMi)} (about ${hm(r.durationH)}). Gas costs about ${usd(mid.oneWay)} one way in a midsize car at this week's prices — see costs for SUVs, trucks and hybrids, state-by-state gas prices and where to stop.`
+  const description = `${r.from.name} to ${r.to.name}: ${miles(r.distanceMi)}, ${hm(r.durationH)} drive. Gas ≈ ${usd(mid.oneWay)} one way at this week's prices. Costs for SUVs, trucks, hybrids + where to stop.`
   const url = `${SITE}/road-trip-cost/${r.slug}`
   return {
     title,
@@ -113,6 +113,19 @@ export default async function RouteCostPage({ params }: Props) {
       ],
     },
     {
+      '@context': 'https://schema.org', '@type': 'Trip',
+      name: `${r.from.name} to ${r.to.name} road trip`,
+      description: `${miles(r.distanceMi)} drive, about ${hm(r.durationH)}; gas ≈ ${usd(mid.oneWay)} one way in a midsize car (EIA prices, week of ${weekOf}).`,
+      url,
+      itinerary: {
+        '@type': 'ItemList',
+        itemListElement: points.map((p, i) => ({
+          '@type': 'ListItem', position: i + 1,
+          item: { '@type': 'City', name: cityName(p), geo: { '@type': 'GeoCoordinates', latitude: p.lat, longitude: p.lng } },
+        })),
+      },
+    },
+    {
       '@context': 'https://schema.org', '@type': 'FAQPage',
       mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
     },
@@ -174,7 +187,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* Cost by vehicle */}
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Gas cost by vehicle type</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Gas cost by vehicle type</h2>
         <p className="text-gray-600 mb-4">
           Using a distance-weighted average of {usd2(avgPrice)}/gal for regular gas along this route and the EPA combined MPG average
           of 2024–2025 models in each class.
@@ -213,7 +226,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* By state */}
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Miles and gas prices by state</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Miles and gas prices by state</h2>
         <p className="text-gray-600 mb-4">
           {byState.length > 1
             ? priceGap
@@ -247,7 +260,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* Itinerary + hotels */}
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{multiDay ? `Suggested ${r.days}-day plan and where to stay` : 'Where to stay'}</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">{multiDay ? `Suggested ${r.days}-day plan and where to stay` : 'Where to stay'}</h2>
         <p className="text-gray-600 mb-4">
           {multiDay
             ? <>At about {hm(r.durationH / r.days)} of driving a day, these are natural overnight stops. Stop times are estimates — adjust for traffic, weather and breaks.</>
@@ -280,7 +293,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* Driving back */}
       <section className="mt-10 bg-white rounded-xl border border-blue-100 p-5 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Driving {r.to.name} to {r.from.name} instead?</h2>
+        <h2 className="text-xl font-heading font-bold text-gray-900 mb-1">Driving {r.to.name} to {r.from.name} instead?</h2>
         <p className="text-gray-700">
           The return drive is the same {miles(r.distanceMi)} and costs about the same: {usd(mid.oneWay)} in a midsize car.
           {priceGap ? <> though you may want to buy gas in {cheapState.name} on the way back too.</> : null}
@@ -289,7 +302,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* FAQ */}
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">{r.from.name} to {r.to.name}: common questions</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">{r.from.name} to {r.to.name}: common questions</h2>
         <div className="space-y-3">
           {faqs.map((f) => (
             <details key={f.q} className="bg-white rounded-xl border border-blue-100 p-4 shadow-sm" open>
@@ -302,7 +315,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {related.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Related road trips</h2>
+          <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">Related road trips</h2>
           <div className="grid sm:grid-cols-2 gap-2">
             {related.map((x) => (
               <Link key={x.slug} href={`/road-trip-cost/${x.slug}`} className="bg-white rounded-lg border border-blue-100 px-4 py-3 hover:border-blue-400 flex justify-between">

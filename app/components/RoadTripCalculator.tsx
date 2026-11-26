@@ -608,6 +608,18 @@ export default function RoadTripCalculator() {
   // The Hotels tab is index 0 in TabsContainer. When it's active we swap the big
   // map area from the route map to the Stay22 hotel map.
   const showHotelMap = hasHotels && activeTab === 0 && Boolean(endCoords);
+
+  // Back to the form (used by the compact button in the cost strip and the fallback button)
+  const handleEditTrip = () => {
+    setRoute(null);
+    setCosts(null);
+    setStatus({
+      loading: false,
+      error: null,
+      message: null,
+      usingFallback: false
+    });
+  };
   
   // Check if we have attractions layer active
   const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
@@ -876,13 +888,26 @@ export default function RoadTripCalculator() {
                 {' · '}{formatDuration(costs.durationHours)} driving
                 {overnightStops.length > 0 && ` · ${overnightStops.length} night${overnightStops.length > 1 ? 's' : ''} on the road`}
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab(summaryTabIndex)}
-                className="text-sm font-medium text-blue-700 underline sm:ml-auto"
-              >
-                Full cost breakdown
-              </button>
+              <div className="flex items-center gap-4 w-full sm:w-auto sm:ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(summaryTabIndex)}
+                  className="text-sm font-medium text-blue-700 underline"
+                >
+                  Full cost breakdown
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditTrip}
+                  className="ml-auto sm:ml-0 inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-white px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                    <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                  </svg>
+                  Edit trip
+                </button>
+              </div>
             </div>
           )}
 
@@ -965,20 +990,12 @@ export default function RoadTripCalculator() {
             </div>
           )}
           
-          {/* Back to Edit button */}
+          {/* Back to Edit button — only when the cost strip (which has a compact Edit button) isn't shown */}
+          {!costs && (
           <div className={`p-4 border-t border-gray-200 ${selectedPOI ? 'pt-0.5' : ''}`}>
             <Button 
               className="w-full py-3 sm:py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-2"
-              onClick={() => {
-                setRoute(null);
-                setCosts(null);
-                setStatus({
-                  loading: false,
-                  error: null,
-                  message: null,
-                  usingFallback: false
-                });
-              }}
+              onClick={handleEditTrip}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
@@ -987,6 +1004,7 @@ export default function RoadTripCalculator() {
               Edit Trip Details
             </Button>
             </div>
+          )}
           </div>
         )}
       

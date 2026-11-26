@@ -28,6 +28,20 @@ export default function RoadTripCostHub() {
   const longest = [...rows].sort((a, b) => b.r.distanceMi - a.r.distanceMi)[0]
   const cheapest = [...rows].sort((a, b) => a.cost - b.cost)[0]
 
+  const dataset = {
+    '@context': 'https://schema.org', '@type': 'Dataset',
+    name: 'U.S. road trip gas costs by route',
+    description: `Distance, driving time, states crossed and one-way gas cost for ${ROUTES.length} popular U.S. road trips, recalculated weekly from EIA retail regular gasoline prices and EPA fuel economy averages.`,
+    url: `${SITE}/road-trip-cost`,
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    creator: { '@type': 'Organization', name: 'MPGCalculator.net', url: SITE },
+    isAccessibleForFree: true,
+    dateModified: gas.weekOf,
+    temporalCoverage: gas.weekOf,
+    spatialCoverage: 'United States',
+    variableMeasured: ['distance (miles)', 'driving time (hours)', 'gas cost (USD)', 'regular gasoline price (USD/gal)'],
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: `${SITE}/road-trip-cost/data.csv` }],
+  }
   const jsonLd = {
     '@context': 'https://schema.org', '@type': 'ItemList',
     name: 'Popular U.S. road trip gas costs',
@@ -37,6 +51,7 @@ export default function RoadTripCostHub() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dataset) }} />
       <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">How much does a road trip cost in gas?</h1>
       <p className="text-gray-700 text-lg mb-2">
         Gas cost, distance and driving time for {ROUTES.length} of America&apos;s most popular drives — from a{' '}
@@ -64,7 +79,7 @@ export default function RoadTripCostHub() {
         if (!list.length) return null
         return (
           <section key={region} className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">{region} road trips</h2>
+            <h2 className="text-2xl font-heading font-bold text-gray-900 mb-3">{region} road trips</h2>
             <div className="overflow-x-auto bg-white rounded-xl border border-blue-100 shadow-sm">
               <table className="w-full text-sm">
                 <thead className="bg-blue-50 text-gray-700">
@@ -86,8 +101,20 @@ export default function RoadTripCostHub() {
         )
       })}
 
+      <section className="mb-10 bg-white rounded-xl border border-blue-100 shadow-sm p-5">
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Use this data</h2>
+        <p className="text-gray-700 mb-3">
+          Journalists, bloggers and researchers are welcome to use these numbers. Download the full table as{' '}
+          <a href="/road-trip-cost/data.csv" className="text-blue-700 underline font-medium">CSV</a> — it updates weekly with new EIA gas prices.
+          Free under <a href="https://creativecommons.org/licenses/by/4.0/" className="underline" rel="license noopener" target="_blank">CC BY 4.0</a>; please credit and link to this page.
+        </p>
+        <div className="bg-blue-50 rounded-lg p-3 text-sm text-gray-800 font-mono break-words">
+          Cite as: MPGCalculator.net, &quot;Road Trip Gas Costs by Route,&quot; gas prices for the week of {prettyDate(gas.weekOf)}, {SITE}/road-trip-cost
+        </div>
+      </section>
+
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Gas prices this week</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-3">Gas prices this week</h2>
         <p className="text-gray-600 mb-3">Regular gasoline, week of {prettyDate(gas.weekOf)}. States not listed use their EIA region average on route pages.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {stateRows.map((s) => (
