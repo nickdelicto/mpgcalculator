@@ -77,6 +77,7 @@ export default async function RouteCostPage({ params }: Props) {
     const mi = p.mileMark - points[i].mileMark
     return { from: cityName(points[i]), to: cityName(p), mi, h: (r.durationH * mi) / r.distanceMi }
   })
+  // Hotel links use the town name (Stay22 rejects some raw coordinates)
   const hotelPlaces = [...r.stops, r.to]
   const related = relatedRoutes(r)
   const url = `${SITE}/road-trip-cost/${r.slug}`
@@ -264,7 +265,7 @@ export default async function RouteCostPage({ params }: Props) {
           {hotelPlaces.map((p, i) => (
             <a
               key={`${p.name}-${i}`}
-              href={generateStay22AllezLink({ lat: p.lat, lng: p.lng, address: cityName(p), campaign: `route-${r.slug}`.slice(0, 60) })}
+              href={generateStay22AllezLink({ address: cityName(p), adults: 2, campaign: `route-${r.slug}`.slice(0, 60) })}
               target="_blank"
               rel="sponsored noopener"
               className="block bg-white rounded-xl border border-amber-200 p-4 shadow-sm hover:shadow-md hover:border-amber-400 transition"

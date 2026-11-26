@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { ROUTES, getRoute } from '../road-trip-cost/lib'
 import Link from 'next/link'
 import RoadTripCalculator from '../components/RoadTripCalculator'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
@@ -113,6 +114,12 @@ const StructuredData = () => {
   )
 }
 
+const POPULAR_ROUTES = [
+  'los-angeles-to-las-vegas', 'chicago-to-denver', 'new-york-to-boston', 'miami-to-key-west',
+  'los-angeles-to-san-francisco', 'dallas-to-houston', 'atlanta-to-nashville', 'seattle-to-portland-or',
+  'new-york-to-washington', 'las-vegas-to-grand-canyon-village', 'chicago-to-nashville', 'miami-to-orlando',
+]
+
 export const metadata: Metadata = {
   title: 'Road Trip Cost Calculator | Find Best Route & Estimate Travel Expenses',
   description: 'Plan your next journey with our free road trip cost calculator. Find the best route, accomodation, attractions & estimate total expenses for your car trip with our interactive tool.',
@@ -207,6 +214,24 @@ export default function RoadTripCalculatorPage() {
               </div>
             </Link>
           </div>
+
+          {/* Popular route cost pages (internal links to /road-trip-cost/*) */}
+          <section className="mt-12 bg-white rounded-xl border border-blue-100 shadow-sm p-6">
+            <h2 className="text-2xl font-bold font-heading text-gray-900 mb-1">Popular road trip costs</h2>
+            <p className="text-gray-600 mb-4">Gas cost, drive time and overnight stops for popular U.S. drives, updated weekly with EIA gas prices.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {POPULAR_ROUTES.map((slug) => {
+                const r = getRoute(slug)
+                if (!r) return null
+                return (
+                  <Link key={slug} href={`/road-trip-cost/${slug}`} className="rounded-lg border border-blue-100 px-3 py-2 hover:border-blue-400 text-blue-800">
+                    {r.from.name} → {r.to.name}
+                  </Link>
+                )
+              })}
+            </div>
+            <Link href="/road-trip-cost" className="inline-block mt-4 text-blue-700 font-semibold hover:underline">See all {ROUTES.length} routes →</Link>
+          </section>
 
           {/* SEO Content Section */}
           <div className="mt-12 text-gray-900 space-y-8 font-heading">
