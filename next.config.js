@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Deploys build into a separate folder (NEXT_DIST_DIR) and swap it in, so the live
+  // site never serves half-replaced JS chunks (see scripts/deploy.sh). Runtime uses .next.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+
   // Exclude template page from production builds
   experimental: {
     // This will exclude the template page from production builds

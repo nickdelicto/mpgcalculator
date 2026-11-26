@@ -44,3 +44,8 @@ logs/
 
 # Weekly EIA gas price cron output (server-side)
 data/gas-prices.live.json
+
+# Zero-downtime deploy build dirs (scripts/deploy.sh)
+.next-new/
+.next-prev/
+.next-swaptest-old/
