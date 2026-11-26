@@ -60,6 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9
     },
+    {
+      url: `${baseUrl}/road-trip-cost/holiday-2026`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
     ...ROAD_TRIP_ROUTES.map((r) => ({
       url: `${baseUrl}/road-trip-cost/${r.slug}`,
       lastModified: new Date(),

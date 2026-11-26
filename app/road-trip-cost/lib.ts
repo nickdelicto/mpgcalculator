@@ -115,7 +115,8 @@ export function hm(h: number) {
   const hrs = Math.floor(h)
   const mins = Math.round((h - hrs) * 60)
   if (mins === 60) return `${hrs + 1}h`
-  return hrs === 0 ? `${mins}m` : `${hrs}h ${mins}m`
+  if (hrs === 0) return `${mins}m`
+  return mins === 0 ? `${hrs}h` : `${hrs}h ${mins}m`
 }
 export const cityName = (p: Place) => `${p.name}, ${p.state}`
 export function prettyDate(iso: string) {
