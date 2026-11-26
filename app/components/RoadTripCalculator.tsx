@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
 import { Alert, AlertDescription } from '../../components/ui/alert'
@@ -21,6 +21,16 @@ import TabsContainer from './TabsContainer'
 import HotelsList from './HotelsList'
 import Stay22Map from './Stay22Map'
 import AttractionsList from './AttractionsList'
+import WhereToStayPanel, { StayOption } from './WhereToStayPanel'
+import { computeOvernightStops, stayDatesFor, toISODate } from '../utils/tripStays'
+
+interface HotelArea {
+  ok: boolean
+  name: string
+  address?: string
+  lat?: number
+  lng?: number
+}
 
 export default function RoadTripCalculator() {
   // State for form inputs
@@ -92,6 +102,21 @@ export default function RoadTripCalculator() {
   
   // State for attractions from Viator
   const [attractions, setAttractions] = useState<POI[]>([])
+
+  // "Where to stay" state — fed to the Stay22 map + booking links so hotel
+  // prices/bookings use the traveller's real dates instead of Stay22 defaults.
+  const [departureDate, setDepartureDate] = useState('')
+  const [destinationNights, setDestinationNights] = useState(1)
+  const [adults, setAdults] = useState(2)
+  const [selectedStayKey, setSelectedStayKey] = useState('destination')
+  // Set after mount so server/client timezones can't cause a hydration mismatch
+  const [todayISO, setTodayISO] = useState('')
+  useEffect(() => { setTodayISO(toISODate(new Date())) }, [])
+  // Where the Stay22 map can actually show hotels for each stay (keyed by
+  // stay key). Resolved server-side because Stay22 404s on many raw lat/lngs.
+  const [hotelAreas, setHotelAreas] = useState<Record<string, HotelArea>>({})
+  // Results container, scrolled into view after a calculation
+  const resultsTopRef = useRef<HTMLDivElement>(null)
   
   // Use useEffect for localStorage operations to avoid hydration issues
   useEffect(() => {
@@ -480,6 +505,98 @@ export default function RoadTripCalculator() {
     handlePOISelect(attraction);
   }
   
+  // Overnight stops for long drives (evenly split into ~8h driving days)
+  const overnightStops = useMemo(
+    () => (route && !status.usingFallback
+      ? computeOvernightStops(route.routeGeometry?.coordinates, route.duration, route.distance)
+      : []),
+    [route, status.usingFallback]
+  )
+
+  // Resolve a Stay22-friendly location for the destination and each overnight
+  // stop (also gives overnight stops a town name like "Lincoln, NE").
+  useEffect(() => {
+    setHotelAreas({})
+    if (!route || !endCoords) return
+    let cancelled = false
+    const resolve = (key: string, name: string, pts: { lat: number; lng: number }[]) => {
+      const qs = new URLSearchParams()
+      if (name) qs.set('name', name)
+      qs.set('pts', pts.map((p) => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`).join(';'))
+      fetch(`/api/places/hotel-area?${qs.toString()}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (cancelled) return
+          // On a server error, fall back to raw coordinates (old behaviour)
+          const area: HotelArea = data && typeof data.ok === 'boolean'
+            ? data
+            : { ok: true, name, lat: pts[0].lat, lng: pts[0].lng }
+          setHotelAreas((prev) => ({ ...prev, [key]: area }))
+        })
+        .catch(() => {
+          if (!cancelled) setHotelAreas((prev) => ({ ...prev, [key]: { ok: true, name, lat: pts[0].lat, lng: pts[0].lng } }))
+        })
+    }
+    resolve('destination', endLocation, [endCoords])
+    overnightStops.forEach((stop) => resolve(`night-${stop.night}`, '', [{ lat: stop.lat, lng: stop.lng }, ...stop.nearby]))
+    return () => { cancelled = true }
+    // endLocation intentionally omitted: only re-resolve when the route changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route, endCoords, overnightStops])
+
+  // Each new route starts on the destination
+  useEffect(() => {
+    setSelectedStayKey('destination')
+  }, [route])
+
+  // After a calculation, bring the results (cost + where to stay) into view —
+  // the form collapses, which otherwise leaves the user mid-page.
+  useEffect(() => {
+    if (route && resultsTopRef.current) {
+      const t = setTimeout(() => {
+        resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+      return () => clearTimeout(t)
+    }
+  }, [route])
+
+  const stayOptions: StayOption[] = useMemo(() => {
+    if (!endCoords) return []
+    const nightsOnRoad = overnightStops.length
+    const opts: StayOption[] = overnightStops.map((stop) => {
+      const key = `night-${stop.night}`
+      const area = hotelAreas[key]
+      const unitsMetric = vehicleEfficiency?.unitSystem === 'metric'
+      const dist = unitsMetric ? `${Math.round(stop.milesIn * 1.609344)} km` : `${Math.round(stop.milesIn)} mi`
+      return {
+        key,
+        title: `Night ${stop.night}`,
+        placeName: area?.address || area?.name || '',
+        detail: `~${Math.round(stop.hoursIn)}h / ${dist} in`,
+        lat: area?.lat ?? stop.lat,
+        lng: area?.lng ?? stop.lng,
+        address: area?.address,
+        mapStatus: !area ? 'resolving' : area.ok ? 'ready' : 'unavailable',
+        dates: stayDatesFor(departureDate, { night: stop.night }, nightsOnRoad, destinationNights),
+      }
+    })
+    opts.push({
+      key: 'destination',
+      title: 'Destination',
+      // Prefer the clean town the resolver settled on ("Nashville, TN") over
+      // long autocomplete labels ("Metropolitan Government of Nashville-Davidson, ...")
+      placeName: hotelAreas.destination?.address || endLocation,
+      lat: hotelAreas.destination?.lat ?? endCoords.lat,
+      lng: hotelAreas.destination?.lng ?? endCoords.lng,
+      address: hotelAreas.destination?.address,
+      mapStatus: !hotelAreas.destination ? 'resolving' : hotelAreas.destination.ok ? 'ready' : 'unavailable',
+      dates: stayDatesFor(departureDate, 'destination', nightsOnRoad, destinationNights),
+    })
+    return opts
+  }, [endCoords, endLocation, overnightStops, hotelAreas, departureDate, destinationNights, vehicleEfficiency?.unitSystem])
+
+  const selectedStay = stayOptions.find((o) => o.key === selectedStayKey) || stayOptions[stayOptions.length - 1]
+
   // Check if we have directions to show
   const hasDirections = Boolean(route && route.segments && route.segments[0]?.steps && route.segments[0].steps.length > 0);
   
@@ -494,6 +611,15 @@ export default function RoadTripCalculator() {
   
   // Check if we have attractions layer active
   const hasAttractions = activePOILayers.includes('attractions') && attractions.length > 0;
+
+  // Mirrors TabsContainer's index logic for the Trip Summary tab
+  const summaryTabIndex = (hasHotels ? 1 : 0) + (hasAttractions ? 1 : 0) + (hasDirections ? 1 : 0);
+
+  const formatDuration = (hours: number) => {
+    const h = Math.floor(hours)
+    const m = Math.round((hours - h) * 60)
+    return h > 0 ? `${h}h ${m}m` : `${m}m`
+  }
   
   return (
     <div className={`flex flex-col ${showHotelMap ? '' : 'xl:flex-row'} min-h-screen`}>
@@ -629,6 +755,21 @@ export default function RoadTripCalculator() {
                       )}
                     </div>
                 
+                    {/* Optional departure date — used for hotel prices on the results */}
+                    <div>
+                      <label htmlFor="form-departure-date" className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Departure date <span className="font-normal text-gray-500">(optional, for hotel prices)</span>
+                      </label>
+                      <input
+                        id="form-departure-date"
+                        type="date"
+                        min={todayISO || undefined}
+                        value={departureDate}
+                        onChange={(e) => setDepartureDate(e.target.value)}
+                        className="w-full rounded-md border-2 border-gray-100 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none"
+                      />
+                    </div>
+
                 {/* POI Controls */}
                     <div className="pt-1 sm:pt-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 sm:mb-2">
@@ -720,6 +861,31 @@ export default function RoadTripCalculator() {
       {/* Tabbed container after calculation - matched to height of trip details */}
       {route && (
         <div className={`w-full ${showHotelMap ? '' : 'xl:w-1/3'} bg-white dark:bg-gray-50 ${showHotelMap ? 'min-h-0' : 'min-h-[1000px] xl:h-screen'} overflow-hidden flex flex-col`} ref={smallScreenPOIRef}>
+          <div ref={resultsTopRef} className="scroll-mt-4" />
+          {/* At-a-glance trip cost — the answer the user came for, always visible */}
+          {costs && (
+            <div className="mx-4 mt-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-1" data-testid="trip-cost-strip">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-blue-700 font-semibold">Trip cost</div>
+                <div className="text-2xl font-bold text-gray-900">${costs.totalCost.toFixed(2)}</div>
+              </div>
+              <div className="text-sm text-gray-700">
+                {vehicleEfficiency?.unitSystem === 'metric'
+                  ? `${Math.round(costs.distanceKm).toLocaleString()} km`
+                  : `${Math.round(costs.distanceMiles).toLocaleString()} mi`}
+                {' · '}{formatDuration(costs.durationHours)} driving
+                {overnightStops.length > 0 && ` · ${overnightStops.length} night${overnightStops.length > 1 ? 's' : ''} on the road`}
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab(summaryTabIndex)}
+                className="text-sm font-medium text-blue-700 underline sm:ml-auto"
+              >
+                Full cost breakdown
+              </button>
+            </div>
+          )}
+
           {/* Show POI detail panel when a POI is selected */}
           {selectedPOI && (
             <div className="px-4 pt-4">
@@ -741,9 +907,17 @@ export default function RoadTripCalculator() {
           <div className="flex-grow overflow-hidden">
             <TabsContainer
               hotelsList={
-                <div className="text-center p-3 text-gray-600">
-                  <p className="font-medium text-gray-800">Real hotels, live prices near your destination. Click any below to compare and book 👇</p>
-                </div>
+                <WhereToStayPanel
+                  options={stayOptions}
+                  selectedKey={selectedStay?.key || 'destination'}
+                  onSelect={setSelectedStayKey}
+                  departureDate={departureDate}
+                  onDepartureDateChange={setDepartureDate}
+                  destinationNights={destinationNights}
+                  onDestinationNightsChange={setDestinationNights}
+                  adults={adults}
+                  onAdultsChange={setAdults}
+                />
               }
               attractionsList={<AttractionsList attractions={attractions} onAttractionSelect={handleAttractionSelect} />}
               directions={
@@ -818,12 +992,17 @@ export default function RoadTripCalculator() {
       
       {/* Map container - preserving dimensions while allowing form to expand */}
       <div className={`w-full ${showHotelMap ? '' : 'xl:w-2/3'} h-[500px] sm:h-[550px] md:h-[600px] ${showHotelMap ? 'xl:h-[80vh]' : 'xl:h-screen'}`}>
-        {showHotelMap && endCoords ? (
+        {showHotelMap && selectedStay ? (
           <Stay22Map
-            lat={endCoords.lat}
-            lng={endCoords.lng}
-            destinationName={endLocation}
-            campaign="roadtrip_map"
+            lat={selectedStay.lat}
+            lng={selectedStay.lng}
+            address={selectedStay.address}
+            status={selectedStay.mapStatus}
+            destinationName={selectedStay.placeName || undefined}
+            checkin={selectedStay.dates?.checkin}
+            checkout={selectedStay.dates?.checkout}
+            adults={adults}
+            campaign={selectedStay.key === 'destination' ? 'roadtrip_map' : 'roadtrip_map_stop'}
           />
         ) : (
           <DynamicRoadTripMap
@@ -836,6 +1015,9 @@ export default function RoadTripCalculator() {
           activePOILayers={activePOILayers}
           onLayerChange={handlePOILayerChange}
           onSelectPOI={handlePOISelect}
+          stayCheckin={stayOptions[stayOptions.length - 1]?.dates?.checkin}
+          stayCheckout={stayOptions[stayOptions.length - 1]?.dates?.checkout}
+          stayAdults={adults}
         />
         )}
       </div>

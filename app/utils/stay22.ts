@@ -22,6 +22,8 @@ export interface AllezLinkParams {
   checkin?: string
   /** Check-out date, YYYY-MM-DD (optional). */
   checkout?: string
+  /** Number of adult guests (optional). */
+  adults?: number
   /** Campaign label for Stay22 performance reporting. */
   campaign?: string
 }
@@ -37,6 +39,7 @@ export function generateStay22AllezLink({
   hotelName,
   checkin,
   checkout,
+  adults,
   campaign = 'roadtrip',
 }: AllezLinkParams): string {
   const params = new URLSearchParams({ aid: STAY22_AID, campaign })
@@ -54,6 +57,7 @@ export function generateStay22AllezLink({
   if (hotelName) params.append('hotelname', hotelName)
   if (checkin) params.append('checkin', checkin)
   if (checkout) params.append('checkout', checkout)
+  if (adults && adults > 0) params.append('adults', String(adults))
   params.append('product_medium', 'apps')
 
   return `https://www.stay22.com/allez/roam?${params.toString()}`
