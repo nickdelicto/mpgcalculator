@@ -48,6 +48,7 @@ export default function EmbedSection() {
     aria-label="Interactive comprehensive calculator to compare fuel costs and calculate fuel savings between two cars"
     importance="high"
   ></iframe>
+  <p style="font-size: 12px; text-align: center; margin: 4px 0;">Free <a href="https://mpgcalculator.net/fuel-savings-calculator">fuel savings calculator</a> by <a href="https://mpgcalculator.net">MPGCalculator.net</a></p>
 </div>`
 
   const handleCopy = () => {
