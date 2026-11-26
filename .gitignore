@@ -41,3 +41,6 @@ public/gauge-icon.svg
 public/mpg-calculator-screenshot.jpg
 scripts/last-submitted-urls.json
 logs/
+
+# Weekly EIA gas price cron output (server-side)
+data/gas-prices.live.json

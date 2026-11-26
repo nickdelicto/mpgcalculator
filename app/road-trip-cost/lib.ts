@@ -43,12 +43,16 @@ const FALLBACK_GAS: GasPrices = {
   prices: { US: 3.642, PADD1A: 3.778, PADD1B: 3.95, PADD1C: 3.305, PADD2: 3.38, PADD3: 3.125, PADD4: 3.502, PADD5: 4.805, PADD5XCA: 4.272 },
   history: {},
 }
+// data/gas-prices.live.json = weekly cron output (git-ignored); data/gas-prices.json = committed baseline.
 export function getGasPrices(): GasPrices {
-  try {
-    return JSON.parse(readFileSync(path.join(process.cwd(), 'data', 'gas-prices.json'), 'utf8'))
-  } catch {
-    return FALLBACK_GAS
+  for (const file of ['gas-prices.live.json', 'gas-prices.json']) {
+    try {
+      return JSON.parse(readFileSync(path.join(process.cwd(), 'data', file), 'utf8'))
+    } catch {
+      // try the next file
+    }
   }
+  return FALLBACK_GAS
 }
 
 // EIA reporting regions (PADDs). States with their own EIA series use that price directly.

@@ -6,7 +6,7 @@
  *
  * Source table: https://www.eia.gov/dnav/pet/pet_pri_gnd_a_epmr_pte_dpgal_w.htm
  * EIA publishes every Monday (evening ET). Run weekly via cron, e.g. Tuesday:
- *   15 6 * * 2  cd /home/delicto/apps/mpgcalculator && node scripts/update-gas-prices.mjs
+ *   15 11 * * 2  cd /home/delicto/apps/mpgcalculator && node scripts/update-gas-prices.mjs
  * Route pages (/road-trip-cost/*) read this file at render time (ISR, 1 day),
  * so no rebuild is needed after an update.
  *
@@ -18,7 +18,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SOURCE = 'https://www.eia.gov/dnav/pet/pet_pri_gnd_a_epmr_pte_dpgal_w.htm'
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'gas-prices.json')
+const DATA = join(dirname(fileURLToPath(import.meta.url)), '..', 'data')
+// Writes the git-ignored live file (so server-side updates never block `git pull`).
+// Pass --baseline to update the committed fallback data/gas-prices.json instead.
+const OUT = join(DATA, process.argv.includes('--baseline') ? 'gas-prices.json' : 'gas-prices.live.json')
 
 // Row labels in the EIA table → our keys
 const AREAS = {
@@ -85,8 +88,9 @@ async function main() {
     updatedAt: new Date().toISOString(),
   }
 
-  if (existsSync(OUT)) {
-    const prev = JSON.parse(readFileSync(OUT, 'utf8'))
+  const prevFile = existsSync(OUT) ? OUT : join(DATA, 'gas-prices.json')
+  if (existsSync(prevFile)) {
+    const prev = JSON.parse(readFileSync(prevFile, 'utf8'))
     if (prev.weekOf === out.weekOf) {
       console.log(`No new EIA data (still week of ${out.weekOf}). U.S. regular $${prices.US}`)
       return
