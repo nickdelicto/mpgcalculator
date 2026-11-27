@@ -56,10 +56,14 @@ export function buildGasAlertEmail(input: AlertEmailInput, snap: PriceSnapshot, 
     <p style="font-size:15px;color:#374151;margin:0 0 6px">Planning a trip? See gas cost, stops and hotels for 159 popular drives:</p>
     <a href="${SITE}/road-trip-cost?utm_source=gas-alert&utm_medium=email" style="display:inline-block;background:#1d4ed8;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold">Road trip gas costs →</a>
   </td></tr>
-  <tr><td style="padding:16px 24px;background:#f9fafb;font-size:12px;color:#6b7280;line-height:1.5">
-    You get this because you signed up for weekly gas price alerts at MPGCalculator.net.
-    Prices: U.S. Energy Information Administration. Your cost uses your car's efficiency and weekly miles.<br>
-    <a href="${input.unsubscribeUrl}" style="color:#6b7280">Unsubscribe</a> · <a href="${SITE}/gas-price-alerts?utm_source=gas-alert&utm_medium=email" style="color:#6b7280">Update my car or state</a>${process.env.MAIL_POSTAL_ADDRESS ? `<br>${process.env.MAIL_POSTAL_ADDRESS}` : ''}
+  <tr><td style="padding:20px 24px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center">
+    <p style="margin:0 0 10px;font-size:14px;color:#6b7280">
+      <a href="${SITE}/gas-price-alerts?utm_source=gas-alert&utm_medium=email" style="color:#0b6b3a;text-decoration:none;font-weight:bold">Update my car or state</a>
+      &nbsp;&middot;&nbsp;
+      <a href="${input.unsubscribeUrl}" style="color:#6b7280;text-decoration:none">Unsubscribe</a>
+    </p>
+    <p style="margin:0 0 6px;font-size:12px;color:#6b7280">MPGCalculator.net &middot; Free fuel cost tools for drivers</p>
+    <p style="margin:0;font-size:11px;color:#9ca3af">You signed up for weekly gas price alerts. Prices from the U.S. Energy Information Administration.${process.env.MAIL_POSTAL_ADDRESS ? `<br>${process.env.MAIL_POSTAL_ADDRESS}` : ''}</p>
   </td></tr>
 </table></td></tr></table></body></html>`
 

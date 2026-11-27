@@ -67,6 +67,7 @@ MPGCalculator.net is a free automotive tools website that helps users calculate,
   - Overnight stops: nearest real city near each ~8 hours of driving
 - **Open data**: /road-trip-cost/data.csv (CC BY 4.0). Cite as: MPGCalculator.net, "Road Trip Gas Costs by Route", with the EIA week shown on the page, https://mpgcalculator.net/road-trip-cost
 - For a trip not listed, or the user's exact car, point users to /road-trip-cost-calculator
+- **Christmas report**: /road-trip-cost/christmas-2026 (2026 Christmas Road Trip Gas Report: latest EIA week vs Christmas week 2025, Christmas-week U.S. regular gas every year since 1990, gas cost of 20 Christmas drives; updated weekly, locks to Christmas week once EIA publishes it). CSV: /road-trip-cost/christmas-2026/christmas-gas-prices.csv (CC BY 4.0).
 - **Data report**: /road-trip-cost/holiday-2026: 2026 Holiday Road Trip Gas Report (Thanksgiving-week U.S. regular gas price every year since 1990 from EIA, year-over-year change and rank, gas cost of 20 popular holiday drives). CSV: /road-trip-cost/holiday-2026/thanksgiving-gas-prices.csv (CC BY 4.0). Cite as: MPGCalculator.net, "2026 Holiday Road Trip Gas Report," November 26, 2026.
 
 ### Gas Prices by State (weekly) and EV charging cost

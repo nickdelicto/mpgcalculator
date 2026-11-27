@@ -11,7 +11,7 @@ import { sendEmail } from '../../../utils/email'
  * Locked until ALL of these are set in .env.local:
  *   GAS_ALERTS_CRON_SECRET   shared secret for the cron call
  *   GAS_ALERTS_SEND_ENABLED=1
- *   MAIL_POSTAL_ADDRESS      required in commercial email footers (CAN-SPAM)
+ *   (MAIL_POSTAL_ADDRESS is shown in the footer when set; required once emails carry offers)
  * Optional: GAS_ALERTS_MAX_PER_RUN (default 250, keeps us inside Brevo's free daily limit;
  * the rest go out on the next run because only subscribers not emailed in 6 days are picked).
  */
@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
   const missing = [
     !process.env.BREVO_API_KEY && 'BREVO_API_KEY',
     process.env.GAS_ALERTS_SEND_ENABLED !== '1' && 'GAS_ALERTS_SEND_ENABLED=1',
-    !process.env.MAIL_POSTAL_ADDRESS && 'MAIL_POSTAL_ADDRESS',
+    // The weekly email is informational (prices + links to our own pages). If sponsored offers are
+    // ever added, it becomes commercial email and must also require MAIL_POSTAL_ADDRESS (CAN-SPAM).
   ].filter(Boolean)
   if (missing.length) return NextResponse.json({ sent: 0, locked: true, missing })
 

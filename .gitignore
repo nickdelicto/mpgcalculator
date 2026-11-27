@@ -50,3 +50,4 @@ data/gas-prices.live.json
 .next-prev/
 .next-swaptest-old/
 data/electricity-prices.live.json
+data/eia-us-weekly.live.json

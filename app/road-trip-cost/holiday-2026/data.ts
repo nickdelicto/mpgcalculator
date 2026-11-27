@@ -1,4 +1,4 @@
-import history from '../../../data/eia-us-weekly.json'
+import { getHistory, holidayWeek, holidaySeries } from '../holidays'
 import { ROUTES, getGasPrices, routeCost, DEFAULT_VEHICLE, type RouteRec } from '../lib'
 
 // 2026 Holiday Road Trip Gas Report — every number is computed from EIA data + our route data.
@@ -19,24 +19,14 @@ export const HOLIDAY_ROUTE_SLUGS = [
   'seattle-to-portland-or', 'washington-to-charlotte', 'boston-to-portland-me',
 ]
 
-const WEEKS = (history as unknown as { weeks: [string, number][] }).weeks
-const priceMap = new Map(WEEKS)
+// Read at render time so the weekly cron's history refresh shows without a rebuild
+const weeksNow = () => getHistory()
 
 /** Monday of the EIA week containing Thanksgiving (4th Thursday of November). */
-export function thanksgivingWeek(year: number) {
-  const first = new Date(Date.UTC(year, 10, 1)).getUTCDay()
-  const firstThu = 1 + ((4 - first + 7) % 7)
-  return new Date(Date.UTC(year, 10, firstThu + 21 - 3)).toISOString().slice(0, 10)
-}
+export const thanksgivingWeek = (year: number) => holidayWeek('thanksgiving', year)
 
 export function thanksgivingSeries() {
-  const out: { year: number; week: string; price: number }[] = []
-  for (let y = 1990; y <= REPORT.year; y++) {
-    const week = thanksgivingWeek(y)
-    const price = priceMap.get(week)
-    if (price) out.push({ year: y, week, price })
-  }
-  return out
+  return holidaySeries('thanksgiving', REPORT.year)
 }
 
 export function reportStats() {
@@ -46,6 +36,7 @@ export function reportStats() {
   const ranked = [...tg].sort((a, b) => b.price - a.price)
   const rank = ranked.findIndex((t) => t.year === REPORT.year) + 1
   const higherYears = ranked.slice(0, rank - 1)
+  const WEEKS = weeksNow()
   const yearWeeks = WEEKS.filter(([d]) => d.startsWith(`${REPORT.year}-`) && d <= REPORT.anchorWeek)
   const peak = yearWeeks.reduce((a, b) => (b[1] > a[1] ? b : a))
   const low = yearWeeks.reduce((a, b) => (b[1] < a[1] ? b : a))
@@ -58,7 +49,7 @@ export function reportStats() {
 }
 
 export function chartSeries(fromDate = `${REPORT.year - 1}-01-01`) {
-  return WEEKS.filter(([d]) => d >= fromDate)
+  return weeksNow().filter(([d]) => d >= fromDate)
 }
 
 export function holidayRoutes() {

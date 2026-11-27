@@ -65,6 +65,10 @@ export default function RoadTripCostHub() {
         SUVs, pickups and hybrids, a state-by-state breakdown and suggested overnight stops.
       </p>
 
+      <Link href="/road-trip-cost/christmas-2026" className="block mb-3 rounded-xl border border-red-300 bg-red-50 p-4 hover:border-red-500">
+        <div className="text-xs font-semibold uppercase tracking-wide text-red-700">Updated weekly until Christmas</div>
+        <div className="font-heading font-bold text-gray-900 text-lg">2026 Christmas Road Trip Gas Report, gas vs last Christmas →</div>
+      </Link>
       <Link href="/road-trip-cost/holiday-2026" className="block mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 hover:border-amber-500">
         <div className="text-xs font-semibold uppercase tracking-wide text-amber-700">New data report</div>
         <div className="font-heading font-bold text-gray-900 text-lg">2026 Holiday Road Trip Gas Report, Thanksgiving gas vs last year →</div>

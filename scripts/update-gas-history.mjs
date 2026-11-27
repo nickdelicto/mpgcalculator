@@ -11,7 +11,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SOURCE = 'https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=pet&s=emm_epmr_pte_nus_dpg&f=w'
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'eia-us-weekly.json')
+// Writes the git-ignored live file (refreshed weekly by update-gas-prices.mjs on the server);
+// pass --baseline to update the committed data/eia-us-weekly.json instead.
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', process.argv.includes('--baseline') ? 'eia-us-weekly.json' : 'eia-us-weekly.live.json')
 const MONTHS = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 }
 
 const res = await fetch(SOURCE, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; gas-history-updater)' } })

@@ -14,6 +14,7 @@
  * file is left untouched and the script exits non-zero.
  */
 import { writeFileSync, readFileSync, existsSync, renameSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -101,4 +102,11 @@ async function main() {
   console.log(`Updated gas prices: week of ${out.weekOf}, U.S. regular $${prices.US}, ${Object.keys(prices).length} areas`)
 }
 
-main().catch((e) => { console.error(e.message); process.exit(1) })
+// Also refresh the full weekly U.S. history used by the holiday reports (separate script, own safety checks)
+function refreshHistory() {
+  const r = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), 'update-gas-history.mjs')], { encoding: 'utf8' })
+  process.stdout.write(r.stdout || '')
+  if (r.status !== 0) console.error('history refresh failed:', (r.stderr || '').trim())
+}
+
+main().then(refreshHistory).catch((e) => { console.error(e.message); refreshHistory(); process.exit(1) })
