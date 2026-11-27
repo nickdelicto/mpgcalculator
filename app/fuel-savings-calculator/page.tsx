@@ -4,6 +4,7 @@ import FuelSavingsCalculator from '../components/FuelSavingsCalculator'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Calculator, DollarSign } from 'lucide-react'
 import EmbedSection from '../components/EmbedSection'
+import GasAlertBox from '../components/GasAlertBox'
 import SupportButton from '../components/SupportButton'
 import ScrollToTopButton from '../components/ScrollToTopButton'
 import Script from 'next/script'
@@ -89,6 +90,11 @@ export default function FuelSavingsPage() {
               <FuelSavingsCalculator />
             </CardContent>
           </Card>
+
+          {/* Weekly gas price alerts (email list) */}
+          <div className="mb-12 font-sans">
+            <GasAlertBox source="fuel-savings" heading="Keep tabs on what your car costs you — every week" />
+          </div>
 
           {/* Embed Section */}
           <div className="mb-12">

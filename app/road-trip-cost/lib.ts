@@ -70,11 +70,11 @@ const REGION_NAME: Record<string, string> = {
   PADD2: 'Midwest average', PADD3: 'Gulf Coast average', PADD4: 'Rocky Mountain average',
   PADD5: 'West Coast average', PADD5XCA: 'West Coast (excl. CA) average', US: 'U.S. average',
 }
-export function statePrice(gas: GasPrices, st: string): { price: number; basis: string } {
-  if (gas.prices[st]) return { price: gas.prices[st], basis: `${STATE_NAMES[st] ?? st} average` }
+export function statePrice(gas: GasPrices, st: string): { price: number; basis: string; key: string } {
+  if (gas.prices[st]) return { price: gas.prices[st], basis: `${STATE_NAMES[st] ?? st} average`, key: st }
   const r = PADD[st]
-  if (r && gas.prices[r]) return { price: gas.prices[r], basis: REGION_NAME[r] }
-  return { price: gas.prices.US, basis: REGION_NAME.US }
+  if (r && gas.prices[r]) return { price: gas.prices[r], basis: REGION_NAME[r], key: r }
+  return { price: gas.prices.US, basis: REGION_NAME.US, key: 'US' }
 }
 
 // ---------- vehicles: EPA combined MPG averages of 2024–2025 gasoline models (from our EPA database) ----------

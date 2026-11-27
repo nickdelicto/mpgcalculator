@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import GasAlertBox from '../components/GasAlertBox'
 import { ROUTES, SITE, getGasPrices, routeCost, DEFAULT_VEHICLE, usd, usd2, miles, hm, prettyDate, STATE_NAMES } from './lib'
 
 export const revalidate = 86400
@@ -105,6 +106,10 @@ export default function RoadTripCostHub() {
           </section>
         )
       })}
+
+      <section className="mb-10">
+        <GasAlertBox source="routes-hub" />
+      </section>
 
       <section className="mb-10 bg-white rounded-xl border border-blue-100 shadow-sm p-5">
         <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Use this data</h2>

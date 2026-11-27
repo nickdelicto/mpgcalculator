@@ -49,3 +49,4 @@ data/gas-prices.live.json
 .next-new/
 .next-prev/
 .next-swaptest-old/
+data/electricity-prices.live.json

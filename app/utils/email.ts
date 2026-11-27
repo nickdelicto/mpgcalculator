@@ -2,9 +2,13 @@ interface EmailParams {
   to: string
   subject: string
   html: string
+  /** Plain-text version (defaults to the fuel-savings fallback line) */
+  text?: string
+  /** Extra headers, e.g. List-Unsubscribe */
+  headers?: Record<string, string>
 }
 
-export async function sendEmail({ to, subject, html }: EmailParams) {
+export async function sendEmail({ to, subject, html, text, headers }: EmailParams) {
   const BREVO_API_KEY = process.env.BREVO_API_KEY
   const BREVO_FROM_NAME = process.env.BREVO_FROM_NAME || 'MPGCalculator.net'
   const BREVO_FROM_EMAIL = process.env.BREVO_FROM_EMAIL || 'news@mpgcalculator.net'
@@ -28,7 +32,8 @@ export async function sendEmail({ to, subject, html }: EmailParams) {
       subject: subject,
       htmlContent: html,
       // Add text version for email clients that don't support HTML
-      textContent: 'Your fuel savings results are attached. If you cannot view the HTML version, please visit MPGCalculator.net'
+      textContent: text || 'Your fuel savings results are attached. If you cannot view the HTML version, please visit MPGCalculator.net',
+      ...(headers ? { headers } : {})
     }
     
     const response = await fetch(endpoint, {

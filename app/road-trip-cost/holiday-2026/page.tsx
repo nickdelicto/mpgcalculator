@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { SITE, DEFAULT_VEHICLE, VEHICLE_TYPES, getGasPrices, usd, usd2, miles, hm, prettyDate, STATE_NAMES } from '../lib'
+import GasAlertBox from '../../components/GasAlertBox'
 import { REPORT, reportStats, chartSeries, holidayRoutes, medianRouteCost } from './data'
 
 export const revalidate = 86400
@@ -225,6 +226,10 @@ export default function HolidayReport() {
           <strong>Latest week:</strong> regular gas averaged {usd2(s.latest[1])} for the week of {prettyDate(s.latest[0])}. Headline numbers above stay fixed to Thanksgiving week so they can be cited; route costs update weekly.
         </section>
       )}
+
+      <section className="mb-10">
+        <GasAlertBox source="holiday-report" heading="Track gas prices through the holidays" />
+      </section>
 
       <section className="mb-10 bg-white rounded-xl border border-blue-100 shadow-sm p-5">
         <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">For journalists: use and cite this data</h2>

@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import RouteMap from '../RouteMapLoader'
+import GasAlertBox from '../../components/GasAlertBox'
 import { generateStay22AllezLink } from '../../utils/stay22'
 import {
   ROUTES, SITE, getRoute, getGasPrices, routeCost, relatedRoutes, DEFAULT_VEHICLE,
@@ -298,6 +299,10 @@ export default async function RouteCostPage({ params }: Props) {
           The return drive is the same {miles(r.distanceMi)} and costs about the same: {usd(mid.oneWay)} in a midsize car.
           {priceGap ? <> though you may want to buy gas in {cheapState.name} on the way back too.</> : null}
         </p>
+      </section>
+
+      <section className="mt-10">
+        <GasAlertBox defaultState={r.from.state} source="route-page" heading={`Driving from ${r.from.name}? Get your gas cost every week`} />
       </section>
 
       {/* FAQ */}
