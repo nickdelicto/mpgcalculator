@@ -8,7 +8,9 @@ import { getGasPrices, statePrice, STATE_NAMES } from '../road-trip-cost/lib'
 export interface PriceSnapshot {
   gasWeekOf: string
   elecPeriod: string
-  states: Record<string, { name: string; gas: number; gasBasis: string; elecCents: number; elecBasis: string; gasHistory?: number[] }>
+  /** Same month a year earlier, e.g. "September 2025" */
+  elecPrevPeriod: string | null
+  states: Record<string, { name: string; gas: number; gasBasis: string; elecCents: number; elecCentsPrevYear: number | null; elecBasis: string; gasHistory?: number[] }>
 }
 
 function readJson<T>(files: string[]): T | null {
@@ -24,7 +26,7 @@ function readJson<T>(files: string[]): T | null {
 
 export function getPriceSnapshot(): PriceSnapshot {
   const gas = getGasPrices()
-  const elec = readJson<{ period: string; centsPerKwh: Record<string, number> }>(['electricity-prices.live.json', 'electricity-prices.json'])
+  const elec = readJson<{ period: string; centsPerKwh: Record<string, number>; prevPeriod?: string | null; prevCentsPerKwh?: Record<string, number> }>(['electricity-prices.live.json', 'electricity-prices.json'])
   const usCents = elec?.centsPerKwh.US ?? 18
   const states: PriceSnapshot['states'] = {}
   for (const [ab, name] of Object.entries(STATE_NAMES)) {
@@ -35,10 +37,11 @@ export function getPriceSnapshot(): PriceSnapshot {
       gas: g.price,
       gasBasis: g.basis,
       elecCents: own ?? usCents,
+      elecCentsPrevYear: (own ? elec?.prevCentsPerKwh?.[ab] : elec?.prevCentsPerKwh?.US) ?? null,
       elecBasis: own ? `${name} average` : 'U.S. average',
     }
   }
-  return { gasWeekOf: gas.weekOf, elecPeriod: elec?.period ?? '', states }
+  return { gasWeekOf: gas.weekOf, elecPeriod: elec?.period ?? '', elecPrevPeriod: elec?.prevPeriod ?? null, states }
 }
 
 /** Previous-week gas price for a state's EIA series (state, else its region, else U.S.). */

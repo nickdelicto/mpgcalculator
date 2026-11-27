@@ -30,20 +30,23 @@ export default function GasPricesHub() {
       <div className="mb-10"><GasAlertBox source="gas-prices-hub" /></div>
 
       <div className="overflow-x-auto bg-white rounded-xl border border-blue-100 shadow-sm mb-8">
-        <table className="w-full text-sm">
+        <table className="w-full text-[13px] sm:text-sm">
           <thead className="bg-blue-50 text-gray-700">
-            <tr><th className="text-left p-3">State</th><th className="text-right p-3">Regular gas</th><th className="text-right p-3">vs last week</th><th className="text-right p-3 hidden sm:table-cell">Electricity</th><th className="text-right p-3">Full EV charge</th></tr>
+            <tr><th className="text-left px-2 py-3 sm:p-3">State</th><th className="text-right px-2 py-3 sm:p-3">Regular gas</th><th className="text-right px-2 py-3 sm:p-3">vs last week</th><th className="text-right px-2 py-3 sm:p-3 hidden sm:table-cell">Electricity</th><th className="text-right px-2 py-3 sm:p-3">Full EV charge</th><th className="text-right px-2 py-3 sm:p-3">vs last year</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.ab} className="border-t border-blue-50">
-                <td className="p-3"><Link href={`/gas-prices/${r.slug}`} className="text-blue-800 font-medium hover:underline">{r.name}</Link></td>
-                <td className="p-3 text-right font-semibold">{usd2(r.d.gas)}</td>
-                <td className={`p-3 text-right ${r.d.change !== null && r.d.change < -0.005 ? 'text-green-700' : r.d.change !== null && r.d.change > 0.005 ? 'text-red-700' : 'text-gray-600'}`}>
+                <td className="px-2 py-3 sm:p-3"><Link href={`/gas-prices/${r.slug}`} className="text-blue-800 font-medium hover:underline">{r.name}</Link></td>
+                <td className="px-2 py-3 sm:p-3 text-right font-semibold">{usd2(r.d.gas)}</td>
+                <td className={`px-2 py-3 sm:p-3 text-right ${r.d.change !== null && r.d.change < -0.005 ? 'text-green-700' : r.d.change !== null && r.d.change > 0.005 ? 'text-red-700' : 'text-gray-600'}`}>
                   {r.d.change === null ? 'n/a' : `${r.d.change > 0.005 ? '+' : r.d.change < -0.005 ? '−' : ''}${Math.abs(r.d.change * 100).toFixed(0)}¢`}
                 </td>
-                <td className="p-3 text-right hidden sm:table-cell">{r.d.elecCents.toFixed(1)}¢</td>
-                <td className="p-3 text-right">{usd2(r.d.fullCharge)}</td>
+                <td className="px-2 py-3 sm:p-3 text-right hidden sm:table-cell">{r.d.elecCents.toFixed(1)}¢</td>
+                <td className="px-2 py-3 sm:p-3 text-right">{usd2(r.d.fullCharge)}</td>
+                <td className={`px-2 py-3 sm:p-3 text-right ${r.d.fullChargePrevYear === null ? 'text-gray-600' : r.d.fullCharge > r.d.fullChargePrevYear + 0.005 ? 'text-red-700' : r.d.fullCharge < r.d.fullChargePrevYear - 0.005 ? 'text-green-700' : 'text-gray-600'}`}>
+                  {r.d.fullChargePrevYear === null ? 'n/a' : `${r.d.fullCharge > r.d.fullChargePrevYear + 0.005 ? '+' : r.d.fullCharge < r.d.fullChargePrevYear - 0.005 ? '−' : ''}$${Math.abs(r.d.fullCharge - r.d.fullChargePrevYear).toFixed(2)}`}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -51,7 +54,7 @@ export default function GasPricesHub() {
       </div>
       <p className="text-xs text-gray-500">
         Gas: EIA weekly retail regular gasoline. States without their own EIA series show their EIA region average. Electricity: EIA average residential price
-        ({rows[0].d.elecPeriod}). Full charge assumes a 75 kWh battery charged at home.
+        ({rows[0].d.elecPeriod}){rows[0].d.elecPrevPeriod ? `, compared with ${rows[0].d.elecPrevPeriod}` : ''}. Electricity is published monthly, so it shows the change from a year earlier rather than last week. Full charge assumes a 75 kWh battery charged at home.
       </p>
     </div>
   )

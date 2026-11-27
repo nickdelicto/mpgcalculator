@@ -29,6 +29,8 @@ export function stateData(ab: string) {
     trend: first !== null ? s.gas - first : null,
     elecCents: s.elecCents, elecBasis: s.elecBasis, elecPeriod: snap.elecPeriod,
     fullCharge: TYPICAL.batteryKwh * elecDollars,
+    elecCentsPrevYear: s.elecCentsPrevYear, elecPrevPeriod: snap.elecPrevPeriod,
+    fullChargePrevYear: s.elecCentsPrevYear !== null ? (TYPICAL.batteryKwh * s.elecCentsPrevYear) / 100 : null,
     gasPerMile, evPerMile,
     gasMonthly: gasPerMile * TYPICAL.monthlyMiles, evMonthly: evPerMile * TYPICAL.monthlyMiles,
     routes,
