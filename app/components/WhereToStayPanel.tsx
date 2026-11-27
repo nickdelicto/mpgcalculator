@@ -209,7 +209,7 @@ export default function WhereToStayPanel({
           <ExternalLink className="h-4 w-4" />
         </a>
       </div>
-      <p className="mt-2 text-xs text-gray-500">Or browse the map below — tap any price to see the hotel.</p>
+      <p className="mt-2 text-xs text-gray-500">Or browse the map below and tap any price to see the hotel.</p>
     </div>
   )
 }

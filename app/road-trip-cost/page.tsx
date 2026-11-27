@@ -55,7 +55,7 @@ export default function RoadTripCostHub() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dataset) }} />
       <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">How much does a road trip cost in gas?</h1>
       <p className="text-gray-700 text-lg mb-2">
-        Gas cost, distance and driving time for {ROUTES.length} of America&apos;s most popular drives — from a{' '}
+        Gas cost, distance and driving time for {ROUTES.length} of America&apos;s most popular drives, from a{' '}
         {miles(cheapest.r.distanceMi)} hop like {cheapest.r.from.name} to {cheapest.r.to.name} ({usd(cheapest.cost)}) to the{' '}
         {miles(longest.r.distanceMi)} {longest.r.from.name} to {longest.r.to.name} haul ({usd(longest.cost)}).
       </p>
@@ -67,7 +67,7 @@ export default function RoadTripCostHub() {
 
       <Link href="/road-trip-cost/holiday-2026" className="block mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 hover:border-amber-500">
         <div className="text-xs font-semibold uppercase tracking-wide text-amber-700">New data report</div>
-        <div className="font-heading font-bold text-gray-900 text-lg">2026 Holiday Road Trip Gas Report: Thanksgiving gas vs last year →</div>
+        <div className="font-heading font-bold text-gray-900 text-lg">2026 Holiday Road Trip Gas Report, Thanksgiving gas vs last year →</div>
       </Link>
 
       <div className="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-xl p-5 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-10">
@@ -115,7 +115,7 @@ export default function RoadTripCostHub() {
         <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Use this data</h2>
         <p className="text-gray-700 mb-3">
           Journalists, bloggers and researchers are welcome to use these numbers. Download the full table as{' '}
-          <a href="/road-trip-cost/data.csv" className="text-blue-700 underline font-medium">CSV</a> — it updates weekly with new EIA gas prices.
+          <a href="/road-trip-cost/data.csv" className="text-blue-700 underline font-medium">CSV</a>. It updates weekly with new EIA gas prices.
           Free under <a href="https://creativecommons.org/licenses/by/4.0/" className="underline" rel="license noopener" target="_blank">CC BY 4.0</a>; please credit and link to this page.
         </p>
         <div className="bg-blue-50 rounded-lg p-3 text-sm text-gray-800 font-mono break-words">

@@ -28,13 +28,13 @@ export function buildGasAlertEmail(input: AlertEmailInput, snap: PriceSnapshot, 
   const changeTxt = change === null || Math.abs(change) < 0.005 ? 'about the same as last week' : `${change < 0 ? 'down' : 'up'} ${Math.abs(change * 100).toFixed(0)}¢ from last week`
   const headline = input.fuel === 'gas'
     ? `${st.name} gas this week: $${st.gas.toFixed(2)} (${changeTxt})`
-    : `${st.name} electricity: ${st.elecCents.toFixed(1)}¢/kWh — your EV costs ${money(you.week)} this week`
+    : `${st.name} electricity: ${st.elecCents.toFixed(1)}¢/kWh, your EV costs ${money(you.week)} this week`
   const subject = input.fuel === 'gas'
-    ? `${st.name} gas: $${st.gas.toFixed(2)} — your driving costs ${money(you.week)} this week`
+    ? `${st.name} gas is $${st.gas.toFixed(2)}, your driving costs ${money(you.week)} this week`
     : headline
   const unit = input.fuel === 'gas' ? `${input.efficiency} MPG` : `${input.efficiency} mi/kWh`
   const priceLine = input.fuel === 'gas'
-    ? `Regular gas: <strong>$${st.gas.toFixed(2)}/gal</strong> (${st.gasBasis}, EIA week of ${fmtDate(snap.gasWeekOf)}) — ${changeTxt}.`
+    ? `Regular gas: <strong>$${st.gas.toFixed(2)}/gal</strong> (${st.gasBasis}, EIA week of ${fmtDate(snap.gasWeekOf)}), ${changeTxt}.`
     : `Home electricity: <strong>${st.elecCents.toFixed(1)}¢/kWh</strong> (${st.elecBasis}, EIA ${snap.elecPeriod}). Public fast charging usually costs 2–3× more.`
   const saving = input.fuel === 'gas' ? you.year - other.year : other.year - you.year
 
@@ -50,7 +50,7 @@ export function buildGasAlertEmail(input: AlertEmailInput, snap: PriceSnapshot, 
     <p style="font-size:15px;color:#374151;margin:18px 0 0">${priceLine}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;background:#f0f7ff;border-radius:10px"><tr><td style="padding:14px 16px;font-size:15px;color:#1f2937">
       <strong>${other.label}</strong> would cost about <strong>${money(other.week)}</strong> for the same ${input.weeklyMiles} miles
-      ${saving > 1 ? `— ${input.fuel === 'gas' ? 'that’s' : 'you save'} about <strong>${money(Math.abs(saving))} a year</strong>${input.fuel === 'gas' ? ' less' : ''}.` : '.'}
+      ${saving > 1 ? `, ${input.fuel === 'gas' ? 'that’s' : 'so you save'} about <strong>${money(Math.abs(saving))} a year</strong>${input.fuel === 'gas' ? ' less' : ''}.` : '.'}
       <br><a href="${SITE}/fuel-savings-calculator?utm_source=gas-alert&utm_medium=email" style="color:#1d4ed8">Compare your exact cars →</a>
     </td></tr></table>
     <p style="font-size:15px;color:#374151;margin:0 0 6px">Planning a trip? See gas cost, stops and hotels for 159 popular drives:</p>
@@ -63,6 +63,6 @@ export function buildGasAlertEmail(input: AlertEmailInput, snap: PriceSnapshot, 
   </td></tr>
 </table></td></tr></table></body></html>`
 
-  const text = `${headline}\n\nYour driving this week: ${money(you.week)} (${input.weeklyMiles} mi, ${unit}) — about ${money(you.month)}/month.\n${other.label}: ${money(other.week)}/week.\n\nRoad trip gas costs: ${SITE}/road-trip-cost\nUnsubscribe: ${input.unsubscribeUrl}`
+  const text = `${headline}\n\nYour driving this week: ${money(you.week)} (${input.weeklyMiles} mi, ${unit}), about ${money(you.month)}/month.\n${other.label}: ${money(other.week)}/week.\n\nRoad trip gas costs: ${SITE}/road-trip-cost\nUnsubscribe: ${input.unsubscribeUrl}`
   return { subject, html, text }
 }

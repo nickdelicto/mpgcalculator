@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import RouteMap from '../RouteMapLoader'
 import GasAlertBox from '../../components/GasAlertBox'
+import RentalOffers from '../../components/RentalOffers'
 import { generateStay22AllezLink } from '../../utils/stay22'
 import {
   ROUTES, SITE, getRoute, getGasPrices, routeCost, relatedRoutes, DEFAULT_VEHICLE,
@@ -30,8 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { vehicles } = routeCost(r, gas)
   const mid = vehicles.find((v) => v.key === DEFAULT_VEHICLE.key)!
   const year = gas.weekOf.slice(0, 4)
-  const title = `${titleFor(r)} (${year}): Gas, Miles & Stops`
-  const description = `${r.from.name} to ${r.to.name}: ${miles(r.distanceMi)}, ${hm(r.durationH)} drive. Gas ≈ ${usd(mid.oneWay)} one way at this week's prices. Costs for SUVs, trucks, hybrids + where to stop.`
+  const title = `${titleFor(r)} ${year} - Gas, Miles and Stops`
+  const description = `${r.from.name} to ${r.to.name} is ${miles(r.distanceMi)}, a ${hm(r.durationH)} drive. Gas ≈ ${usd(mid.oneWay)} one way at this week's prices. Costs for SUVs, trucks, hybrids + where to stop.`
   const url = `${SITE}/road-trip-cost/${r.slug}`
   return {
     title,
@@ -94,12 +95,12 @@ export default async function RouteCostPage({ params }: Props) {
     },
     {
       q: `How many gallons of gas does the trip take?`,
-      a: `About ${mid.gallons.toFixed(1)} gallons in a ${DEFAULT_VEHICLE.mpg} MPG midsize car — roughly ${fuelStops === 0 ? 'one tank, so you may not need to refuel' : `${fuelStops} fuel stop${fuelStops > 1 ? 's' : ''} on a 14-gallon tank`}. A ${vehicles.find((v) => v.key === 'pickup')!.mpg} MPG pickup needs about ${vehicles.find((v) => v.key === 'pickup')!.gallons.toFixed(1)} gallons.`,
+      a: `About ${mid.gallons.toFixed(1)} gallons in a ${DEFAULT_VEHICLE.mpg} MPG midsize car, roughly ${fuelStops === 0 ? 'one tank, so you may not need to refuel' : `${fuelStops} fuel stop${fuelStops > 1 ? 's' : ''} on a 14-gallon tank`}. A ${vehicles.find((v) => v.key === 'pickup')!.mpg} MPG pickup needs about ${vehicles.find((v) => v.key === 'pickup')!.gallons.toFixed(1)} gallons.`,
     },
     ...(priceGap
       ? [{
           q: `Where is gas cheapest on the way from ${r.from.name} to ${r.to.name}?`,
-          a: `Based on the latest EIA weekly averages, ${cheapState.name} (${usd2(cheapState.price)}/gal, ${cheapState.basis}) is the cheapest state on this route and ${dearState.name} (${usd2(dearState.price)}/gal) is the most expensive. Where you can, fill the tank in ${cheapState.name} rather than ${dearState.name} — on a 14-gallon tank that saves about ${usd2((dearState.price - cheapState.price) * 14)}.`,
+          a: `Based on the latest EIA weekly averages, ${cheapState.name} (${usd2(cheapState.price)}/gal, ${cheapState.basis}) is the cheapest state on this route and ${dearState.name} (${usd2(dearState.price)}/gal) is the most expensive. Where you can, fill the tank in ${cheapState.name} rather than ${dearState.name}. On a 14-gallon tank that saves about ${usd2((dearState.price - cheapState.price) * 14)}.`,
         }]
       : []),
   ]
@@ -264,7 +265,7 @@ export default async function RouteCostPage({ params }: Props) {
         <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">{multiDay ? `Suggested ${r.days}-day plan and where to stay` : 'Where to stay'}</h2>
         <p className="text-gray-600 mb-4">
           {multiDay
-            ? <>At about {hm(r.durationH / r.days)} of driving a day, these are natural overnight stops. Stop times are estimates — adjust for traffic, weather and breaks.</>
+            ? <>At about {hm(r.durationH / r.days)} of driving a day, these are natural overnight stops. Stop times are estimates, so adjust for traffic, weather and breaks.</>
             : <>This drive fits in one day, so you only need a place to stay in {r.to.name}.</>}
         </p>
         <ol className="space-y-3 mb-6">
@@ -292,6 +293,8 @@ export default async function RouteCostPage({ params }: Props) {
         </div>
       </section>
 
+      <RentalOffers routeSlug={r.slug} fromName={r.from.name} toName={r.to.name} distanceMi={r.distanceMi} />
+
       {/* Driving back */}
       <section className="mt-10 bg-white rounded-xl border border-blue-100 p-5 shadow-sm">
         <h2 className="text-xl font-heading font-bold text-gray-900 mb-1">Driving {r.to.name} to {r.from.name} instead?</h2>
@@ -307,7 +310,7 @@ export default async function RouteCostPage({ params }: Props) {
 
       {/* FAQ */}
       <section className="mt-10">
-        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">{r.from.name} to {r.to.name}: common questions</h2>
+        <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">{r.from.name} to {r.to.name} questions</h2>
         <div className="space-y-3">
           {faqs.map((f) => (
             <details key={f.q} className="bg-white rounded-xl border border-blue-100 p-4 shadow-sm" open>
@@ -335,7 +338,7 @@ export default async function RouteCostPage({ params }: Props) {
       <p className="text-xs text-gray-500 mt-10">
         How we calculate: route distance and driving time from OpenRouteService (OpenStreetMap data), computed {prettyDate(r.computedAt)};
         miles per state measured along the route; fuel cost = miles ÷ MPG × the EIA regular-gas price for each state or region.
-        Overnight stops assume about 8 hours of driving per day. Hotel links are partner links — we may earn a commission at no cost to you.
+        Overnight stops assume about 8 hours of driving per day. Hotel links are partner links, so we may earn a commission at no cost to you.
       </p>
     </div>
   )

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   const domain = email.split('@')[1]
   if (TYPOS[domain]) return bad(`Did you mean ${email.split('@')[0]}@${TYPOS[domain]}?`)
   if (DISPOSABLE.has(domain)) return bad('Please use a permanent email address.')
-  if (!(await domainReceivesMail(domain))) return bad(`We couldn't find a mail server for ${domain} — please check the spelling.`)
+  if (!(await domainReceivesMail(domain))) return bad(`We couldn't find a mail server for ${domain}. Please check the spelling.`)
 
   const state = String(body.state || '').toUpperCase()
   const fuel = body.fuel === 'ev' ? 'ev' : 'gas'

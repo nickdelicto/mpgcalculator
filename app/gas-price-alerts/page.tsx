@@ -2,11 +2,12 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import GasAlertBox from '../components/GasAlertBox'
 import { getPriceSnapshot } from '../lib/energyPrices'
+import { STATE_LIST } from '../gas-prices/lib'
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Free Weekly Gas Price Alerts by Email — Your Own Driving Cost',
+  title: 'Free Weekly Gas Price Alerts by Email for Your Own Driving Cost',
   description: 'Get a free weekly email with what driving costs you: your car, your miles, your state’s latest EIA gas price. Electric vehicle? We track home electricity prices too.',
   alternates: { canonical: 'https://mpgcalculator.net/gas-price-alerts' },
 }
@@ -18,7 +19,7 @@ export default function GasPriceAlertsPage() {
   const rows = Object.entries(snap.states).map(([ab, s]) => ({ ab, ...s })).sort((a, b) => a.gas - b.gas || a.name.localeCompare(b.name))
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">Weekly gas price alerts — for your car, not just the pump</h1>
+      <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">Weekly gas price alerts for your car, not just the pump</h1>
       <p className="text-lg text-gray-700 mb-6">
         Gas apps tell you the price per gallon. We tell you what it means for <strong>you</strong>: every week, one short email with your
         driving cost based on your car&apos;s MPG, how far you drive and the latest U.S. Energy Information Administration price for your state.
@@ -52,7 +53,7 @@ export default function GasPriceAlertsPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.ab} className="border-t border-blue-50">
-                  <td className="p-3 font-medium text-gray-900">{r.name}</td>
+                  <td className="p-3 font-medium"><Link href={`/gas-prices/${STATE_LIST.find((s) => s.ab === r.ab)?.slug}`} className="text-blue-800 hover:underline">{r.name}</Link></td>
                   <td className="p-3 text-right">${r.gas.toFixed(2)}<div className="text-xs text-gray-500">{r.gasBasis}</div></td>
                   <td className="p-3 text-right">{r.elecCents.toFixed(1)}¢/kWh</td>
                 </tr>

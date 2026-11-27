@@ -9,8 +9,8 @@ const URL_ = `${SITE}/road-trip-cost/${REPORT.slug}`
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = reportStats()
-  const title = `Thanksgiving 2026 Gas Prices: ${s.yoyPct >= 0 ? 'Up' : 'Down'} ${Math.abs(s.yoyPct).toFixed(0)}% vs 2025 | Holiday Road Trip Report`
-  const description = `Regular gas averaged ${usd2(s.now.price)} Thanksgiving week 2026, ${s.yoyPct >= 0 ? 'up' : 'down'} ${Math.abs(s.yoyPct).toFixed(0)}% from ${usd2(s.last.price)} in 2025 — #${s.rank} of ${s.years} years on record. Costs for 20 popular holiday drives.`
+  const title = `Thanksgiving 2026 Gas Prices ${s.yoyPct >= 0 ? 'Up' : 'Down'} ${Math.abs(s.yoyPct).toFixed(0)}% vs 2025 | Holiday Road Trip Report`
+  const description = `Regular gas averaged ${usd2(s.now.price)} Thanksgiving week 2026, ${s.yoyPct >= 0 ? 'up' : 'down'} ${Math.abs(s.yoyPct).toFixed(0)}% from ${usd2(s.last.price)} in 2025, #${s.rank} of ${s.years} years on record. Costs for 20 popular holiday drives.`
   return {
     title,
     description,
@@ -89,7 +89,7 @@ export default function HolidayReport() {
   const jsonLd = [
     {
       '@context': 'https://schema.org', '@type': 'Article',
-      headline: `${REPORT.title}: Thanksgiving gas ${up ? 'up' : 'down'} ${pct(s.yoyPct)} vs 2025`,
+      headline: `Thanksgiving gas ${up ? 'up' : 'down'} ${pct(s.yoyPct)} vs 2025 in the ${REPORT.title}`,
       datePublished: REPORT.published, dateModified: gas.weekOf > REPORT.published ? gas.weekOf : REPORT.published,
       author: { '@type': 'Organization', name: 'MPGCalculator.net', url: SITE },
       publisher: { '@type': 'Organization', name: 'MPGCalculator.net', url: SITE, logo: { '@type': 'ImageObject', url: `${SITE}/Website-Logo.png` } },
@@ -131,7 +131,7 @@ export default function HolidayReport() {
       </nav>
       <div className="text-sm font-semibold text-amber-700 uppercase tracking-wide mb-1">Data report · Published {prettyDate(REPORT.published)}</div>
       <h1 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">
-        Thanksgiving Gas Is {up ? 'Up' : 'Down'} {pct(s.yoyPct)} From Last Year — the {ord(s.rank)}-Highest Since {s.tg[0].year}
+        Thanksgiving Gas Is {up ? 'Up' : 'Down'} {pct(s.yoyPct)} From Last Year, the {ord(s.rank)}-Highest Since {s.tg[0].year}
       </h1>
       <p className="text-lg text-gray-700 mb-6">
         Our {REPORT.title.toLowerCase()} uses U.S. Energy Information Administration (EIA) weekly prices and the actual routes of 159

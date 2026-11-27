@@ -66,7 +66,7 @@ export default function GasAlertSignup({ snapshot, defaultState = 'TX', source, 
         <div className="font-heading font-bold text-lg text-green-900">You&apos;re in! ✅</div>
         <p className="text-green-900 mt-1">
           Your first update is on its way to <strong>{email}</strong>. Every week you&apos;ll get what driving costs you in {st.name}
-          {cost ? <> — right now about <strong>{money(cost.week)}</strong> a week</> : null}.
+          {cost ? <>, right now about <strong>{money(cost.week)}</strong> a week</> : null}.
         </p>
         <p className="text-sm text-green-800 mt-2">Not in your inbox? Check Promotions or Spam and mark it &quot;Not spam&quot;.</p>
       </div>

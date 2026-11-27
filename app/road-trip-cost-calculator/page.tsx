@@ -206,7 +206,7 @@ export default function RoadTripCalculatorPage() {
                 <div className="px-6 py-5">
                   <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
                   <h3 className="text-xl font-bold text-white mb-2">Done Planning Your Trip? Try Escape the Grind</h3>
-                  <p className="text-amber-100 text-sm mb-3">A free financial independence simulator — start with a salary, invest in 40+ assets, and see if you can build enough passive income to escape the rat race. Daily challenges and global leaderboards.</p>
+                  <p className="text-amber-100 text-sm mb-3">A free financial independence simulator. Start with a salary, invest in 40+ assets, and see if you can build enough passive income to escape the rat race. Daily challenges and global leaderboards.</p>
                   <span className="inline-flex items-center font-semibold text-white text-sm">
                     Play now for free →
                   </span>
@@ -243,7 +243,7 @@ export default function RoadTripCalculatorPage() {
               </p>
               
               <p className="text-lg leading-relaxed">
-                That's where our interactive Road Trip Cost Calculator comes in. We've created more than just a tool that estimates expenses—we've built a comprehensive journey planner that helps you discover the full potential of your next adventure.
+                That's where our interactive Road Trip Cost Calculator comes in. We've created more than just a tool that estimates expenses. We've built a comprehensive journey planner that helps you discover the full potential of your next adventure.
               </p>
               
               <div className="bg-blue-50 border-l-4 border-blue-500 p-5 my-6 rounded-r-lg">

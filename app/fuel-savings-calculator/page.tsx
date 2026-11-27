@@ -93,7 +93,7 @@ export default function FuelSavingsPage() {
 
           {/* Weekly gas price alerts (email list) */}
           <div className="mb-12 font-sans">
-            <GasAlertBox source="fuel-savings" heading="Keep tabs on what your car costs you — every week" />
+            <GasAlertBox source="fuel-savings" heading="Keep tabs on what your car costs you every week" />
           </div>
 
           {/* Embed Section */}
@@ -307,7 +307,7 @@ export default function FuelSavingsPage() {
                 <div className="px-6 py-5">
                   <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
                   <h3 className="text-xl font-bold text-white mb-2">Think You Can Reach Financial Independence?</h3>
-                  <p className="text-amber-100 text-sm mb-3">Put your savings skills to the test in Escape the Grind — a free financial independence simulator. Invest in 40+ assets, navigate life events, and see if you can build enough passive income to never need a paycheck again.</p>
+                  <p className="text-amber-100 text-sm mb-3">Put your savings skills to the test in Escape the Grind, a free financial independence simulator. Invest in 40+ assets, navigate life events, and see if you can build enough passive income to never need a paycheck again.</p>
                   <span className="inline-flex items-center font-semibold text-white text-sm">
                     Play Escape the Grind →
                   </span>
