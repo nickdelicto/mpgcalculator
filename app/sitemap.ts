@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { ROUTES as ROAD_TRIP_ROUTES } from './road-trip-cost/lib'
 import { STATE_LIST as GAS_STATES } from './gas-prices/lib'
+import { AIRPORTS } from './car-rental-road-trips/airports'
 import { getVehicleIndex, getIndexableSlugs } from './lib/vehicleIndexing'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -58,6 +59,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/gas-prices`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     ...GAS_STATES.map((s) => ({ url: `${baseUrl}/gas-prices/${s.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 })),
     { url: `${baseUrl}/gas-price-alerts`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 },
+    { url: `${baseUrl}/ev-charging-cost-calculator`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.8 },
+    { url: `${baseUrl}/car-rental-road-trips`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
+    ...AIRPORTS.map((a) => ({ url: `${baseUrl}/car-rental-road-trips/${a.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 })),
     // Route cost pages (/road-trip-cost/*), gas prices refresh weekly
     {
       url: `${baseUrl}/road-trip-cost`,

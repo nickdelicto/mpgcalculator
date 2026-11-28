@@ -25,6 +25,8 @@ export function Footer() {
               <li><Link href="/road-trip-cost" className="hover:text-[#E77C00]">Road Trip Costs by Route</Link></li>
               <li><Link href="/gas-prices" className="hover:text-[#E77C00]">Gas Prices by State</Link></li>
               <li><Link href="/gas-price-alerts" className="hover:text-[#E77C00]">Weekly Gas Price Alerts</Link></li>
+              <li><Link href="/ev-charging-cost-calculator" className="hover:text-[#E77C00]">EV Charging Cost Calculator</Link></li>
+              <li><Link href="/car-rental-road-trips" className="hover:text-[#E77C00]">Fly and Drive Road Trips</Link></li>
               <li><Link href="/fuel-savings-calculator" className="hover:text-[#E77C00]">Fuel Savings Calculator</Link></li>
               <li><Link href="/vehicles" className="hover:text-[#E77C00]">Vehicle MPG Checker</Link></li>
               <li><Link href="/fuel-economy-compare" className="hover:text-[#E77C00]">Compare Fuel Economy</Link></li>

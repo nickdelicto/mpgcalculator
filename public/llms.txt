@@ -76,6 +76,15 @@ MPGCalculator.net is a free automotive tools website that helps users calculate,
 - **Data**: EIA weekly retail regular gasoline (state series where EIA publishes one, otherwise the EIA region average, which the page says), 6-week trend, and EIA average residential electricity price by state (monthly)
 - **Weekly email alerts**: /gas-price-alerts (free; personal weekly driving cost for the user's car, miles and state; gas or EV)
 
+### EV Charging Cost Calculator
+- **Path**: /ev-charging-cost-calculator
+- **What it answers**: "How much does it cost to charge an electric car at home?", cost per full charge, per mile and per month by state, EV vs gas
+- **Data**: EIA average residential electricity price by state (monthly), EIA weekly regular gas prices
+
+### Fly and Drive Road Trips (airport car rental guides)
+- **Path**: /car-rental-road-trips and /car-rental-road-trips/{denver,orlando,las-vegas,phoenix,salt-lake-city,miami}-airport
+- **What it answers**: road trips from each airport with distance, drive time and round-trip gas cost in a compact car or small SUV rental, state gas price, rental tips (mileage limits, one-way fees, fuel policy)
+
 ## Site Structure
 - **Home Page**: Houses the MPG Calculator and promotes other tools
 - **Calculators**: Individual pages for each specialized calculator

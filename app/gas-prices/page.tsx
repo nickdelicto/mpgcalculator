@@ -54,7 +54,7 @@ export default function GasPricesHub() {
       </div>
       <p className="text-xs text-gray-500">
         Gas: EIA weekly retail regular gasoline. States without their own EIA series show their EIA region average. Electricity: EIA average residential price
-        ({rows[0].d.elecPeriod}){rows[0].d.elecPrevPeriod ? `, compared with ${rows[0].d.elecPrevPeriod}` : ''}. Electricity is published monthly, so it shows the change from a year earlier rather than last week. Full charge assumes a 75 kWh battery charged at home.
+        ({rows[0].d.elecPeriod}){rows[0].d.elecPrevPeriod ? `, compared with ${rows[0].d.elecPrevPeriod}` : ''}. Electricity is published monthly, so it shows the change from a year earlier rather than last week. Full charge assumes a 75 kWh battery charged at home. Work out your own car with the <Link href="/ev-charging-cost-calculator" className="underline">EV charging cost calculator</Link>.
       </p>
     </div>
   )

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import RouteMap from '../RouteMapLoader'
 import GasAlertBox from '../../components/GasAlertBox'
 import RentalOffers from '../../components/RentalOffers'
+import { AIRPORTS } from '../../car-rental-road-trips/airports'
 import { generateStay22AllezLink } from '../../utils/stay22'
 import {
   ROUTES, SITE, getRoute, getGasPrices, routeCost, relatedRoutes, DEFAULT_VEHICLE,
@@ -294,6 +295,18 @@ export default async function RouteCostPage({ params }: Props) {
       </section>
 
       <RentalOffers routeSlug={r.slug} from={r.from} to={r.to} distanceMi={r.distanceMi} />
+      {(() => {
+        const ap = AIRPORTS.filter((a) => (a.city === r.from.name && a.state === r.from.state) || (a.city === r.to.name && a.state === r.to.state))
+        return ap.length ? (
+          <p className="mt-4 text-gray-700">
+            Flying in?{' '}
+            {ap.map((a, i) => (
+              <span key={a.slug}>{i ? ' or ' : ''}<Link href={`/car-rental-road-trips/${a.slug}`} className="text-blue-700 underline">road trips from {a.city} airport ({a.code})</Link></span>
+            ))}{' '}
+            with drive times and gas costs for a rental car.
+          </p>
+        ) : null
+      })()}
 
       {/* Driving back */}
       <section className="mt-10 bg-white rounded-xl border border-blue-100 p-5 shadow-sm">

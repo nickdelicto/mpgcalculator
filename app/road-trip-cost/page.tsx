@@ -84,6 +84,11 @@ export default function RoadTripCostHub() {
         </Link>
       </div>
 
+      <Link href="/car-rental-road-trips" className="block mb-10 rounded-xl border border-emerald-300 bg-emerald-50 p-4 hover:border-emerald-500">
+        <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Flying in?</div>
+        <div className="font-heading font-bold text-gray-900 text-lg">Fly and drive road trips from Denver, Orlando, Las Vegas, Phoenix, Salt Lake City and Miami →</div>
+      </Link>
+
       {REGIONS.map((region) => {
         const list = rows.filter((x) => x.r.region === region).sort((a, b) => a.r.from.name.localeCompare(b.r.from.name) || a.r.distanceMi - b.r.distanceMi)
         if (!list.length) return null

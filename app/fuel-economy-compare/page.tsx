@@ -7,9 +7,9 @@ import SupportButton from '../components/SupportButton'
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://mpgcalculator.net/fuel-economy-compare' },
-  title: 'Compare Car Fuel Economy: MPG & Emissions Side by Side',
+  title: 'Fuel Efficiency Comparison - Compare Car MPG Side by Side',
   description: 'Compare up to 3 vehicles side by side on MPG, fuel efficiency, and CO2 emissions. Find the most fuel-efficient car for you in seconds. Free, no sign-up.',
-  keywords: 'Vehicle MPG comparison, fuel economy compare, car comparison tool, vehicle efficiency comparison, fuel consumption comparison',
+  keywords: 'fuel efficiency comparison, MPG comparison, vehicle MPG comparison, fuel economy compare, car comparison tool, vehicle efficiency comparison, fuel consumption comparison',
 }
 
 function LoadingState() {
@@ -27,7 +27,7 @@ export default function FuelEconomyComparePage() {
         <main className="w-full">
           <div className="flex items-center justify-between gap-3 mb-6">
             <h1 className="text-3xl font-heading font-bold text-gray-800">
-              Compare Vehicle Fuel Economy
+              Fuel Efficiency Comparison
             </h1>
             <SupportButton />
           </div>
@@ -45,7 +45,7 @@ export default function FuelEconomyComparePage() {
           <div className="bg-gradient-to-r from-green-600 to-blue-700 rounded-lg shadow-xl mt-10 mb-8 overflow-hidden">
             <div className="flex flex-col md:flex-row items-center">
               <div className="md:w-2/3 p-6 md:p-8">
-                <h2 className="text-white text-2xl font-bold mb-2 font-heading">Compare & Plan: Ready for a Road Trip?</h2>
+                <h2 className="text-white text-2xl font-bold mb-2 font-heading">Ready for a road trip?</h2>
                 <p className="text-green-100 mb-4">Now that you've compared vehicles, take the next step! Estimate how much your road trip will cost with our interactive tool.</p>
                 <div className="bg-white/10 p-4 rounded-lg mb-4">
                   <ul className="space-y-2 text-sm text-white">
@@ -105,7 +105,7 @@ export default function FuelEconomyComparePage() {
                 <div className="px-6 py-5">
                   <div className="inline-block bg-amber-200 text-amber-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE GAME</div>
                   <h3 className="text-xl font-bold text-white mb-2">Smart With Cars? Try Being Smart With Money</h3>
-                  <p className="text-amber-100 text-sm mb-3">Play Escape the Grind — a free financial independence simulator where you invest in 40+ assets and try to build enough passive income to never work again. Daily challenges and global leaderboards.</p>
+                  <p className="text-amber-100 text-sm mb-3">Play Escape the Grind, a free financial independence simulator where you invest in 40+ assets and try to build enough passive income to never work again. Daily challenges and global leaderboards.</p>
                   <span className="inline-flex items-center font-semibold text-white text-sm">
                     Play Escape the Grind →
                   </span>

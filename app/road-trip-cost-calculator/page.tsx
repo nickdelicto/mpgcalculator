@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
 import { ROUTES, getRoute } from '../road-trip-cost/lib'
+import RoadTripPlannerGuide, { PLANNER_FAQS, plannerExample } from '../components/RoadTripPlannerGuide'
 import Link from 'next/link'
 import RoadTripCalculator from '../components/RoadTripCalculator'
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { MapPin, DollarSign } from 'lucide-react'
 import EmbedSection from '../components/EmbedSection'
-import Script from 'next/script'
 import ScrollToTopButton from '../components/ScrollToTopButton'
 import SupportButton from '../components/SupportButton'
 
@@ -39,10 +39,13 @@ const StructuredData = () => {
   }
 
   // FAQ Structured Data
+  const ex = plannerExample()
+  const plannerFaqs = PLANNER_FAQS(ex.us, ex).map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } }))
   const faqStructuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      ...plannerFaqs,
       {
         "@type": "Question",
         "name": "Is the Road Trip Cost Calculator free to use?",
@@ -56,7 +59,7 @@ const StructuredData = () => {
         "name": "How accurate is the road trip cost calculator?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our road trip calculator provides highly accurate estimates based on current data and your specific inputs. It accounts for your vehicle's fuel efficiency, current fuel prices, and the exact route between your starting point and destination. For even greater accuracy, you can add toll costs and adjust for your driving style. While external factors like traffic conditions, weather, and sudden fuel price changes may affect actual costs, most users report our estimates are within 5-10% of their actual expenses."
+          "text": "Our road trip calculator provides highly accurate estimates based on current data and your specific inputs. It accounts for your vehicle's fuel efficiency, current fuel prices, and the exact route between your starting point and destination. For even greater accuracy, you can add toll costs and adjust for your driving style. Traffic, weather, detours and fuel price changes during your trip can still move the real cost up or down."
         }
       },
       {
@@ -104,12 +107,8 @@ const StructuredData = () => {
 
   return (
     <>
-    <Script id="structured-data" type="application/ld+json">
-      {JSON.stringify(structuredData)}
-    </Script>
-      <Script id="faq-structured-data" type="application/ld+json">
-        {JSON.stringify(faqStructuredData)}
-      </Script>
+    <script id="structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script id="faq-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
     </>
   )
 }
@@ -121,12 +120,12 @@ const POPULAR_ROUTES = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Road Trip Cost Calculator | Find Best Route & Estimate Travel Expenses',
-  description: 'Plan your next journey with our free road trip cost calculator. Find the best route, accomodation, attractions & estimate total expenses for your car trip with our interactive tool.',
+  title: 'Road Trip Cost Calculator - Trip Planner and Gas Calculator',
+  description: 'Free road trip planner and gas calculator. Get the fuel cost of any route using each state’s gas price, plus driving time, overnight stops and hotels along the way.',
   keywords: 'road trip cost calculator, car trip cost calculator, travel fuel cost calculator, fuel expense calculator, trip planner, gas cost calculator, road trip planner, road trip calculator, road trip cost, road trip expenses, road trip planner, road trip calculator, road trip cost, road trip expenses, route planner, route calculator, route cost, route expenses',
   openGraph: {
-    title: 'Road Trip Cost Calculator | Estimate Travel Expenses',
-    description: 'Plan your next journey with our interactive road trip cost calculator. Estimate fuel costs, tolls, and total expenses for your car trip with our free tool.',
+    title: 'Road Trip Cost Calculator - Trip Planner and Gas Calculator',
+    description: 'Free road trip planner and gas calculator. Gas cost for any route with each state’s gas price, driving time, stops and hotels.',
     url: 'https://mpgcalculator.net/road-trip-cost-calculator',
     siteName: 'MPGCalculator.net',
     locale: 'en_US',
@@ -159,7 +158,7 @@ export default function RoadTripCalculatorPage() {
                 Road Trip Cost Calculator
               </h1>
               <p className="text-blue-100 text-lg md:text-xl font-heading max-w-2xl">
-                Plan your journey and estimate the total cost of your next road trip with our <span className="font-bold underline decoration-2 decoration-blue-400">100% free</span> interactive calculator
+                A <span className="font-bold underline decoration-2 decoration-blue-400">free</span> road trip planner and gas calculator. Get the fuel cost of any route, driving time, overnight stops and hotels
               </p>
             </div>
             {/* Decorative map icon */}
@@ -214,6 +213,8 @@ export default function RoadTripCalculatorPage() {
               </div>
             </Link>
           </div>
+
+          <RoadTripPlannerGuide />
 
           {/* Popular route cost pages (internal links to /road-trip-cost/*) */}
           <section className="mt-12 bg-white rounded-xl border border-blue-100 shadow-sm p-6">
@@ -963,7 +964,7 @@ export default function RoadTripCalculatorPage() {
                     How accurate is the road trip cost calculator?
                   </h4>
                   <p className="text-gray-700">
-                    Our road trip calculator provides highly accurate estimates based on current data and your specific inputs. It accounts for your vehicle's fuel efficiency, current fuel prices, and the exact route between your starting point and destination. For even greater accuracy, you can add toll costs and adjust for your driving style. While external factors like traffic conditions, weather, and sudden fuel price changes may affect actual costs, most users report our estimates are within 5-10% of their actual expenses.
+                    Our road trip calculator provides highly accurate estimates based on current data and your specific inputs. It accounts for your vehicle's fuel efficiency, current fuel prices, and the exact route between your starting point and destination. For even greater accuracy, you can add toll costs and adjust for your driving style. Traffic, weather, detours and fuel price changes during your trip can still move the real cost up or down.
                   </p>
                 </div>
                 

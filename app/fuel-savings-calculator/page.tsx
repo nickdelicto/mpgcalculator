@@ -7,7 +7,6 @@ import EmbedSection from '../components/EmbedSection'
 import GasAlertBox from '../components/GasAlertBox'
 import SupportButton from '../components/SupportButton'
 import ScrollToTopButton from '../components/ScrollToTopButton'
-import Script from 'next/script'
 
 // Structured Data Component
 const StructuredData = () => {
@@ -39,9 +38,7 @@ const StructuredData = () => {
   }
 
   return (
-    <Script id="structured-data" type="application/ld+json">
-      {JSON.stringify(structuredData)}
-    </Script>
+    <script id="structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
   )
 }
 
@@ -254,8 +251,7 @@ export default function FuelSavingsPage() {
           </article>
 
           {/* FAQ structured data for rich results */}
-          <Script id="faq-structured-data" type="application/ld+json">
-            {JSON.stringify({
+          <script id="faq-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
               "mainEntity": [
@@ -285,8 +281,7 @@ export default function FuelSavingsPage() {
                   "acceptedAnswer": { "@type": "Answer", "text": "The calculator works out what each vehicle costs per mile, gas in dollars per gallon and electricity in dollars per kWh, then scales both to your annual mileage so you are comparing like for like. That is how a gas car and an EV can sit side by side and still give a fair dollar comparison." }
                 }
               ]
-            })}
-          </Script>
+            }) }} />
 
           {/* Calculator CTA */}
           <div className="mb-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-8 text-white text-center shadow-lg">

@@ -6,12 +6,14 @@ import { Footer } from './components/Footer'
 import Image from 'next/image'
 import FloatingRoadTripPromo from './components/FloatingRoadTripPromo'
 import ToolsPromoSidebar from './components/ToolsPromoSidebar'
+import MpgGuide from './components/MpgGuide'
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://mpgcalculator.net' },
-  title: 'MPG Calculator | Fuel Efficiency Calculator with Cost Analysis',
-  description: 'This free MPG Calculator estimates your vehicle\'s fuel economy & cost of a trip based on distance and gas price.',
-  keywords: 'MPG calculator, fuel efficiency calculator, fuel economy, miles per gallon, multi-trip calculator, fuel costs calculator',
+  title: 'MPG Calculator - Free Gas Mileage and Fuel Cost Calculator',
+  description: 'Calculate your miles per gallon in seconds. Enter miles and gallons to get your MPG, cost per mile and fuel cost, plus how to calculate gas mileage by hand.',
+  keywords: 'MPG calculator, gas mileage calculator, miles per gallon calculator, how to calculate miles per gallon, fuel cost calculator, fuel economy calculator',
+  openGraph: { title: 'MPG Calculator - Free Gas Mileage and Fuel Cost Calculator', description: 'Work out your miles per gallon, cost per mile and fuel cost. Free, no sign-up.', url: 'https://mpgcalculator.net', siteName: 'MPGCalculator.net', type: 'website' },
 }
 
 export default function Home() {
@@ -24,7 +26,8 @@ export default function Home() {
           {/* Main content area - Adjusted width for large screens */}
           <main className="w-full lg:w-2/3">
             {/* Main page heading - Added for SEO */}
-            <h1 className="text-3xl font-bold mb-6 text-blue-900 font-heading">MPG Calculator: Estimate Your Vehicle's Fuel Economy</h1>
+            <h1 className="text-3xl font-bold mb-2 text-blue-900 font-heading">MPG Calculator</h1>
+            <p className="text-gray-700 mb-6">Free gas mileage calculator. Enter the miles you drove and the gallons you used to get your miles per gallon, cost per mile and fuel cost.</p>
             
             {/* Calculator component */}
             <MPGCalculator />
@@ -42,7 +45,7 @@ export default function Home() {
               <div className="flex flex-col md:flex-row items-center py-6 px-8">
                 <div className="md:w-2/3 text-white z-10">
                   <div className="inline-block bg-yellow-500 text-blue-900 font-bold text-xs px-3 py-1 rounded-full mb-3">FREE NEW TOOL</div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2 font-heading">Plan Your Next Adventure With Our Road Trip Cost Calculator</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2 font-heading">Plan your next trip with the Road Trip Cost Calculator</h2>
                   <p className="text-blue-100 mb-4">Estimate fuel costs, find hotels, and visualize your route with our interactive road trip planner!</p>
                   <ul className="mb-6 text-sm space-y-1 text-blue-100">
                     <li className="flex items-center">
@@ -55,7 +58,7 @@ export default function Home() {
                       <span className="mr-2 text-yellow-400">✓</span> Estimate total trip costs including tolls
                     </li>
                     <li className="flex items-center">
-                      <span className="mr-2 text-yellow-400">✓</span> Find & book hotels, attractions, and more along the way!&nbsp;&nbsp;<span className="text-gray-300 text-xs">(Coming soon)</span>
+                      <span className="mr-2 text-yellow-400">✓</span> Find hotels, attractions and overnight stops along the way
                     </li>
                   </ul>
                   <a href="/road-trip-cost-calculator" className="inline-block bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold px-6 py-3 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-xl">
@@ -70,37 +73,13 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="mt-12 text-gray-900 space-y-6 font-heading">
-              <h2 className="text-3xl font-bold font-heading">About the MPG Calculator</h2>
+            <MpgGuide />
+
+            <div className="mt-12 text-gray-900 space-y-3">
+              <h2 className="text-2xl font-bold font-heading text-blue-900">Using this calculator</h2>
               <p>
-                Our MPG (Miles Per Gallon) Calculator is a powerful tool designed to help vehicle owners and enthusiasts accurately measure and analyze their fuel efficiency. Whether you're tracking a single trip or comparing multiple journeys, this calculator provides precise insights into your vehicle's performance.
-              </p>
-              
-              <h3 className="text-2xl font-semibold mt-6 font-heading">How to Use the MPG Calculator</h3>
-              <ol className="list-decimal list-inside space-y-2">
-                <li><strong>Choose Your Mode:</strong> Select between Simple and Advanced modes to suit your needs.</li>
-                <li><strong>Enter Trip Details:</strong> Input the distance traveled and fuel used. In Advanced mode, you can add multiple trips and include fuel costs.</li>
-                <li><strong>Select Units:</strong> Choose between miles/gallons or kilometers/liters.</li>
-                <li><strong>Calculate:</strong> Click the "Calculate" button to see your results.</li>
-                <li><strong>Analyze Results:</strong> View your MPG, and in Advanced mode, see total cost and cost per mile/km.</li>
-              </ol>
-
-              <h3 className="text-2xl font-semibold mt-6 font-heading">Why Use Our MPG Calculator?</h3>
-              <ul className="list-disc list-inside space-y-2">
-                <li><strong>Accuracy:</strong> Our calculator uses precise formulas to ensure reliable results.</li>
-                <li><strong>Flexibility:</strong> Supports both US and metric units for global usability.</li>
-                <li><strong>Cost Analysis:</strong> Advanced mode helps you understand your fuel expenses.</li>
-                <li><strong>Multiple Trips:</strong> Compare efficiency across different journeys or vehicles.</li>
-                <li><strong>User-Friendly:</strong> Intuitive interface for easy calculations.</li>
-              </ul>
-
-              <h3 className="text-2xl font-semibold mt-6 font-heading">Understanding MPG</h3>
-              <p>
-                MPG, or Miles Per Gallon, is a measure of how far a vehicle can travel on one gallon of fuel. A higher MPG indicates better fuel efficiency, which can lead to cost savings and reduced environmental impact. Factors affecting MPG include driving habits, vehicle maintenance, road conditions, and vehicle specifications.
-              </p>
-
-              <p className="italic mt-4">
-                Use our MPG Calculator regularly to track your vehicle's efficiency, identify trends, and make informed decisions about your driving habits and vehicle maintenance.
+                <strong>Simple mode</strong> takes one trip: miles and gallons. <strong>Advanced mode</strong> adds several fill-ups and your fuel price, then shows your
+                average MPG, total cost and cost per mile. Both work in miles and gallons or kilometers and liters, and nothing you enter is stored.
               </p>
             </div>
           </main>

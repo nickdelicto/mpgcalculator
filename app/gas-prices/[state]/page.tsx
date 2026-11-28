@@ -126,7 +126,7 @@ export default async function StateGasPage({ params }: Props) {
         </div>
         <p className="text-sm text-gray-600 mt-3">
           {evSave > 0 ? <>In {d.name} an EV charged at home saves about <strong>{usd(evSave * 12)} a year</strong> on fuel at these prices. </> : null}
-          Electricity: EIA average residential price, {d.elecPeriod}. <Link href="/fuel-savings-calculator" className="text-blue-700 underline">Compare your exact cars</Link>
+          Electricity: EIA average residential price, {d.elecPeriod}. <Link href="/ev-charging-cost-calculator" className="text-blue-700 underline">EV charging cost calculator</Link> · <Link href="/fuel-savings-calculator" className="text-blue-700 underline">Compare your exact cars</Link>
         </p>
       </section>
 

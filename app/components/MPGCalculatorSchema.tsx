@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Script from 'next/script'
 
 export default function MPGCalculatorSchema() {
   const [host, setHost] = useState('')
@@ -39,9 +38,7 @@ export default function MPGCalculatorSchema() {
   }
 
   return (
-    <Script id="mpg-calculator-schema" type="application/ld+json">
-      {JSON.stringify(schema)}
-    </Script>
+    <script id="mpg-calculator-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
   )
 }
 
