@@ -293,7 +293,7 @@ export default async function RouteCostPage({ params }: Props) {
         </div>
       </section>
 
-      <RentalOffers routeSlug={r.slug} fromName={r.from.name} toName={r.to.name} distanceMi={r.distanceMi} />
+      <RentalOffers routeSlug={r.slug} from={r.from} to={r.to} distanceMi={r.distanceMi} />
 
       {/* Driving back */}
       <section className="mt-10 bg-white rounded-xl border border-blue-100 p-5 shadow-sm">
