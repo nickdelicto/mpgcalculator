@@ -19,7 +19,13 @@ export default function Home() {
     <>
       <MPGCalculatorSchema />
       {/* AvantLink affiliate application 1690281: website ownership check. Remove once AvantLink confirms. */}
-      <script type="text/javascript" src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=775e00a5450954c02015efb072601929c74a2ccc" async />
+      {/* Exact tag text as AvantLink gave it (their checker matches the page source literally) */}
+      <div
+        hidden
+        dangerouslySetInnerHTML={{
+          __html: '<script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=775e00a5450954c02015efb072601929c74a2ccc"></script>',
+        }}
+      />
       <FloatingRoadTripPromo />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
